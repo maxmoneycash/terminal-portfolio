@@ -1,0 +1,557 @@
+@import "tailwindcss";
+
+@font-face {
+  font-family: "Fira Code Local";
+  src: url("/fonts/fira-code.woff2") format("woff2");
+  font-weight: 300 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  color-scheme: dark;
+  --terminal-chrome-height: 3.625rem;
+  --background: oklch(15% 0.006 260);
+  --foreground: oklch(95% 0.005 250);
+  --card: oklch(18.5% 0.008 258);
+  --card-foreground: oklch(95% 0.005 250);
+  --popover: oklch(18.5% 0.008 258);
+  --popover-foreground: oklch(95% 0.005 250);
+  --primary: oklch(72% 0.025 225);
+  --primary-foreground: oklch(15% 0.006 260);
+  --secondary: oklch(23.5% 0.008 258);
+  --secondary-foreground: oklch(95% 0.005 250);
+  --muted: oklch(23% 0.008 258);
+  --muted-foreground: oklch(67% 0.008 255);
+  --accent: oklch(28.5% 0.01 252);
+  --accent-foreground: oklch(95% 0.005 250);
+  --border: oklch(31% 0.008 255);
+  --input: oklch(27% 0.008 255);
+  --ring: oklch(72% 0.025 225);
+  --radius: 0.45rem;
+  --font-copy: "Fira Code Local", "SFMono-Regular", Menlo, Consolas, monospace;
+  --font-mono: "Fira Code Local", "SFMono-Regular", Menlo, Consolas, monospace;
+  font-family:
+    "Fira Code Local",
+    ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    Consolas,
+    monospace;
+  background: var(--background);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-height: 100%;
+  background: var(--background);
+}
+
+body {
+  min-width: 320px;
+  min-height: 100dvh;
+  margin: 0;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-copy);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.terminal-stage {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  overflow: hidden;
+  background: var(--background);
+  padding-top: max(0.5rem, env(safe-area-inset-top));
+  padding-right: max(0.5rem, env(safe-area-inset-right));
+  padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+  padding-left: max(0.5rem, env(safe-area-inset-left));
+}
+
+.logue-backdrop-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 1;
+  pointer-events: none;
+}
+
+.terminal-machine {
+  position: relative;
+  z-index: 1;
+  width: 1040px;
+  height: 760px;
+  max-width: calc(100vw - 32px);
+  max-height: calc(100svh - 32px);
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  align-self: center;
+  border: 1px solid color-mix(in oklab, var(--border) 70%, transparent);
+  border-radius: 1.8rem;
+  background: #0507095f;
+  box-shadow: 0 40px 120px -70px rgb(0 0 0 / 0.88);
+  backdrop-filter: blur(2px);
+}
+
+.logue-terminal-fire-canvas {
+  position: absolute;
+  inset: var(--terminal-chrome-height) 0 0;
+  z-index: 0;
+  width: 100%;
+  height: calc(100% - var(--terminal-chrome-height));
+  opacity: 0.88;
+  pointer-events: none;
+}
+
+.signature-draw-layer {
+  position: absolute;
+  inset: var(--terminal-chrome-height) 0 0;
+  z-index: 4;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0 clamp(1.5rem, 5vw, 4rem) 5.25rem;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.rubiks-three-orbit {
+  position: absolute;
+  inset: var(--terminal-chrome-height) 0 0;
+  z-index: 3;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.rubiks-three-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.rubiks-three-drag-zone {
+  position: absolute;
+  right: clamp(0.65rem, 3vw, 3.5rem);
+  top: clamp(4rem, 15vh, 9rem);
+  width: min(54vw, 760px);
+  height: min(72vh, 720px);
+  cursor: grab;
+  pointer-events: auto;
+  touch-action: none;
+}
+
+.rubiks-three-drag-zone:active {
+  cursor: grabbing;
+}
+
+.rubiks-three-readout {
+  position: absolute;
+  right: clamp(1.4rem, 4vw, 3rem);
+  bottom: clamp(1.6rem, 6vw, 4.5rem);
+  display: grid;
+  gap: 0.34rem;
+  justify-items: end;
+  color: #dce3e7;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  line-height: 1;
+  text-shadow: 0 0.18rem 0.7rem rgb(0 0 0 / 0.88);
+  text-transform: uppercase;
+}
+
+.rubiks-three-readout span {
+  color: #94a3b8;
+}
+
+.rubiks-three-readout strong {
+  color: #bfdbfe;
+  font-size: 0.98rem;
+  font-weight: 700;
+}
+
+.setup-three-orbit {
+  position: absolute;
+  inset: var(--terminal-chrome-height) 0 0;
+  z-index: 3;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.setup-three-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.setup-three-readout {
+  position: absolute;
+  right: clamp(1.4rem, 4vw, 3rem);
+  bottom: clamp(1.6rem, 6vw, 4.5rem);
+  display: grid;
+  gap: 0.34rem;
+  justify-items: end;
+  color: #dce3e7;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  line-height: 1;
+  text-shadow: 0 0.18rem 0.7rem rgb(0 0 0 / 0.88);
+  text-transform: uppercase;
+}
+
+.setup-three-readout span {
+  color: #94a3b8;
+}
+
+.setup-three-readout strong {
+  color: #fecaca;
+  font-size: 0.98rem;
+  font-weight: 700;
+}
+
+.signature-handwriting-stage {
+  position: relative;
+  width: min(82vw, 900px);
+  max-width: 88%;
+  height: min(22vw, 13rem);
+  min-height: 10rem;
+  display: block;
+  transform: translateY(0.2rem);
+  user-select: none;
+  --signature-reveal: 0%;
+}
+
+.signature-final-image {
+  position: absolute;
+  inset: auto 0 0;
+  width: 100%;
+  height: auto;
+  clip-path: inset(0 calc(100% - var(--signature-reveal)) 0 0);
+  filter: invert(93%) sepia(12%) saturate(492%) hue-rotate(345deg) brightness(106%) contrast(97%);
+  opacity: 0.94;
+  transform: translateY(0.1rem);
+  will-change: clip-path;
+}
+
+.signature-pen-anchor {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 2;
+  width: 0;
+  height: 0;
+  opacity: 0;
+  transform: translate3d(0, 0, 0) rotate(0rad);
+  transform-origin: 0 0;
+  transition: opacity 180ms ease 90ms;
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+}
+
+.signature-pen-anchor.is-active {
+  opacity: 1;
+}
+
+.signature-pen-anchor.is-complete {
+  opacity: 0;
+}
+
+.signature-quill-image {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: clamp(8rem, 14vw, 11rem);
+  height: auto;
+  display: block;
+  overflow: visible;
+  max-width: none;
+  user-select: none;
+  pointer-events: none;
+  filter: drop-shadow(0 0.32rem 0.28rem rgb(0 0 0 / 0.34));
+  transform: translate(-0.6475%, -99.0955%);
+  transform-origin: 0 0;
+  backface-visibility: hidden;
+}
+
+.terminal-chrome {
+  position: relative;
+  z-index: 1;
+  min-height: var(--terminal-chrome-height);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 1rem;
+  border-bottom: 1px solid var(--border);
+  padding: 1rem 1.5rem;
+}
+
+.terminal-label {
+  color: var(--muted-foreground);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  line-height: 1;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.terminal-status {
+  display: inline-flex;
+  align-items: center;
+  justify-self: end;
+  gap: 0.5rem;
+}
+
+.terminal-status-dot {
+  width: 0.58rem;
+  height: 0.58rem;
+  display: inline-block;
+  border-radius: 999px;
+  background: #10b981;
+}
+
+.terminal-title {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  overflow: hidden;
+  color: #f4f4f5;
+  font-family:
+    "Fira Code Local",
+    ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    Consolas,
+    monospace;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.terminal-title span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.portfolio-terminal.wterm {
+  position: relative;
+  z-index: 1;
+  flex: none;
+  width: 100%;
+  height: calc(100% - var(--terminal-chrome-height));
+  min-height: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  outline: none;
+  padding: 1.5rem;
+  overflow: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.portfolio-terminal.wterm::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+
+.portfolio-terminal.wterm .term-grid {
+  min-width: max-content;
+}
+
+.portfolio-terminal.wterm.theme-logue {
+  --term-bg: rgb(5 7 9 / 0.03);
+  --term-fg: #dce3e7;
+  --term-cursor: #bfdbfe;
+  --term-color-0: #050709;
+  --term-color-1: #b87373;
+  --term-color-2: #abcee0;
+  --term-color-3: #e1d391;
+  --term-color-4: #a7c4d2;
+  --term-color-5: #b6a0c4;
+  --term-color-6: #abe8ff;
+  --term-color-7: #dce3e7;
+  --term-color-8: #68787f;
+  --term-color-9: #d19696;
+  --term-color-10: #c1d1d7;
+  --term-color-11: #ead99d;
+  --term-color-12: #a8c1cb;
+  --term-color-13: #ccb9d7;
+  --term-color-14: #b5dfe7;
+  --term-color-15: #ffffff;
+  --term-font-family: "Fira Code Local", "SFMono-Regular", Menlo, Consolas, monospace;
+  --term-font-size: 15px;
+  --term-row-height: 20px;
+}
+
+.portfolio-terminal.wterm.theme-midnight {
+  --term-bg: #0f172a;
+  --term-fg: #e2e8f0;
+  --term-cursor: #38bdf8;
+  --term-color-0: #0f172a;
+  --term-color-1: #f87171;
+  --term-color-2: #4ade80;
+  --term-color-3: #facc15;
+  --term-color-4: #38bdf8;
+  --term-color-5: #e879f9;
+  --term-color-6: #2dd4bf;
+  --term-color-7: #e2e8f0;
+  --term-color-8: #64748b;
+  --term-color-9: #fca5a5;
+  --term-color-10: #86efac;
+  --term-color-11: #fde68a;
+  --term-color-12: #7dd3fc;
+  --term-color-13: #f0abfc;
+  --term-color-14: #5eead4;
+  --term-color-15: #ffffff;
+  --term-font-family: "Fira Code Local", "SFMono-Regular", Menlo, Consolas, monospace;
+  --term-font-size: 15px;
+  --term-row-height: 20px;
+}
+
+.portfolio-terminal.wterm.theme-paper {
+  --term-bg: #f8fafc;
+  --term-fg: #18181b;
+  --term-cursor: #0f766e;
+  --term-color-0: #18181b;
+  --term-color-1: #be123c;
+  --term-color-2: #047857;
+  --term-color-3: #a16207;
+  --term-color-4: #2563eb;
+  --term-color-5: #be185d;
+  --term-color-6: #0891b2;
+  --term-color-7: #f8fafc;
+  --term-color-8: #71717a;
+  --term-color-9: #e11d48;
+  --term-color-10: #059669;
+  --term-color-11: #ca8a04;
+  --term-color-12: #3b82f6;
+  --term-color-13: #db2777;
+  --term-color-14: #06b6d4;
+  --term-color-15: #ffffff;
+  --term-font-family: "Fira Code Local", "SFMono-Regular", Menlo, Consolas, monospace;
+  --term-font-size: 15px;
+  --term-row-height: 20px;
+}
+
+.terminal-error {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  border-top: 1px solid #7f1d1d;
+  background: #450a0a;
+  padding: 0.75rem 1rem;
+  color: #fee2e2;
+  font-size: 0.875rem;
+  line-height: 1.4;
+}
+
+@media (max-width: 640px) {
+  .terminal-machine {
+    width: calc(100vw - 16px);
+    height: calc(100dvh - 16px);
+    max-width: calc(100vw - 16px);
+    max-height: calc(100dvh - 16px);
+    min-height: 0;
+    border-radius: 1.2rem;
+  }
+
+  .terminal-chrome {
+    min-height: var(--terminal-chrome-height);
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+    padding: 1rem 1.25rem;
+  }
+
+  .terminal-title {
+    grid-row: 1;
+    font-size: 0.8125rem;
+  }
+
+  .terminal-label {
+    display: none;
+  }
+
+  .portfolio-terminal.wterm {
+    height: calc(100% - var(--terminal-chrome-height));
+    min-height: 0;
+    padding: 1rem;
+  }
+
+  .logue-terminal-fire-canvas {
+    opacity: 0.46;
+  }
+
+  .signature-draw-layer {
+    padding: 0 1rem 5.75rem;
+  }
+
+  .signature-handwriting-stage {
+    width: min(92vw, 460px);
+    max-width: 96%;
+    min-height: 9rem;
+  }
+
+  .signature-quill-image {
+    width: clamp(4.75rem, 20vw, 5.75rem);
+  }
+
+  .rubiks-three-readout {
+    right: 1rem;
+    bottom: 1.25rem;
+    font-size: 0.62rem;
+  }
+
+  .rubiks-three-readout strong {
+    font-size: 0.78rem;
+  }
+
+  .rubiks-three-drag-zone {
+    inset: 5.5rem 0.5rem 4.25rem auto;
+    width: min(96vw, 26rem);
+    height: min(58vh, 28rem);
+  }
+
+  .setup-three-readout {
+    right: 1rem;
+    bottom: 1.25rem;
+    font-size: 0.62rem;
+  }
+
+  .setup-three-readout strong {
+    font-size: 0.78rem;
+  }
+
+  .portfolio-terminal.wterm.theme-logue,
+  .portfolio-terminal.wterm.theme-midnight,
+  .portfolio-terminal.wterm.theme-paper {
+    --term-font-size: 13px;
+    --term-row-height: 18px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rubiks-three-readout,
+  .setup-three-readout {
+    text-shadow: none;
+  }
+}
