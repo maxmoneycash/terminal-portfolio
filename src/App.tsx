@@ -1572,6 +1572,8 @@ function App() {
   const cubeVisibleRef = useRef(cubeVisible);
   const cubeTimersRef = useRef<number[]>([]);
   const typingTimersRef = useRef<number[]>([]);
+  const terminalScrollTimerRef = useRef<number | null>(null);
+  const terminalScrollFrameRef = useRef<number | null>(null);
   const bootRunRef = useRef(0);
 
   useEffect(() => {
@@ -1599,6 +1601,14 @@ function App() {
   }, []);
 
   useEffect(() => clearTypingTimers, [clearTypingTimers]);
+
+  useEffect(
+    () => () => {
+      if (terminalScrollTimerRef.current !== null) window.clearTimeout(terminalScrollTimerRef.current);
+      if (terminalScrollFrameRef.current !== null) window.cancelAnimationFrame(terminalScrollFrameRef.current);
+    },
+    [],
+  );
 
   const animateCubeMoves = useCallback(
     (
@@ -1656,15 +1666,30 @@ function App() {
   const scrollTerminalToBottom = useCallback(() => {
     const element = ref.current?.instance?.element ?? document.querySelector<HTMLElement>(".portfolio-terminal");
     if (!element) return;
-    element.scrollTop = element.scrollHeight;
+    const maxScroll = element.scrollHeight - element.clientHeight;
+    if (maxScroll <= 0) {
+      element.scrollTop = 0;
+      return;
+    }
+
+    const rowHeight =
+      Number.parseFloat(getComputedStyle(element).getPropertyValue("--term-row-height")) ||
+      Number.parseFloat(getComputedStyle(element).lineHeight) ||
+      17;
+    const target = Math.floor(maxScroll / rowHeight) * rowHeight;
+    if (Math.abs(element.scrollTop - target) > 0.5) element.scrollTop = target;
   }, [ref]);
 
   const scheduleTerminalScroll = useCallback(() => {
-    window.requestAnimationFrame(() => {
-      scrollTerminalToBottom();
-      window.requestAnimationFrame(scrollTerminalToBottom);
-      window.setTimeout(scrollTerminalToBottom, 40);
-    });
+    if (terminalScrollTimerRef.current !== null || terminalScrollFrameRef.current !== null) return;
+
+    terminalScrollTimerRef.current = window.setTimeout(() => {
+      terminalScrollTimerRef.current = null;
+      terminalScrollFrameRef.current = window.requestAnimationFrame(() => {
+        terminalScrollFrameRef.current = null;
+        scrollTerminalToBottom();
+      });
+    }, 0);
   }, [scrollTerminalToBottom]);
 
   const write = useCallback(

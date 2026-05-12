@@ -363,7 +363,11 @@ a {
   box-shadow: none;
   outline: none;
   padding: 1.5rem;
-  overflow: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overflow-anchor: none;
+  overscroll-behavior: contain;
+  scroll-behavior: auto;
   scrollbar-width: none;
   -ms-overflow-style: none;
 }

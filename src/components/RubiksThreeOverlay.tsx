@@ -64,11 +64,11 @@ const stickerNames: Record<string, string> = {
 };
 
 const spacing = 1.0;
-const shellOuterSize = 0.986;
+const shellOuterSize = 0.982;
 const coreSize = 0.72;
-const faceSize = 0.948;
-const faceDepth = 0.18;
-const faceBevelThickness = 0.036;
+const faceSize = 0.928;
+const faceDepth = 0.076;
+const faceBevelThickness = 0.018;
 const turnAnimationMs = 96;
 
 function coordKey(coord: THREE.Vector3 | CubeSticker["position"]) {
@@ -260,12 +260,8 @@ function makeCubeMaterials(textures: {
       stickerNames[face],
       new THREE.MeshStandardMaterial({
         color,
-        roughness: 0.46,
+        roughness: 0.54,
         metalness: 0,
-        map: textures.stickerMap ?? undefined,
-        roughnessMap: textures.stickerRoughness ?? undefined,
-        bumpMap: textures.stickerRoughness ?? undefined,
-        bumpScale: 0.006,
       }),
     ]),
   ) as Record<string, THREE.MeshStandardMaterial>;
@@ -353,7 +349,7 @@ function makeRoundedFaceGeometry(size: number, radius: number, depth: number) {
     depth,
     bevelEnabled: true,
     bevelSegments: 7,
-    bevelSize: 0.035,
+    bevelSize: 0.024,
     bevelThickness: faceBevelThickness,
     curveSegments: 14,
   });
