@@ -13,56 +13,62 @@ export type Role = {
 };
 
 export const portfolio = {
-  name: "Max Mohammadi",
+  name: "Maxwell Mohammadi",
   handle: "max",
-  title: "Software engineer",
-  location: "San Francisco Bay Area",
+  title: "Smart contract engineer",
+  location: "Palo Alto / San Francisco Bay Area",
   summary:
-    "I build fast, useful software with a bias toward thoughtful product details, clean systems, and interfaces people can actually operate.",
-  focus: ["Product engineering", "Full-stack systems", "AI tooling", "Developer experience"],
+    "I build Aptos Move systems, onchain trading products, LLM agent infrastructure, and high-throughput crypto demos for teams evaluating the Aptos stack.",
+  focus: ["Aptos Move", "Onchain trading", "LLM MCP servers", "High-throughput systems"],
   links: {
-    email: "mailto:hello@example.com",
-    github: "https://github.com/maxmohammadi",
-    linkedin: "https://www.linkedin.com/in/maxmohammadi",
-    resume: "/resume.txt",
+    email: "mailto:maxwell.mohammadi@gmail.com",
+    github: "https://github.com/maxmoneycash",
+    linkedin: "https://linkedin.com/in/maxwellmohammadi",
+    resume: "/Max_Mohammadi_Resume.pdf",
   },
   projects: [
     {
-      name: "Ops Console",
-      stack: "React, TypeScript, Postgres",
+      name: "Aptos Prediction Market",
+      stack: "Move, Aptos, React, performance engineering",
       summary:
-        "A compact internal dashboard for monitoring queues, failed jobs, and operational runbooks.",
-      link: "https://example.com",
+        "Built a Polymarket-style Aptos demo and a prediction market Move contract optimized with Aptos engineers to reach 10k TPS in pitch benchmarks.",
+      link: "https://aptos-polymarket.vercel.app/",
     },
     {
-      name: "Agent Toolkit",
-      stack: "Node.js, OpenAI APIs, Redis",
+      name: "Whop Finance",
+      stack: "Aptos, TypeScript, React, fintech product design",
       summary:
-        "A small framework for routing agent tasks across tools with durable traces and retry behavior.",
-      link: "https://example.com",
+        "Built a Whop-style fintech demo showing trading, payments, and investing on Aptos, then iterated from direct CEO feedback during the pitch process.",
+      link: "https://whop.finance/",
     },
     {
-      name: "Launch Site",
-      stack: "Vite, Tailwind CSS, Motion",
+      name: "Decibel Trading Bots",
+      stack: "LLM MCP servers, PineScript, Move, automated trading",
       summary:
-        "A performant marketing surface with reusable sections, structured content, and fast iteration paths.",
-      link: "https://example.com",
+        "Built agent infrastructure and automated bots that convert TradingView PineScript indicators into onchain smart contract trading strategies for Decibel Trade.",
+    },
+    {
+      name: "Sol2Move",
+      stack: "Solidity AST, Move, compiler IR, fuzzing",
+      summary:
+        "Built a Solidity-to-Aptos Move transpiler covering Veda BoringVault, Uniswap, Pendle, Trader Joe DLMM, and Compound-style contracts.",
+      link: "https://github.com/SeamMoney/aptos-move-transpiler",
     },
   ] satisfies Project[],
   roles: [
     {
-      company: "Independent",
-      title: "Product engineer",
-      period: "2024 - Present",
+      company: "Aptos Labs",
+      title: "Software engineer",
+      period: "September 2025 - Present",
       impact:
-        "Designing and shipping focused web products, prototypes, and automation for early-stage teams.",
+        "Shipping LLM MCP servers, onchain trading bots, high-throughput Move contracts, and product demos for Decibel Trade, Shelby Protocol, Whop, and Polymarket-style prediction markets.",
     },
     {
-      company: "Previous team",
-      title: "Full-stack engineer",
-      period: "2021 - 2024",
+      company: "EY Blockchain",
+      title: "Blockchain security consultant",
+      period: "August 2022 - September 2025",
       impact:
-        "Built customer-facing workflows, improved reliability, and made product analytics easier to act on.",
+        "Audited enterprise crypto custody infrastructure, led onchain incident response, and built cross-chain expertise across EVM, Aptos Move, Sui, Hyperliquid, and stablecoin systems.",
     },
   ] satisfies Role[],
 };

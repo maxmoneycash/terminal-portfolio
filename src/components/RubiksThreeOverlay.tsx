@@ -34,6 +34,7 @@ type SolvedStickerRef = {
 type CubeMaterials = {
   body: THREE.MeshStandardMaterial;
   stickers: Record<string, THREE.MeshStandardMaterial>;
+  recesses: Record<string, THREE.MeshStandardMaterial>;
 };
 
 const moveSpecs: Record<string, MoveSpec> = {
@@ -64,10 +65,12 @@ const stickerNames: Record<string, string> = {
 };
 
 const spacing = 1.0;
-const shellOuterSize = 0.982;
-const coreSize = 0.72;
+const shellOuterSize = 0.988;
+const coreSize = 0.9;
 const faceSize = 0.928;
 const faceDepth = 0.076;
+const recessSize = 0.986;
+const recessDepth = 0.052;
 const faceBevelThickness = 0.018;
 const turnAnimationMs = 96;
 
@@ -266,7 +269,21 @@ function makeCubeMaterials(textures: {
     ]),
   ) as Record<string, THREE.MeshStandardMaterial>;
 
-  return { body, stickers };
+  const recesses = Object.fromEntries(
+    Object.entries(faceColors).map(([face, color]) => {
+      const recessedColor = new THREE.Color(color).multiplyScalar(0.72);
+      return [
+        stickerNames[face],
+        new THREE.MeshStandardMaterial({
+          color: recessedColor,
+          roughness: 0.68,
+          metalness: 0,
+        }),
+      ];
+    }),
+  ) as Record<string, THREE.MeshStandardMaterial>;
+
+  return { body, stickers, recesses };
 }
 
 function orientPlaneToNormal(plane: THREE.Object3D, normal: THREE.Vector3) {
@@ -455,15 +472,8 @@ export function RubiksThreeOverlay({
       side: THREE.DoubleSide,
     });
     const bodyGeometry = new RoundedBoxGeometry(coreSize, coreSize, coreSize, 5, 0.09);
+    const recessGeometry = new RoundedBoxGeometry(recessSize, recessSize, recessDepth, 5, 0.024);
     const faceGeometry = makeRoundedFaceGeometry(faceSize, 0.124, faceDepth);
-    const centerRingGeometry = new THREE.RingGeometry(0.218, 0.234, 64);
-    const centerRingMaterial = new THREE.MeshBasicMaterial({
-      color: 0x1a1712,
-      transparent: true,
-      opacity: 0.24,
-      depthWrite: false,
-      side: THREE.DoubleSide,
-    });
     const logoGeometry = new THREE.PlaneGeometry(0.58, 0.28);
     const cubies: CubieNode[] = [];
     let disposed = false;
@@ -484,8 +494,16 @@ export function RubiksThreeOverlay({
           body.receiveShadow = true;
           group.add(body);
 
+          const recessOffset = shellOuterSize / 2 - recessDepth / 2 - 0.018;
           const faceOffset = shellOuterSize / 2 - faceDepth / 2 - faceBevelThickness;
           for (const { face, normal } of stickerFacesForCoord(coord)) {
+            const recessPanel = new THREE.Mesh(recessGeometry, materials.recesses[stickerNames[face]]);
+            recessPanel.position.set(normal.x * recessOffset, normal.y * recessOffset, normal.z * recessOffset);
+            orientPlaneToNormal(recessPanel, normal);
+            recessPanel.castShadow = true;
+            recessPanel.receiveShadow = true;
+            group.add(recessPanel);
+
             const facePanel = new THREE.Mesh(faceGeometry, materials.stickers[stickerNames[face]]);
             facePanel.position.set(normal.x * faceOffset, normal.y * faceOffset, normal.z * faceOffset);
             orientPlaneToNormal(facePanel, normal);
@@ -495,13 +513,6 @@ export function RubiksThreeOverlay({
 
             const isCenterFace = Math.abs(coord.x) + Math.abs(coord.y) + Math.abs(coord.z) === 1;
             if (isCenterFace) {
-              const detailOffset = faceOffset + faceDepth / 2 + faceBevelThickness + 0.006;
-              const ring = new THREE.Mesh(centerRingGeometry, centerRingMaterial);
-              ring.position.set(normal.x * detailOffset, normal.y * detailOffset, normal.z * detailOffset);
-              orientPlaneToNormal(ring, normal);
-              ring.renderOrder = 2;
-              group.add(ring);
-
               if (face !== "F") continue;
               const logo = new THREE.Mesh(logoGeometry, logoMaterial);
               const logoOffset = faceOffset + faceDepth / 2 + faceBevelThickness + 0.012;
@@ -738,15 +749,15 @@ export function RubiksThreeOverlay({
       shadowGeometry.dispose();
       shadowMaterial.dispose();
       bodyGeometry.dispose();
+      recessGeometry.dispose();
       faceGeometry.dispose();
-      centerRingGeometry.dispose();
-      centerRingMaterial.dispose();
       logoGeometry.dispose();
       for (const texture of Object.values(textures)) texture?.dispose();
       logoTexture?.dispose();
       logoMaterial.dispose();
       materials.body.dispose();
       for (const material of Object.values(materials.stickers)) material.dispose();
+      for (const material of Object.values(materials.recesses)) material.dispose();
     };
   }, [visible]);
 
