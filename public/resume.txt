@@ -3,16 +3,16 @@ Smart Contract Engineer
 Palo Alto / San Francisco Bay Area
 
 Current
-Software Engineer, Aptos Labs, September 2025 to Present
+Software Engineer, Aptos Labs, September 2025 — Present
 Shipping LLM MCP servers, onchain trading bots, throughput focused Move contracts, and product demos for Decibel Trade, Shelby Protocol, Whop, and Polymarket style prediction markets.
 
 Previous
-Blockchain Security Consultant, EY Blockchain, August 2022 to September 2025
+Blockchain Security Consultant, EY Blockchain, August 2022 — September 2025
 Audited enterprise crypto custody systems, led onchain incident response, and developed cross chain expertise across EVM, Aptos Move, Sui, Hyperliquid, and stablecoin systems.
 
 Selected Work
 Decibel / Shelby Agent Infrastructure: LLM MCP servers and PineScript to onchain trading bots
-Aptos Prediction Market: live Aptos demo
+Aptos Prediction Market: https://aptos-polymarket.vercel.app/
 Whop Finance: https://whop.finance/
-Sol2Move: GitHub Sol2Move transpiler
-Seam Core: GitHub Seam core
+Sol2Move: https://github.com/SeamMoney/aptos-move-transpiler
+Seam Core: https://github.com/SeamMoney/seam-core

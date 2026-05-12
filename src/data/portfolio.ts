@@ -59,14 +59,14 @@ export const portfolio = {
     {
       company: "Aptos Labs",
       title: "Software engineer",
-      period: "September 2025 - Present",
+      period: "September 2025 — Present",
       impact:
         "Shipping LLM MCP servers, onchain trading bots, high-throughput Move contracts, and product demos for Decibel Trade, Shelby Protocol, Whop, and Polymarket-style prediction markets.",
     },
     {
       company: "EY Blockchain",
       title: "Blockchain security consultant",
-      period: "August 2022 - September 2025",
+      period: "August 2022 — September 2025",
       impact:
         "Audited enterprise crypto custody infrastructure, led onchain incident response, and built cross-chain expertise across EVM, Aptos Move, Sui, Hyperliquid, and stablecoin systems.",
     },
