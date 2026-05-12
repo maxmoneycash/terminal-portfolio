@@ -9,6 +9,16 @@ Shipping LLM MCP servers, onchain trading bots, throughput focused Move contract
 Previous
 Blockchain Security Consultant, EY Blockchain, August 2022 — September 2025
 Audited enterprise crypto custody systems, led onchain incident response, and developed cross chain expertise across EVM, Aptos Move, Sui, Hyperliquid, and stablecoin systems.
+Key Achievement: Built cross chain expertise spanning EVM, Move, Aptos, Sui, and emerging platforms, directly informing audit methodology and client advisory.
+
+Forensic Data Analyst Intern, Ernst & Young, June 2021 — August 2021
+Key Achievement: Worked with Solidity, EVM, and DeFi protocols to create product research for clients.
+
+Software Engineering Intern, Sydereal, December 2020 — June 2021
+Key Achievement: Migrated satellite telemetry from SQLite to InfluxDB and implemented spacecraft anomaly detection, saving about $150K.
+
+AI Research Intern, Proximai AI, April 2020 — May 2021
+Key Achievement: Contributed to RaDAR, a spatial temporal framework for military aircraft GO/NO GO decisions.
 
 Selected Work
 Decibel / Shelby Agent Infrastructure: LLM MCP servers and PineScript to onchain trading bots

@@ -456,14 +456,6 @@ export function RubiksThreeOverlay({
     });
     const bodyGeometry = new RoundedBoxGeometry(coreSize, coreSize, coreSize, 5, 0.09);
     const faceGeometry = makeRoundedFaceGeometry(faceSize, 0.124, faceDepth);
-    const centerRingGeometry = new THREE.RingGeometry(0.218, 0.234, 64);
-    const centerRingMaterial = new THREE.MeshBasicMaterial({
-      color: 0x1a1712,
-      transparent: true,
-      opacity: 0.24,
-      depthWrite: false,
-      side: THREE.DoubleSide,
-    });
     const logoGeometry = new THREE.PlaneGeometry(0.58, 0.28);
     const cubies: CubieNode[] = [];
     let disposed = false;
@@ -495,13 +487,6 @@ export function RubiksThreeOverlay({
 
             const isCenterFace = Math.abs(coord.x) + Math.abs(coord.y) + Math.abs(coord.z) === 1;
             if (isCenterFace) {
-              const detailOffset = faceOffset + faceDepth / 2 + faceBevelThickness + 0.006;
-              const ring = new THREE.Mesh(centerRingGeometry, centerRingMaterial);
-              ring.position.set(normal.x * detailOffset, normal.y * detailOffset, normal.z * detailOffset);
-              orientPlaneToNormal(ring, normal);
-              ring.renderOrder = 2;
-              group.add(ring);
-
               if (face !== "F") continue;
               const logo = new THREE.Mesh(logoGeometry, logoMaterial);
               const logoOffset = faceOffset + faceDepth / 2 + faceBevelThickness + 0.012;
@@ -739,8 +724,6 @@ export function RubiksThreeOverlay({
       shadowMaterial.dispose();
       bodyGeometry.dispose();
       faceGeometry.dispose();
-      centerRingGeometry.dispose();
-      centerRingMaterial.dispose();
       logoGeometry.dispose();
       for (const texture of Object.values(textures)) texture?.dispose();
       logoTexture?.dispose();
