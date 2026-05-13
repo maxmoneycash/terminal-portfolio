@@ -21,8 +21,20 @@ AI Research Intern, Proximai AI, April 2020 — May 2021
 Key Achievement: Contributed to RaDAR, a spatial temporal framework for military aircraft GO/NO GO decisions.
 
 Selected Work
-Decibel / Shelby Agent Infrastructure: LLM MCP servers and PineScript to onchain trading bots
+Decibel / Shelby Agent Infrastructure
+Built Decibrrr, a Decibel Trade automation app with custom onchain SDK paths, TWAP and market maker strategies, delegation based trading, live bot state, and wallet integration.
+Built Shelby content rewards and MCP server workflows so agents could interact with Aptos protocol actions, content rewards, and trading tools through structured commands.
+
 Aptos Prediction Market: https://aptos-polymarket.vercel.app/
+Built a Polymarket style prediction market demo with Move contracts, market UI, real time trade streams, TPS dashboard, and HFT bot visualization.
+Partnered with Aptos engineers to optimize market creation, order resolution, and settlement flows to 10k TPS for pitch demos.
+
 Whop Finance: https://whop.finance/
+Built a Whop style Aptos finance demo with Tether WDK flows for creator payments, yield, cross chain transfers, and investing.
+Implemented agent banking flows across checking, savings, credit, exchange, and x402a payments using Aptos, Aave V3, Panora, and Whop integrations.
+
 Sol2Move: https://github.com/SeamMoney/aptos-move-transpiler
-Seam Core: https://github.com/SeamMoney/seam-core
+Built a Solidity to Aptos Move v2 transpiler with Solidity analysis, inheritance flattening, OpenZeppelin pattern support, Move parsing, validation, differential fuzzing, and a Sol2Move web app.
+
+tx-composer: https://github.com/SeamMoney/tx-composer
+Built simulate first Aptos DeFi transaction composition tooling with declarative Move call steps, return value wiring, balance tracking, VM error diagnosis, and JSON plans for AI agents.

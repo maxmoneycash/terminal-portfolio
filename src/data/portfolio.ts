@@ -29,30 +29,38 @@ export const portfolio = {
   projects: [
     {
       name: "Aptos Prediction Market",
-      stack: "Move, Aptos, React, performance engineering",
+      stack: "Move, Aptos, React, HFT demo infrastructure",
       summary:
-        "Built a Polymarket-style Aptos demo and a prediction market Move contract optimized with Aptos engineers to reach 10k TPS in pitch benchmarks.",
+        "Built a Polymarket-style Aptos demo with Move contracts, market UI, live trade streams, TPS dashboard, HFT bot visualization, and 10k TPS pitch benchmarks.",
       link: "https://aptos-polymarket.vercel.app/",
     },
     {
       name: "Whop Finance",
-      stack: "Aptos, TypeScript, React, fintech product design",
+      stack: "Aptos, Whop, Aave V3, Panora, x402a",
       summary:
-        "Built a Whop-style fintech demo showing trading, payments, and investing on Aptos, then iterated from direct CEO feedback during the pitch process.",
+        "Built a Whop-style Aptos finance demo with Tether WDK flows, creator payments, yield, cross-chain transfers, investing, and agent banking account views.",
       link: "https://whop.finance/",
     },
     {
-      name: "Decibel Trading Bots",
-      stack: "LLM MCP servers, PineScript, Move, automated trading",
+      name: "Decibel / Shelby Agent Infrastructure",
+      stack: "MCP servers, Decibel SDK, PineScript, Shelby",
       summary:
-        "Built agent infrastructure and automated bots that convert TradingView PineScript indicators into onchain smart contract trading strategies for Decibel Trade.",
+        "Built Decibrrr with custom Decibel onchain SDK paths, TWAP and market maker strategies, delegation-based trading, Shelby content rewards, and MCP workflows.",
+      link: "https://github.com/SeamMoney/decibrrr",
     },
     {
       name: "Sol2Move",
-      stack: "Solidity AST, Move, compiler IR, fuzzing",
+      stack: "Solidity AST, Move v2, parser validation, fuzzing",
       summary:
-        "Built a Solidity-to-Aptos Move transpiler covering Veda BoringVault, Uniswap, Pendle, Trader Joe DLMM, and Compound-style contracts.",
+        "Built a Solidity-to-Aptos Move v2 transpiler with Solidity analysis, inheritance flattening, OpenZeppelin support, Move parsing, validation, and differential fuzzing.",
       link: "https://github.com/SeamMoney/aptos-move-transpiler",
+    },
+    {
+      name: "tx-composer",
+      stack: "Aptos Script Composer, TypeScript SDK, AI JSON plans",
+      summary:
+        "Built simulate-first Aptos transaction composition tooling with declarative Move call steps, return wiring, balance tracking, VM error diagnosis, and JSON plans for AI agents.",
+      link: "https://github.com/SeamMoney/tx-composer",
     },
   ] satisfies Project[],
   roles: [
