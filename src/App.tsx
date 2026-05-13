@@ -1281,7 +1281,7 @@ function LogueBackdrop({ className = "logue-backdrop-canvas", variant = "field" 
     let pointerY = 0.5;
     let pointerEnergy = 0;
     let visible = !document.hidden;
-    const fieldChars = "LOGUE";
+    const fieldChars = "MAX";
     const fireChars = "FIRE";
     const bonfireShader = isFireLayer ? createBonfireShader(640, 640) : null;
     const particles = Array.from({ length: 260 }, (_, index) => ({
