@@ -53,9 +53,12 @@ const availableCommands = [
   "map",
   "neofetch",
   "next",
+  "now",
   "open",
+  "proof",
   "projects",
   "pwd",
+  "repos",
   "resume",
   "sign",
   "signature",
@@ -63,6 +66,7 @@ const availableCommands = [
   "skills",
   "status",
   "theme",
+  "timeline",
   "whoami",
 ] as const;
 
@@ -75,8 +79,10 @@ const commandExamples = [
   "cat about.md",
   "cat contact.txt",
   "cat experience.log",
+  "cat proof.links",
   "cat resume.txt",
   "cat skills.json",
+  "cat timeline.log",
   "cube on",
   "cube scramble",
   "cube scramble 25",
@@ -92,6 +98,15 @@ const commandExamples = [
   "open github",
   "open linkedin",
   "open resume",
+  "now",
+  "proof",
+  "repos",
+  "resume full",
+  "resume work",
+  "resume projects",
+  "resume links",
+  "resume pdf",
+  "timeline",
   "theme logue",
   "theme midnight",
   "theme paper",
@@ -169,10 +184,49 @@ let signatureInkMapPromise: Promise<SignatureInkMap> | null = null;
 
 const guideSteps = [
   { command: "projects", label: "selected work", detail: "Inspect shipped work and the product problems behind it." },
+  { command: "resume", label: "terminal resume", detail: "Read the resume as a command-native dossier." },
   { command: "about", label: "profile", detail: "Read the short version of who Max is and how he works." },
   { command: "skills", label: "stack map", detail: "Scan the technical strengths and interface craft." },
   { command: "experience", label: "impact", detail: "Review roles, scope, and practical outcomes." },
   { command: "contact", label: "links", detail: "Find email, GitHub, LinkedIn, and resume links." },
+] as const;
+
+const proofLinks = [
+  {
+    label: "Decibrrr",
+    url: "https://github.com/SeamMoney/decibrrr",
+    detail: "Decibel trading automation with TWAP, market maker paths, delegation, live bot state, and wallet flows.",
+  },
+  {
+    label: "Shelby content rewards",
+    url: "https://github.com/SeamMoney/shelby-content-rewards",
+    detail: "Shelby Protocol content rewards and structured agent workflows for protocol actions.",
+  },
+  {
+    label: "Aptos Polymarket",
+    url: "https://aptos-polymarket.vercel.app/",
+    detail: "Prediction market demo with Move contracts, live trade streams, TPS dashboard, and HFT bot visualization.",
+  },
+  {
+    label: "Whop Finance",
+    url: "https://whop.finance/",
+    detail: "Aptos finance demo for payments, yield, cross-chain transfers, investing, and agent banking flows.",
+  },
+  {
+    label: "Sol2Move",
+    url: "https://github.com/SeamMoney/aptos-move-transpiler",
+    detail: "Solidity AST to IR to Move AST to Move v2 compiler with parser validation and differential fuzzing.",
+  },
+  {
+    label: "Sol2Move app",
+    url: "https://github.com/SeamMoney/sol2move-app",
+    detail: "Web interface for reviewing Solidity to Aptos Move transpilation output.",
+  },
+  {
+    label: "tx-composer",
+    url: "https://github.com/SeamMoney/tx-composer",
+    detail: "Simulate-first Aptos transaction composition with Move call wiring, VM error diagnosis, and JSON plans.",
+  },
 ] as const;
 
 function visibleLength(text: string) {
@@ -218,7 +272,7 @@ function terminalPanel(title: string, rows: string[], width = panelWidth) {
 }
 
 function commandRow(command: string, label: string) {
-  return `${padVisible(color(command, "green"), 14)}${label}`;
+  return `${padVisible(color(command, "green"), Math.max(18, command.length + 2))}${label}`;
 }
 
 function hasVisitedCommand(visited: ReadonlySet<string>, command: string) {
@@ -287,6 +341,9 @@ function mapOutput(visited: ReadonlySet<string>) {
     commandRow("hint", "context-aware suggestions"),
     commandRow("signature", "draw the handwritten mark"),
     commandRow("intro", "human-typed about.max.ts"),
+    commandRow("resume", "terminal-native resume"),
+    commandRow("proof", "live demos and repo links"),
+    commandRow("timeline", "career path with dates"),
     commandRow("cube", "floating cube controls"),
     commandRow("setup", "MacBook + custom 60% keyboard"),
     commandRow("ls", "show portfolio files"),
@@ -446,7 +503,25 @@ function setupSourceOutput() {
 }
 
 function contextualNudge(name: string, visited: ReadonlySet<string>, cubeVisible: boolean, cubeHasHistory: boolean) {
-  const quietCommands = new Set(["?", "clear", "cube", "desk", "guide", "help", "hint", "mail", "map", "next", "open", "setup", "theme"]);
+  const quietCommands = new Set([
+    "?",
+    "clear",
+    "cube",
+    "desk",
+    "guide",
+    "help",
+    "hint",
+    "mail",
+    "map",
+    "next",
+    "now",
+    "open",
+    "proof",
+    "repos",
+    "setup",
+    "theme",
+    "timeline",
+  ]);
   if (quietCommands.has(name)) return "";
 
   const nextStep = nextGuideStep(visited);
@@ -539,6 +614,8 @@ function bootOutput() {
       commandRow("projects", "selected work"),
       commandRow("cube", "floating scrambler + solver"),
       commandRow("setup", "MacBook + custom keyboard scene"),
+      commandRow("resume", "terminal resume dashboard"),
+      commandRow("proof", "demos and repo evidence"),
       commandRow("intro", "type out the about program"),
       commandRow("signature", "draw the handwritten mark"),
       commandRow("about", "profile"),
@@ -548,7 +625,7 @@ function bootOutput() {
       "Tab completes. Up/Down recalls commands.",
     ]),
     "",
-    `${color("try", "yellow")}: ${color("guide", "green")} or ${color("cube", "green")}`,
+    `${color("try", "yellow")}: ${color("guide", "green")} or ${color("resume", "green")}`,
     "",
   ].join(newline);
 }
@@ -562,6 +639,11 @@ function helpOutput(visited: ReadonlySet<string>) {
       commandRow("map", "route and shortcuts"),
       commandRow("signature", "draw the handwritten mark"),
       commandRow("intro", "HumanTypingTS about program"),
+      commandRow("resume", "terminal-native resume"),
+      commandRow("resume work", "role history with key achievements"),
+      commandRow("resume projects", "project detail and visible URLs"),
+      commandRow("proof", "demos and repo links"),
+      commandRow("timeline", "career path with dates"),
       commandRow("cube", "floating Rubik's cube controller"),
       commandRow("setup", "MacBook + matte-white keyboard scene"),
       "",
@@ -589,6 +671,7 @@ function lsOutput() {
   return [
     `${color("about.md", "cyan")}       ${color("projects/", "blue")}      ${color("experience.log", "yellow")}`,
     `${color("skills.json", "green")}    ${color("contact.txt", "magenta")}    ${color("resume.txt", "white")}`,
+    `${color("proof.links", "cyan")}    ${color("timeline.log", "yellow")}`,
   ].join(newline);
 }
 
@@ -665,8 +748,9 @@ function contactOutput() {
   return [
     headline("contact"),
     `${pad("email")}${portfolio.links.email.replace("mailto:", "")}`,
-    `${pad("github")}open github`,
-    `${pad("linkedin")}open linkedin`,
+    `${pad("github")}${portfolio.links.github}`,
+    `${pad("linkedin")}${portfolio.links.linkedin}`,
+    `${pad("resume")}${portfolio.links.resume}`,
   ].join(newline);
 }
 
@@ -677,6 +761,157 @@ function linksOutput() {
     `${pad("linkedin")}${portfolio.links.linkedin}`,
     `${pad("resume")}${portfolio.links.resume}`,
   ].join(newline);
+}
+
+function metric(label: string, value: string, detail: string) {
+  return `${padVisible(color(value, "cyan"), 10)}${padVisible(label, 16)}${detail}`;
+}
+
+function resumeHeaderRows() {
+  return [
+    `${color("MAXWELL MOHAMMADI", "cyan")} ${ansi.dim}// ${portfolio.title}${ansi.reset}`,
+    `${pad("base", 12)}${portfolio.location}`,
+    `${pad("email", 12)}${portfolio.links.email.replace("mailto:", "")}`,
+    `${pad("resume", 12)}${portfolio.links.resume}`,
+  ];
+}
+
+function resumeSnapshotOutput() {
+  return [
+    terminalPanel("resume", [
+      ...resumeHeaderRows(),
+      "",
+      `${pad("current", 12)}Aptos Labs | Sep 2025 -> Present`,
+      ...pretextWrap(
+        "Shipping LLM MCP servers, Decibel trading bots, high-throughput Move contracts, and pitch-ready Aptos demos for prediction markets, Whop-style finance, and agent workflows.",
+        64,
+      ),
+      "",
+      metric("throughput", "10k TPS", "prediction market Move contract"),
+      metric("agent infra", "MCP", "Decibel + Shelby protocol tooling"),
+      metric("trading", "bots", "PineScript to onchain strategies"),
+      metric("security", "EY", "custody audits + incident response"),
+    ]),
+    "",
+    terminalPanel("resume commands", [
+      commandRow("resume work", "role history with key achievements"),
+      commandRow("resume projects", "portfolio projects with concrete URLs"),
+      commandRow("proof", "fast proof board of demos and repos"),
+      commandRow("timeline", "dates and career path"),
+      commandRow("open resume", "open the PDF"),
+    ]),
+  ].join(newline);
+}
+
+function resumeWorkOutput() {
+  return terminalPanel("work history", [
+    `${color("Aptos Labs", "yellow")} | Software Engineer | September 2025 -> Present`,
+    "Ships LLM MCP servers for Decibel Trade and Shelby Protocol.",
+    "Built Decibel bots that convert TradingView PineScript into onchain smart contract trading strategies.",
+    "Built and optimized a prediction market Move contract with Aptos engineers until benchmark throughput reached 10k TPS.",
+    "Built Polymarket and Whop demos for partner pitches and product feedback conversations.",
+    "",
+    `${color("Ernst & Young, EY Blockchain", "yellow")} | Blockchain Security Consultant | August 2022 -> September 2025`,
+    "Audited enterprise crypto custody infrastructure alongside Trail of Bits.",
+    "Led crypto incident response investigations with TRM Labs.",
+    "Authored stablecoin and protocol risk research for EY Blockchain clients.",
+    "Key achievement: developed cross-chain expertise across EVM, Move, Aptos, Sui, and emerging platforms.",
+    "",
+    `${color("Ernst & Young", "yellow")} | Forensic Data Analyst Intern | June 2021 -> August 2021`,
+    "Built anomaly detection for forensic financial analysis and researched Ethereum, Celo, Solidity, EVM, and DeFi protocols.",
+    "",
+    `${color("Sydereal", "yellow")} | Software Engineering Intern | December 2020 -> June 2021`,
+    "Migrated satellite telemetry from SQLite to InfluxDB and implemented spacecraft anomaly detection, saving about $150K.",
+    "",
+    `${color("Proximai AI", "yellow")} | AI Research Intern | April 2020 -> May 2021`,
+    "Prepared NASA NIAC proposals and contributed to RaDAR, a spatial temporal framework for military aircraft GO/NO GO decisions.",
+  ]);
+}
+
+function projectDetailRows() {
+  return portfolio.projects.flatMap((project, index) => [
+    `${color(`${index + 1}. ${project.name}`, "yellow")}`,
+    `${pad("stack", 10)}${project.stack}`,
+    ...pretextWrap(project.summary, 62).map((line) => `${pad("ship", 10)}${line}`),
+    project.link ? `${pad("url", 10)}${project.link}` : "",
+    "",
+  ]);
+}
+
+function resumeProjectsOutput() {
+  return terminalPanel("selected projects", projectDetailRows().filter(Boolean));
+}
+
+function proofOutput() {
+  return terminalPanel("proof board", [
+    "Live demos and repository evidence:",
+    "",
+    ...proofLinks.flatMap((item, index) => [
+      `${color(`${index + 1}. ${item.label}`, "yellow")}`,
+      `${pad("url", 9)}${item.url}`,
+      ...pretextWrap(item.detail, 60).map((line) => `${pad("does", 9)}${line}`),
+      "",
+    ]),
+    "Tip: use open github, open linkedin, or open resume for the direct links.",
+  ]);
+}
+
+function reposOutput() {
+  return terminalPanel("repo deck", [
+    ...proofLinks.flatMap((item) => [`${padVisible(color(item.label, "yellow"), 24)}${item.url}`]),
+    "",
+    "Some partner-pitch repos are private or organization-scoped, but the terminal still shows the exact project trail.",
+  ]);
+}
+
+function timelineOutput() {
+  return terminalPanel("timeline", [
+    `${padVisible(color("2025 -> now", "cyan"), 16)}Aptos Labs | Software Engineer`,
+    "                LLM MCP servers, Decibel bots, prediction market Move contract, Whop and Polymarket demos.",
+    `${padVisible(color("2022 -> 2025", "cyan"), 16)}EY Blockchain | Blockchain Security Consultant`,
+    "                Custody audits, Trail of Bits collaboration, TRM Labs incident response, cross-chain protocol research.",
+    `${padVisible(color("2021", "cyan"), 16)}Ernst & Young | Forensic Data Analyst Intern`,
+    "                Anomaly detection, Ethereum and Celo protocol research, Solidity and EVM product research.",
+    `${padVisible(color("2020 -> 2021", "cyan"), 16)}Sydereal | Software Engineering Intern`,
+    "                Satellite telemetry migration and neural network anomaly detection for spacecraft monitoring.",
+    `${padVisible(color("2020 -> 2021", "cyan"), 16)}Proximai AI | AI Research Intern`,
+    "                NASA NIAC proposals and RaDAR research for aircraft GO/NO GO decision systems.",
+  ]);
+}
+
+function nowOutput() {
+  return terminalPanel("now", [
+    `${color("Aptos Labs", "yellow")} in Palo Alto`,
+    "",
+    "Current work centers on agent-facing protocol infrastructure, onchain trading systems, and high-throughput Aptos demos that founders and partner teams can actually touch.",
+    "",
+    commandRow("proof", "show demos and repo evidence"),
+    commandRow("resume work", "show role history"),
+    commandRow("cube", "open the interactive side quest"),
+  ]);
+}
+
+function resumeOutput(args: string[] = []) {
+  const mode = args[0]?.toLowerCase() ?? "snapshot";
+
+  if (mode === "work" || mode === "experience") return resumeWorkOutput();
+  if (mode === "projects" || mode === "project") return resumeProjectsOutput();
+  if (mode === "links" || mode === "proof") return proofOutput();
+  if (mode === "repos" || mode === "repo") return reposOutput();
+  if (mode === "timeline") return timelineOutput();
+  if (mode === "pdf" || mode === "download") {
+    return terminalPanel("resume pdf", [
+      `${pad("path", 10)}${portfolio.links.resume}`,
+      `${pad("command", 10)}open resume`,
+      "",
+      "The terminal view is optimized for scanning; the PDF is the print-ready version.",
+    ]);
+  }
+  if (mode === "full") {
+    return [resumeSnapshotOutput(), "", resumeWorkOutput(), "", resumeProjectsOutput()].join(newline);
+  }
+
+  return resumeSnapshotOutput();
 }
 
 function signatureOutput() {
@@ -727,7 +962,9 @@ function fileOutput(target: string) {
   if (target === "contact.txt") return contactOutput();
   if (target === "skills.json") return skillsOutput();
   if (target === "experience.log") return experienceOutput();
-  if (target === "resume.txt") return `${color("resume", "green")} ${portfolio.links.resume}`;
+  if (target === "proof.links") return proofOutput();
+  if (target === "timeline.log") return timelineOutput();
+  if (target === "resume.txt") return resumeOutput(["full"]);
   return `${color("cat", "yellow")}: ${target || "missing file"}`;
 }
 
@@ -1957,6 +2194,8 @@ function App() {
             ? nextOutput(visitedCommandsRef.current)
           : name === "map"
             ? mapOutput(visitedCommandsRef.current)
+          : name === "now"
+            ? nowOutput()
           : name === "whoami"
             ? aboutOutput()
             : name === "ls"
@@ -1969,6 +2208,12 @@ function App() {
                     ? projectsOutput()
                     : name === "experience"
                       ? experienceOutput()
+                      : name === "proof"
+                        ? proofOutput()
+                        : name === "repos"
+                          ? reposOutput()
+                          : name === "timeline"
+                            ? timelineOutput()
                       : name === "skills"
                         ? skillsOutput()
                         : name === "contact"
@@ -1976,7 +2221,7 @@ function App() {
                           : name === "links"
                             ? linksOutput()
                             : name === "resume"
-                              ? `${color("resume", "green")} ${portfolio.links.resume}`
+                              ? resumeOutput(args)
                               : name === "status"
                                 ? statusOutput(terminalTheme, hasEnteredTerminalRef.current, cubeMode)
                                 : name === "neofetch"
