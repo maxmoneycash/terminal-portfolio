@@ -254,15 +254,24 @@ function pretextWrap(text: string, width = 58) {
   return wrapWords(normalized, width);
 }
 
+function responsivePanelWidth(width: number) {
+  if (typeof window === "undefined") return width;
+  if (window.innerWidth <= 380) return Math.min(width, 38);
+  if (window.innerWidth <= 460) return Math.min(width, 44);
+  if (window.innerWidth <= 640) return Math.min(width, 54);
+  return width;
+}
+
 function terminalPanel(title: string, rows: string[], width = panelWidth) {
-  const innerWidth = width - 4;
+  const outerWidth = responsivePanelWidth(width);
+  const innerWidth = outerWidth - 4;
   const safeRows = rows.flatMap((row) => {
     if (visibleLength(row) <= innerWidth) return row;
     return pretextWrap(row.replace(ansiPattern, ""), innerWidth);
   });
   const heading = ` ${title} `;
-  const top = `+--${heading}${"-".repeat(Math.max(0, width - 4 - heading.length))}+`;
-  const bottom = `+${"-".repeat(width - 2)}+`;
+  const top = `+--${heading}${"-".repeat(Math.max(0, outerWidth - 4 - heading.length))}+`;
+  const bottom = `+${"-".repeat(outerWidth - 2)}+`;
 
   return [
     top,
@@ -272,7 +281,11 @@ function terminalPanel(title: string, rows: string[], width = panelWidth) {
 }
 
 function commandRow(command: string, label: string) {
-  return `${padVisible(color(command, "green"), Math.max(18, command.length + 2))}${label}`;
+  const width =
+    typeof window !== "undefined" && window.innerWidth <= 460
+      ? Math.max(16, Math.min(24, command.length + 2))
+      : Math.max(18, command.length + 2);
+  return `${padVisible(color(command, "green"), width)}${label}`;
 }
 
 function hasVisitedCommand(visited: ReadonlySet<string>, command: string) {
@@ -596,7 +609,45 @@ function field(label: string, value: string, width = 30) {
     .join(newline);
 }
 
-function bootOutput() {
+function compactTerminalViewport() {
+  return typeof window !== "undefined" && window.innerWidth <= 640;
+}
+
+function bootOutput(compact = compactTerminalViewport()) {
+  const startRows = compact
+    ? [
+        "Tap anywhere in the shell and type a command.",
+        "",
+        commandRow("resume", "terminal resume"),
+        commandRow("proof", "demos and repo evidence"),
+        commandRow("projects", "selected work"),
+        commandRow("guide", "guided route"),
+        commandRow("cube", "3D side quest"),
+        commandRow("contact", "links and email"),
+        "",
+        "Tab completes. Up/Down recalls commands.",
+      ]
+    : [
+        ...pretextWrap(
+          "The fire is idle ambience. It disappears as soon as you start typing, so the terminal becomes the interface instead of a backdrop.",
+          64,
+        ),
+        "",
+        commandRow("guide", "guided tour with progress"),
+        commandRow("projects", "selected work"),
+        commandRow("cube", "floating scrambler + solver"),
+        commandRow("setup", "MacBook + custom keyboard scene"),
+        commandRow("resume", "terminal resume dashboard"),
+        commandRow("proof", "demos and repo evidence"),
+        commandRow("intro", "type out the about program"),
+        commandRow("signature", "draw the handwritten mark"),
+        commandRow("about", "profile"),
+        commandRow("contact", "links and email"),
+        commandRow("hint", "tell me what to try next"),
+        "",
+        "Tab completes. Up/Down recalls commands.",
+      ];
+
   return [
     `${ansi.cyan}M A X   M O H A M M A D I${ansi.reset}`,
     `${ansi.dim}v. terminal portfolio / local runtime${ansi.reset}`,
@@ -604,26 +655,7 @@ function bootOutput() {
     `${ansi.bold}${portfolio.name}${ansi.reset} // ${portfolio.title}`,
     `${ansi.dim}${portfolio.location}${ansi.reset}`,
     "",
-    terminalPanel("start here", [
-      ...pretextWrap(
-        "The fire is idle ambience. It disappears as soon as you start typing, so the terminal becomes the interface instead of a backdrop.",
-        64,
-      ),
-      "",
-      commandRow("guide", "guided tour with progress"),
-      commandRow("projects", "selected work"),
-      commandRow("cube", "floating scrambler + solver"),
-      commandRow("setup", "MacBook + custom keyboard scene"),
-      commandRow("resume", "terminal resume dashboard"),
-      commandRow("proof", "demos and repo evidence"),
-      commandRow("intro", "type out the about program"),
-      commandRow("signature", "draw the handwritten mark"),
-      commandRow("about", "profile"),
-      commandRow("contact", "links and email"),
-      commandRow("hint", "tell me what to try next"),
-      "",
-      "Tab completes. Up/Down recalls commands.",
-    ]),
+    terminalPanel("start here", startRows),
     "",
     `${color("try", "yellow")}: ${color("guide", "green")} or ${color("resume", "green")}`,
     "",
@@ -1908,13 +1940,7 @@ function App() {
       element.scrollTop = 0;
       return;
     }
-
-    const rowHeight =
-      Number.parseFloat(getComputedStyle(element).getPropertyValue("--term-row-height")) ||
-      Number.parseFloat(getComputedStyle(element).lineHeight) ||
-      17;
-    const target = Math.floor(maxScroll / rowHeight) * rowHeight;
-    if (Math.abs(element.scrollTop - target) > 0.5) element.scrollTop = target;
+    element.scrollTop = maxScroll;
   }, [ref]);
 
   const scheduleTerminalScroll = useCallback(() => {
@@ -1942,6 +1968,50 @@ function App() {
     focus();
     scheduleTerminalScroll();
   }, [focus, prompt, scheduleTerminalScroll, write]);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    let animationFrame: number | null = null;
+    let followUpTimer: number | null = null;
+
+    const updateViewport = () => {
+      if (animationFrame !== null) window.cancelAnimationFrame(animationFrame);
+      animationFrame = window.requestAnimationFrame(() => {
+        animationFrame = null;
+        const viewport = window.visualViewport;
+        const viewportHeight = viewport?.height ?? window.innerHeight;
+        const viewportTop = viewport?.offsetTop ?? 0;
+        const keyboardInset = Math.max(0, window.innerHeight - viewportHeight - viewportTop);
+
+        root.style.setProperty("--app-height", `${Math.max(320, viewportHeight)}px`);
+        root.style.setProperty("--keyboard-inset", `${keyboardInset}px`);
+        scheduleTerminalScroll();
+
+        if (followUpTimer !== null) window.clearTimeout(followUpTimer);
+        followUpTimer = window.setTimeout(() => {
+          followUpTimer = null;
+          scrollTerminalToBottom();
+        }, 180);
+      });
+    };
+
+    updateViewport();
+    window.addEventListener("resize", updateViewport);
+    window.addEventListener("orientationchange", updateViewport);
+    window.visualViewport?.addEventListener("resize", updateViewport);
+    window.visualViewport?.addEventListener("scroll", updateViewport);
+
+    return () => {
+      if (animationFrame !== null) window.cancelAnimationFrame(animationFrame);
+      if (followUpTimer !== null) window.clearTimeout(followUpTimer);
+      window.removeEventListener("resize", updateViewport);
+      window.removeEventListener("orientationchange", updateViewport);
+      window.visualViewport?.removeEventListener("resize", updateViewport);
+      window.visualViewport?.removeEventListener("scroll", updateViewport);
+      root.style.removeProperty("--app-height");
+      root.style.removeProperty("--keyboard-inset");
+    };
+  }, [scheduleTerminalScroll, scrollTerminalToBottom]);
 
   const writeHumanTypedText = useCallback(
     async (text: string) => {
@@ -2345,7 +2415,14 @@ function App() {
   return (
     <main className="terminal-stage min-h-dvh bg-zinc-950 p-2 text-zinc-100 sm:p-4">
       <LogueBackdrop />
-      <section className="terminal-machine" aria-label="Interactive portfolio terminal">
+      <section
+        className="terminal-machine"
+        aria-label="Interactive portfolio terminal"
+        onPointerDown={() => {
+          focus();
+          scheduleTerminalScroll();
+        }}
+      >
         {!hasEnteredTerminal ? <LogueBackdrop className="logue-terminal-fire-canvas" variant="fire" /> : null}
         <SignatureDrawLayer runId={signatureRunId} />
         <RubiksThreeOverlay
