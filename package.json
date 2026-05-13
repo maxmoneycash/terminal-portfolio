@@ -11,6 +11,7 @@
   "dependencies": {
     "@chenglou/pretext": "^0.0.6",
     "@etareduction/humantypingts": "npm:@jsr/etareduction__humantypingts@^0.1.0",
+    "@webtui/css": "^0.1.7",
     "@wterm/dom": "0.3.0",
     "@wterm/react": "0.3.0",
     "clsx": "^2.1.1",

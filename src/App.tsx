@@ -134,6 +134,17 @@ function wrapWords(text: string, width = 30) {
   let current = "";
 
   for (const word of words) {
+    if (word.length > width) {
+      if (current) {
+        lines.push(current);
+        current = "";
+      }
+      for (let index = 0; index < word.length; index += width) {
+        lines.push(word.slice(index, index + width));
+      }
+      continue;
+    }
+
     if (!current) {
       current = word;
       continue;
@@ -269,9 +280,10 @@ function terminalPanel(title: string, rows: string[], width = panelWidth) {
     if (visibleLength(row) <= innerWidth) return row;
     return pretextWrap(row.replace(ansiPattern, ""), innerWidth);
   });
-  const heading = ` ${title} `;
-  const top = `+--${heading}${"-".repeat(Math.max(0, outerWidth - 4 - heading.length))}+`;
-  const bottom = `+${"-".repeat(outerWidth - 2)}+`;
+  const heading = `[ ${title.toUpperCase()} ]`;
+  const headingRoom = Math.max(0, outerWidth - heading.length - 5);
+  const top = `+==${heading}${"=".repeat(headingRoom)}+`;
+  const bottom = `+${"=".repeat(Math.max(0, outerWidth - 2))}+`;
 
   return [
     top,
@@ -286,6 +298,12 @@ function commandRow(command: string, label: string) {
       ? Math.max(16, Math.min(24, command.length + 2))
       : Math.max(18, command.length + 2);
   return `${padVisible(color(command, "green"), width)}${label}`;
+}
+
+function panelRule(label: string, width = responsivePanelWidth(panelWidth) - 4) {
+  const safeLabel = ` ${label.toUpperCase()} `;
+  const fill = Math.max(0, width - safeLabel.length - 2);
+  return `::${safeLabel}${".".repeat(fill)}`;
 }
 
 function hasVisitedCommand(visited: ReadonlySet<string>, command: string) {
@@ -563,6 +581,19 @@ function completionOutput(current: string, matches: readonly string[]) {
   ]);
 }
 
+function commandHeader(command: string) {
+  const width = responsivePanelWidth(panelWidth);
+  const commandLabel = command.length > width - 11 ? `${command.slice(0, width - 14)}...` : command;
+  const left = `[RUN] ${commandLabel}`;
+  const right = "[FOCUSED VIEW]";
+  const gap = Math.max(1, width - visibleLength(left) - visibleLength(right));
+
+  return [
+    `${color("[RUN]", "yellow")} ${color(commandLabel, "green")}${ansi.dim}${" ".repeat(gap)}${right}${ansi.reset}`,
+    `${ansi.dim}[MODE] output replaces the previous command screen${ansi.reset}`,
+  ].join(newline);
+}
+
 function typingIntroOutput() {
   return [
     `${color("human typing", "yellow")}: composing ./about.max.ts`,
@@ -618,10 +649,13 @@ function bootOutput(compact = compactTerminalViewport()) {
     ? [
         "Tap anywhere in the shell and type a command.",
         "",
+        panelRule("primary route"),
         commandRow("resume", "terminal resume"),
         commandRow("proof", "demos and repo evidence"),
         commandRow("projects", "selected work"),
         commandRow("guide", "guided route"),
+        "",
+        panelRule("side quests"),
         commandRow("cube", "3D side quest"),
         commandRow("contact", "links and email"),
         "",
@@ -633,14 +667,19 @@ function bootOutput(compact = compactTerminalViewport()) {
           64,
         ),
         "",
+        panelRule("primary route"),
         commandRow("guide", "guided tour with progress"),
         commandRow("projects", "selected work"),
-        commandRow("cube", "floating scrambler + solver"),
-        commandRow("setup", "MacBook + custom keyboard scene"),
         commandRow("resume", "terminal resume dashboard"),
         commandRow("proof", "demos and repo evidence"),
+        "",
+        panelRule("interactive scenes"),
+        commandRow("cube", "floating scrambler + solver"),
+        commandRow("setup", "MacBook + custom keyboard scene"),
         commandRow("intro", "type out the about program"),
         commandRow("signature", "draw the handwritten mark"),
+        "",
+        panelRule("profile"),
         commandRow("about", "profile"),
         commandRow("contact", "links and email"),
         commandRow("hint", "tell me what to try next"),
@@ -665,20 +704,26 @@ function bootOutput(compact = compactTerminalViewport()) {
 function helpOutput(visited: ReadonlySet<string>) {
   return [
     terminalPanel("command deck", [
+      panelRule("navigation"),
       commandRow("guide", "guided route through the portfolio"),
       commandRow("next", "next recommended command"),
       commandRow("hint", "context-aware suggestions"),
       commandRow("map", "route and shortcuts"),
-      commandRow("signature", "draw the handwritten mark"),
-      commandRow("intro", "HumanTypingTS about program"),
+      "",
+      panelRule("resume and proof"),
       commandRow("resume", "terminal-native resume"),
       commandRow("resume work", "role history with key achievements"),
       commandRow("resume projects", "project detail and visible URLs"),
       commandRow("proof", "demos and repo links"),
       commandRow("timeline", "career path with dates"),
+      "",
+      panelRule("interactive"),
       commandRow("cube", "floating Rubik's cube controller"),
       commandRow("setup", "MacBook + matte-white keyboard scene"),
+      commandRow("signature", "draw the handwritten mark"),
+      commandRow("intro", "HumanTypingTS about program"),
       "",
+      panelRule("profile"),
       commandRow("about", "profile snapshot"),
       commandRow("projects", "selected work"),
       commandRow("experience", "roles and impact"),
@@ -686,6 +731,7 @@ function helpOutput(visited: ReadonlySet<string>) {
       commandRow("contact", "email and social links"),
       commandRow("links", "raw link list"),
       "",
+      panelRule("shell"),
       commandRow("ls", "portfolio files"),
       commandRow("cat", "read about.md, contact.txt, skills.json, experience.log"),
       commandRow("neofetch", "compact portfolio card"),
@@ -741,17 +787,29 @@ function aboutProgramSource() {
   ].join("\n");
 }
 
+function projectSignal(projectName: string) {
+  if (projectName.includes("Prediction")) return "10k TPS Move prediction market";
+  if (projectName.includes("Whop")) return "Aptos payments, yield, investing";
+  if (projectName.includes("Decibel")) return "MCP agents + trading bots";
+  if (projectName.includes("Sol2Move")) return "Solidity to Aptos Move compiler";
+  if (projectName.includes("tx-composer")) return "simulate-first Aptos tx plans";
+  return projectName;
+}
+
 function projectsOutput() {
-  return [
-    headline("selected work"),
-    ...portfolio.projects.flatMap((project, index) => [
-      "",
-      `${color(`${index + 1}. ${project.name}`, "yellow")}`,
-      field("stack", project.stack),
-      field("ship", project.summary),
-      project.link ? `${pad("url")}${project.link}` : "",
-    ]),
-  ].join(newline);
+  return terminalPanel("project index", [
+    "Short scan. Use resume projects for full detail.",
+    "",
+    panelRule("shipped systems"),
+    ...portfolio.projects.map((project, index) => {
+      const name = compactTerminalViewport() ? project.name.replace("Decibel / Shelby Agent Infrastructure", "Decibel / Shelby") : project.name;
+      return `${color(`${index + 1}.`, "yellow")} ${padVisible(color(name, "yellow"), compactTerminalViewport() ? 21 : 40)}${projectSignal(project.name)}`;
+    }),
+    "",
+    panelRule("next commands"),
+    commandRow("proof", "evidence links"),
+    commandRow("resume projects", "expanded project notes"),
+  ]);
 }
 
 function experienceOutput() {
@@ -813,12 +871,14 @@ function resumeSnapshotOutput() {
     terminalPanel("resume", [
       ...resumeHeaderRows(),
       "",
+      panelRule("current"),
       `${pad("current", 12)}Aptos Labs | Sep 2025 -> Present`,
       ...pretextWrap(
         "Shipping LLM MCP servers, Decibel trading bots, high-throughput Move contracts, and pitch-ready Aptos demos for prediction markets, Whop-style finance, and agent workflows.",
         64,
       ),
       "",
+      panelRule("signals"),
       metric("throughput", "10k TPS", "prediction market Move contract"),
       metric("agent infra", "MCP", "Decibel + Shelby protocol tooling"),
       metric("trading", "bots", "PineScript to onchain strategies"),
@@ -875,16 +935,49 @@ function resumeProjectsOutput() {
 }
 
 function proofOutput() {
+  if (compactTerminalViewport()) {
+    return terminalPanel(
+      "proof",
+      [
+        "Fast evidence board. Type repos for full URLs.",
+        "",
+        panelRule("live demos"),
+        `${color("01", "yellow")} ${padVisible(color("live", "green"), 7)}aptos-polymarket`,
+        `${color("02", "yellow")} ${padVisible(color("live", "green"), 7)}whop.finance`,
+        "",
+        panelRule("repos"),
+        `${color("03", "yellow")} ${padVisible(color("repo", "cyan"), 7)}decibrrr + Shelby rewards`,
+        `${color("04", "yellow")} ${padVisible(color("repo", "cyan"), 7)}Sol2Move + tx-composer`,
+        "",
+        commandRow("repos", "raw URL deck"),
+        commandRow("resume", "resume dashboard"),
+      ],
+      46,
+    );
+  }
+
+  const proofRows = [
+    ["live", "Aptos Polymarket", "aptos-polymarket.vercel.app"],
+    ["live", "Whop Finance", "whop.finance"],
+    ["repo", "Decibrrr", "github.com/SeamMoney/decibrrr"],
+    ["repo", "Shelby rewards", "github.com/SeamMoney/shelby-content-rewards"],
+    ["repo", "Sol2Move", "github.com/SeamMoney/aptos-move-transpiler"],
+    ["repo", "Sol2Move app", "github.com/SeamMoney/sol2move-app"],
+    ["repo", "tx-composer", "github.com/SeamMoney/tx-composer"],
+  ] as const;
+
   return terminalPanel("proof board", [
-    "Live demos and repository evidence:",
+    "Evidence index. Use repos for raw URLs.",
     "",
-    ...proofLinks.flatMap((item, index) => [
-      `${color(`${index + 1}. ${item.label}`, "yellow")}`,
-      `${pad("url", 9)}${item.url}`,
-      ...pretextWrap(item.detail, 60).map((line) => `${pad("does", 9)}${line}`),
-      "",
-    ]),
-    "Tip: use open github, open linkedin, or open resume for the direct links.",
+    panelRule("live demos and repos"),
+    ...proofRows.map(([kind, label, url], index) => {
+      const badge = kind === "live" ? color("live", "green") : color("repo", "cyan");
+      return `${color(`${index + 1}.`, "yellow")} ${padVisible(badge, 6)}${padVisible(label, compactTerminalViewport() ? 17 : 20)}${url}`;
+    }),
+    "",
+    panelRule("next commands"),
+    commandRow("repos", "show raw URL deck"),
+    commandRow("resume", "return to resume dashboard"),
   ]);
 }
 
@@ -974,10 +1067,7 @@ function statusOutput(theme: TerminalTheme, hasEnteredTerminal: boolean, cubeMod
 }
 
 function neofetchOutput(theme: TerminalTheme, cubeMode: CubeMode) {
-  return [
-    `${ansi.cyan}+----------------------+${ansi.reset}`,
-    `${ansi.cyan}|${ansi.reset}  PORTFOLIO RUNTIME  ${ansi.cyan}|${ansi.reset}`,
-    `${ansi.cyan}+----------------------+${ansi.reset}`,
+  return terminalPanel("runtime", [
     `${pad("name", 7)}${color(portfolio.name, "cyan")}`,
     `${pad("role", 7)}${portfolio.title}`,
     `${pad("base", 7)}${portfolio.location}`,
@@ -986,7 +1076,7 @@ function neofetchOutput(theme: TerminalTheme, cubeMode: CubeMode) {
     `${pad("core", 7)}wterm/react`,
     `${pad("cube", 7)}${cubeMode}`,
     `${pad("next", 7)}hint`,
-  ].join(newline);
+  ]);
 }
 
 function fileOutput(target: string) {
@@ -1815,6 +1905,7 @@ function SignatureDrawLayer({ runId }: { runId: number }) {
 
 function App() {
   const { ref, write: terminalWrite, focus } = useTerminal();
+  const [terminalSessionKey, setTerminalSessionKey] = useState(0);
   const [terminalTheme, setTerminalTheme] = useState<TerminalTheme>("logue");
   const [terminalError, setTerminalError] = useState<string | null>(null);
   const [hasEnteredTerminal, setHasEnteredTerminal] = useState(false);
@@ -1844,6 +1935,11 @@ function App() {
   const terminalScrollTimerRef = useRef<number | null>(null);
   const terminalScrollFrameRef = useRef<number | null>(null);
   const bootRunRef = useRef(0);
+  const pendingTerminalScreenRef = useRef<{
+    content: string;
+    showPrompt: boolean;
+    resolve: () => void;
+  } | null>(null);
 
   useEffect(() => {
     void loadSignatureInkMap().catch(() => undefined);
@@ -1968,6 +2064,32 @@ function App() {
     focus();
     scheduleTerminalScroll();
   }, [focus, prompt, scheduleTerminalScroll, write]);
+
+  const resetTerminalScreen = useCallback((content: string, showPrompt: boolean) => {
+    return new Promise<void>((resolve) => {
+      pendingTerminalScreenRef.current = { content, showPrompt, resolve };
+      currentLineRef.current = "";
+      bootRunRef.current += 1;
+      setTerminalSessionKey((value) => value + 1);
+    });
+  }, []);
+
+  const beginCommandScreen = useCallback(
+    (command: string) => {
+      return resetTerminalScreen(`${commandHeader(command)}${newline}${newline}`, false);
+    },
+    [resetTerminalScreen],
+  );
+
+  const writeCommandScreen = useCallback(
+    (command: string, output: string, nudge = "") => {
+      void resetTerminalScreen(
+        `${commandHeader(command)}${newline}${newline}${output}${nudge ? `${newline}${newline}${nudge}` : ""}${newline}${newline}`,
+        true,
+      );
+    },
+    [resetTerminalScreen],
+  );
 
   useEffect(() => {
     const root = document.documentElement;
@@ -2152,7 +2274,7 @@ function App() {
       const firstArg = args.join(" ");
 
       if (!command) {
-        writePrompt();
+        void resetTerminalScreen("", true);
         return;
       }
 
@@ -2173,8 +2295,7 @@ function App() {
 
       if (name === "clear") {
         clearTypingTimers();
-        write("\x1b[2J\x1b[H");
-        writePrompt();
+        void resetTerminalScreen("", true);
         return;
       }
 
@@ -2182,11 +2303,10 @@ function App() {
         const nextTheme = args[0] as TerminalTheme | undefined;
         if (nextTheme === "logue" || nextTheme === "paper" || nextTheme === "midnight") {
           setTerminalTheme(nextTheme);
-          write(`${color("theme", "green")} ${nextTheme}${newline}${newline}`);
+          writeCommandScreen(command, `${color("theme", "green")} ${nextTheme}`);
         } else {
-          write(`${color("usage", "yellow")}: theme logue | paper | midnight${newline}${newline}`);
+          writeCommandScreen(command, `${color("usage", "yellow")}: theme logue | paper | midnight`);
         }
-        writePrompt();
         return;
       }
 
@@ -2194,31 +2314,29 @@ function App() {
         const url = openExternal(args[0] ?? "");
         if (url) {
           window.open(url, "_blank", "noopener,noreferrer");
-          write(`${color("opening", "green")} ${url}${newline}${newline}`);
+          writeCommandScreen(command, `${color("opening", "green")} ${url}`);
         } else {
-          write(`${color("usage", "yellow")}: open github | linkedin | resume${newline}${newline}`);
+          writeCommandScreen(command, `${color("usage", "yellow")}: open github | linkedin | resume`);
         }
-        writePrompt();
         return;
       }
 
       if (name === "mail") {
         window.location.href = portfolio.links.email;
-        write(`${color("mail", "green")} ${portfolio.links.email}${newline}${newline}`);
-        writePrompt();
+        writeCommandScreen(command, `${color("mail", "green")} ${portfolio.links.email}`);
         return;
       }
 
       if (name === "signature" || name === "sign") {
         visitedCommandsRef.current.add("signature");
         setSignatureRunId((value) => value + 1);
-        write(`${signatureOutput()}${newline}${newline}`);
-        writePrompt();
+        writeCommandScreen(command, signatureOutput());
         return;
       }
 
       if (name === "about" || name === "intro") {
         visitedCommandsRef.current.add("about");
+        await beginCommandScreen(command);
         write(`${typingIntroOutput()}${color("max", "green")}${ansi.dim}@${ansi.reset}${ansi.cyan}portfolio${ansi.reset}:${ansi.blue}~/about${ansi.reset}$ vim about.max.ts${newline}`);
         await writeHumanTypedText(aboutProgramSource());
         const nudge = contextualNudge("about", visitedCommandsRef.current, cubeVisible, cubeHistoryRef.current.length > 0);
@@ -2230,8 +2348,7 @@ function App() {
       if (name === "cube") {
         setSetupVisible(false);
         const output = runCubeCommand(args);
-        write(`${output}${newline}${newline}`);
-        writePrompt();
+        writeCommandScreen(command, output);
         return;
       }
 
@@ -2239,17 +2356,16 @@ function App() {
         const action = args[0]?.toLowerCase() ?? "show";
         if (action === "hide" || action === "off" || action === "close") {
           setSetupVisible(false);
-          write(`${setupHiddenOutput()}${newline}${newline}`);
+          writeCommandScreen(command, setupHiddenOutput());
         } else if (action === "source") {
           setSetupVisible(true);
           setCubeVisible(false);
-          write(`${setupSourceOutput()}${newline}${newline}`);
+          writeCommandScreen(command, setupSourceOutput());
         } else {
           setSetupVisible(true);
           setCubeVisible(false);
-          write(`${setupOutput()}${newline}${newline}`);
+          writeCommandScreen(command, setupOutput());
         }
-        writePrompt();
         return;
       }
 
@@ -2299,29 +2415,35 @@ function App() {
                                   : notFoundOutput(command);
 
       const nudge = contextualNudge(name, visitedCommandsRef.current, cubeVisible, cubeHistoryRef.current.length > 0);
-      write(`${output}${nudge ? `${newline}${newline}${nudge}` : ""}${newline}${newline}`);
-      writePrompt();
+      writeCommandScreen(command, output, nudge);
     },
-    [clearTypingTimers, cubeMode, cubeVisible, markEnteredTerminal, runCubeCommand, terminalTheme, write, writeHumanTypedText, writePrompt],
+    [
+      beginCommandScreen,
+      clearTypingTimers,
+      cubeMode,
+      cubeVisible,
+      markEnteredTerminal,
+      runCubeCommand,
+      terminalTheme,
+      write,
+      writeCommandScreen,
+      writeHumanTypedText,
+      writePrompt,
+    ],
   );
 
   const handleData = useCallback(
     (data: string) => {
       if (data === "\x03") {
         clearTypingTimers();
-        write("^C");
-        write(newline);
-        currentLineRef.current = "";
-        writePrompt();
+        writeCommandScreen("interrupt", "^C");
         return;
       }
 
       if (data === "\x0c") {
         clearTypingTimers();
         setSignatureRunId(0);
-        write("\x1b[2J\x1b[H");
-        currentLineRef.current = "";
-        writePrompt();
+        void resetTerminalScreen("", true);
         return;
       }
 
@@ -2375,9 +2497,13 @@ function App() {
           return;
         }
         if (matches.length !== 1) {
-          write(`${newline}${completionOutput(current, matches)}${newline}`);
-          writePrompt();
-          write(current);
+          void resetTerminalScreen(
+            `${commandHeader("completion")}${newline}${newline}${completionOutput(current, matches)}${newline}${newline}`,
+            true,
+          ).then(() => {
+            currentLineRef.current = current;
+            write(current);
+          });
         }
         return;
       }
@@ -2392,21 +2518,35 @@ function App() {
         write(printable);
       }
     },
-    [clearTypingTimers, markEnteredTerminal, replaceInputLine, runCommand, write, writePrompt],
+    [clearTypingTimers, markEnteredTerminal, replaceInputLine, resetTerminalScreen, runCommand, write, writeCommandScreen],
   );
 
   const handleReady = useCallback(() => {
     setTerminalError(null);
+    const pendingScreen = pendingTerminalScreenRef.current;
+    pendingTerminalScreenRef.current = null;
     const bootRun = bootRunRef.current + 1;
     bootRunRef.current = bootRun;
     window.requestAnimationFrame(() => {
       window.requestAnimationFrame(() => {
         if (bootRun !== bootRunRef.current) return;
+        if (pendingScreen) {
+          write(pendingScreen.content);
+          if (pendingScreen.showPrompt) {
+            writePrompt();
+          } else {
+            focus();
+            scheduleTerminalScroll();
+          }
+          pendingScreen.resolve();
+          return;
+        }
+
         write(bootOutput());
         writePrompt();
       });
     });
-  }, [write, writePrompt]);
+  }, [focus, scheduleTerminalScroll, write, writePrompt]);
 
   const handleTerminalError = useCallback((error: unknown) => {
     setTerminalError(error instanceof Error ? error.message : "Terminal failed to load.");
@@ -2418,6 +2558,7 @@ function App() {
       <section
         className="terminal-machine"
         aria-label="Interactive portfolio terminal"
+        data-webtui-theme="dark"
         onPointerDown={() => {
           focus();
           scheduleTerminalScroll();
@@ -2435,16 +2576,22 @@ function App() {
         />
         <SetupThreeOverlay visible={setupVisible} />
         <div className="terminal-chrome">
-          <span className="terminal-label">portfolio shell</span>
+          <span className="terminal-label" {...{ "is-": "badge", "variant-": "foreground1", "cap-": "round" }}>
+            portfolio shell
+          </span>
           <div className="terminal-title">
             <span>max@portfolio</span>
           </div>
-          <span className="terminal-label terminal-status">
-            <span className="terminal-status-dot" aria-hidden="true" />
+          <span
+            className="terminal-label terminal-status"
+            {...{ "is-": "badge", "variant-": "foreground1", "cap-": "round" }}
+          >
+            <span className="terminal-status-dot" aria-hidden="true" {...{ "is-": "spinner", "variant-": "dots", "speed-": "slow" }} />
             systems ready
           </span>
         </div>
         <Terminal
+          key={terminalSessionKey}
           ref={ref}
           className="portfolio-terminal"
           theme={terminalTheme}

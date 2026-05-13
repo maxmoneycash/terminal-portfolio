@@ -1,4 +1,6 @@
 @import "tailwindcss";
+@import "@webtui/css/components/badge.css";
+@import "@webtui/css/components/spinner.css";
 
 @font-face {
   font-family: "Fira Code Local";
@@ -13,6 +15,17 @@
   --app-height: 100dvh;
   --keyboard-inset: 0px;
   --terminal-chrome-height: 3.625rem;
+  --background0: #050709;
+  --background1: #0b1013;
+  --background2: #172126;
+  --background3: #26363d;
+  --foreground0: #e5edf2;
+  --foreground1: #b8ccd6;
+  --foreground2: #71838c;
+  --badge-color: #a7c4d2;
+  --badge-text: #050709;
+  --progress-value-background: #abe8ff;
+  --progress-empty-background: #172126;
   --background: oklch(15% 0.006 260);
   --foreground: oklch(95% 0.005 250);
   --card: oklch(18.5% 0.008 258);
@@ -322,6 +335,16 @@ a {
   text-transform: uppercase;
 }
 
+.terminal-label[is-~="badge"] {
+  display: inline-flex;
+  width: fit-content;
+  color: var(--foreground2);
+  font-size: 0.62rem;
+  letter-spacing: 0.18em;
+  --badge-color: rgb(38 54 61 / 0.72);
+  --badge-text: #b8ccd6;
+}
+
 .terminal-status {
   display: inline-flex;
   align-items: center;
@@ -335,6 +358,16 @@ a {
   display: inline-block;
   border-radius: 999px;
   background: #10b981;
+}
+
+.terminal-status-dot[is-="spinner"] {
+  width: 1ch;
+  height: 1lh;
+  display: inline-block;
+  border-radius: 0;
+  background: transparent;
+  color: #10b981;
+  font-size: 0.8rem;
 }
 
 .terminal-title {
