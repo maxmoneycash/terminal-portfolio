@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "@webtui/css/components/badge.css";
+@import "@webtui/css/components/button.css";
 @import "@webtui/css/components/spinner.css";
 
 @font-face {
@@ -15,6 +16,7 @@
   --app-height: 100dvh;
   --keyboard-inset: 0px;
   --terminal-chrome-height: 3.625rem;
+  --terminal-rail-height: 2.6rem;
   --background0: #050709;
   --background1: #0b1013;
   --background2: #172126;
@@ -143,6 +145,17 @@ a {
   height: calc(100% - var(--terminal-chrome-height));
   opacity: 0.88;
   pointer-events: none;
+}
+
+.terminal-machine.has-tui-rail .logue-terminal-fire-canvas,
+.terminal-machine.has-tui-rail .signature-draw-layer,
+.terminal-machine.has-tui-rail .rubiks-three-orbit,
+.terminal-machine.has-tui-rail .setup-three-orbit {
+  inset: calc(var(--terminal-chrome-height) + var(--terminal-rail-height)) 0 0;
+}
+
+.terminal-machine.has-tui-rail .logue-terminal-fire-canvas {
+  height: calc(100% - var(--terminal-chrome-height) - var(--terminal-rail-height));
 }
 
 .signature-draw-layer {
@@ -398,6 +411,113 @@ a {
   white-space: nowrap;
 }
 
+.terminal-tui-rail {
+  position: relative;
+  flex: 0 0 var(--terminal-rail-height);
+  z-index: 5;
+  width: 100%;
+  display: grid;
+  grid-template-columns: minmax(10rem, 1fr) minmax(0, auto) auto;
+  align-items: center;
+  gap: 0.75rem;
+  height: var(--terminal-rail-height);
+  min-height: 0;
+  padding: 0.45rem 1.5rem;
+  overflow: hidden;
+  background: rgb(5 7 9 / 0.24);
+  border-bottom: 1px solid color-mix(in oklab, var(--border) 65%, transparent);
+  color: var(--foreground);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  line-height: 1;
+  pointer-events: auto;
+}
+
+.tui-rail-copy,
+.tui-rail-actions {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.tui-rail-actions {
+  justify-self: end;
+  max-width: min(46vw, 34rem);
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.tui-rail-actions::-webkit-scrollbar {
+  display: none;
+}
+
+.tui-rail-badge[is-~="badge"] {
+  flex: 0 0 auto;
+  --badge-color: rgb(38 54 61 / 0.82);
+  --badge-text: #b8ccd6;
+}
+
+.terminal-tui-rail button {
+  flex: 0 0 auto;
+  gap: 0.45rem;
+  height: 1.25rem;
+  min-width: 0;
+  border-radius: 0;
+  border: 0;
+  background: transparent;
+  background-image: none;
+  padding: 0 0.35rem;
+  color: var(--foreground1);
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.terminal-tui-rail button:hover,
+.terminal-tui-rail button:focus-visible {
+  color: var(--foreground0);
+}
+
+.terminal-tui-rail button:focus-visible {
+  outline: 1px solid var(--foreground1);
+  outline-offset: 2px;
+}
+
+.tui-rail-next {
+  color: #abe8ff;
+}
+
+.tui-rail-action span::before,
+.tui-rail-next::before,
+.tui-rail-hide::before {
+  content: "[";
+  color: var(--foreground2);
+}
+
+.tui-rail-action span::after,
+.tui-rail-next::after,
+.tui-rail-hide::after {
+  content: "]";
+  color: var(--foreground2);
+}
+
+.tui-rail-action small {
+  color: var(--foreground2);
+  font-size: 0.68rem;
+  text-transform: none;
+}
+
+.tui-rail-hide {
+  color: var(--foreground2);
+}
+
+.terminal-machine.has-tui-rail .portfolio-terminal.wterm {
+  height: calc(100% - var(--terminal-chrome-height) - var(--terminal-rail-height));
+}
+
 .portfolio-terminal.wterm {
   position: relative;
   z-index: 1;
@@ -517,6 +637,10 @@ a {
 }
 
 @media (max-width: 640px) {
+  :root {
+    --terminal-rail-height: 3.85rem;
+  }
+
   .terminal-machine {
     width: calc(100vw - 16px);
     height: calc(var(--app-height) - 16px);
@@ -541,6 +665,40 @@ a {
 
   .terminal-label {
     display: none;
+  }
+
+  .terminal-tui-rail {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.5rem;
+    height: var(--terminal-rail-height);
+    padding: 0.45rem 0.85rem;
+  }
+
+  .tui-rail-copy {
+    display: contents;
+  }
+
+  .tui-rail-badge {
+    display: none;
+  }
+
+  .tui-rail-actions {
+    grid-column: 1 / -1;
+    order: 3;
+    width: 100%;
+  }
+
+  .terminal-tui-rail button {
+    height: 1.18rem;
+    font-size: 0.68rem;
+  }
+
+  .tui-rail-action small {
+    display: none;
+  }
+
+  .terminal-machine.has-tui-rail .portfolio-terminal.wterm {
+    height: calc(100% - var(--terminal-chrome-height) - var(--terminal-rail-height));
   }
 
   .portfolio-terminal.wterm {
@@ -605,6 +763,7 @@ a {
 @media (max-width: 380px) {
   :root {
     --terminal-chrome-height: 3.1rem;
+    --terminal-rail-height: 3.55rem;
   }
 
   .terminal-stage {
@@ -628,6 +787,10 @@ a {
 
   .portfolio-terminal.wterm {
     padding: 0.75rem 0.7rem calc(0.9rem + min(var(--keyboard-inset), 1rem));
+  }
+
+  .terminal-machine.has-tui-rail .portfolio-terminal.wterm {
+    height: calc(100% - var(--terminal-chrome-height) - var(--terminal-rail-height));
   }
 
   .portfolio-terminal.wterm.theme-logue,

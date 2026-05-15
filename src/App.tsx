@@ -18,6 +18,7 @@ import {
 } from "./lib/rubiks";
 import { RubiksThreeOverlay } from "./components/RubiksThreeOverlay";
 import { SetupThreeOverlay } from "./components/SetupThreeOverlay";
+import { cn } from "./lib/cn";
 
 const ansi = {
   reset: "\x1b[0m",
@@ -67,6 +68,7 @@ const availableCommands = [
   "status",
   "theme",
   "timeline",
+  "ui",
   "whoami",
 ] as const;
 
@@ -110,6 +112,9 @@ const commandExamples = [
   "theme logue",
   "theme midnight",
   "theme paper",
+  "ui",
+  "ui hide",
+  "ui show",
 ] as const;
 
 const cubeReferenceUrl = "https://github.com/Ofunrein/dictators-rubikscube";
@@ -118,10 +123,6 @@ const realisticCubeGlbPath = "public/rubiks-realistic/realistic-rubiks-cube.glb"
 
 function color(text: string, value: keyof typeof ansi) {
   return `${ansi[value]}${text}${ansi.reset}`;
-}
-
-function headline(text: string) {
-  return `${ansi.bold}${ansi.cyan}${text}${ansi.reset}`;
 }
 
 function pad(label: string, size = 8) {
@@ -249,6 +250,12 @@ function padVisible(text: string, width: number) {
   return gap > 0 ? `${text}${" ".repeat(gap)}` : text;
 }
 
+function truncatePlain(text: string, width: number) {
+  if (text.length <= width) return text;
+  if (width <= 3) return text.slice(0, width);
+  return `${text.slice(0, width - 3)}...`;
+}
+
 function pretextWrap(text: string, width = 58) {
   const normalized = text.replace(/\s+/g, " ").trim();
   if (!normalized) return [""];
@@ -281,7 +288,7 @@ function terminalPanel(title: string, rows: string[], width = panelWidth) {
     return pretextWrap(row.replace(ansiPattern, ""), innerWidth);
   });
   const heading = `[ ${title.toUpperCase()} ]`;
-  const headingRoom = Math.max(0, outerWidth - heading.length - 5);
+  const headingRoom = Math.max(0, outerWidth - heading.length - 4);
   const top = `+==${heading}${"=".repeat(headingRoom)}+`;
   const bottom = `+${"=".repeat(Math.max(0, outerWidth - 2))}+`;
 
@@ -293,17 +300,27 @@ function terminalPanel(title: string, rows: string[], width = panelWidth) {
 }
 
 function commandRow(command: string, label: string) {
+  const rowWidth = responsivePanelWidth(panelWidth) - 4;
   const width =
     typeof window !== "undefined" && window.innerWidth <= 460
       ? Math.max(16, Math.min(24, command.length + 2))
       : Math.max(18, command.length + 2);
-  return `${padVisible(color(command, "green"), width)}${label}`;
+  const labelWidth = Math.max(8, rowWidth - width);
+  const safeLabel = truncatePlain(label, labelWidth);
+  return `${padVisible(color(command, "green"), width)}${safeLabel}`;
 }
 
 function panelRule(label: string, width = responsivePanelWidth(panelWidth) - 4) {
-  const safeLabel = ` ${label.toUpperCase()} `;
+  const safeLabelText = truncatePlain(label.toUpperCase(), Math.max(4, width - 4));
+  const safeLabel = ` ${safeLabelText} `;
   const fill = Math.max(0, width - safeLabel.length - 2);
   return `::${safeLabel}${".".repeat(fill)}`;
+}
+
+function labelRows(label: string, value: string, labelWidth = 12, wrapWidth = responsivePanelWidth(panelWidth) - 4) {
+  const textWidth = Math.max(12, wrapWidth - labelWidth);
+  const safeLabel = truncatePlain(label, Math.max(1, labelWidth - 1));
+  return pretextWrap(value, textWidth).map((line, index) => `${index === 0 ? pad(safeLabel, labelWidth) : pad("", labelWidth)}${line}`);
 }
 
 function hasVisitedCommand(visited: ReadonlySet<string>, command: string) {
@@ -321,7 +338,7 @@ function guideOutput(visited: ReadonlySet<string>) {
     return `[${mark}] ${pad(step.command, 11)}${step.label}`;
   });
   const completedCount = guideSteps.filter((step) => hasVisitedCommand(visited, step.command)).length;
-  const progress = `${"#".repeat(completedCount)}${"-".repeat(guideSteps.length - completedCount)}`;
+  const progress = `${"#".repeat(completedCount)}${".".repeat(guideSteps.length - completedCount)}`;
 
   return terminalPanel("guided route", [
     ...pretextWrap(
@@ -406,7 +423,8 @@ function hintOutput(visited: ReadonlySet<string>, cubeVisible: boolean, cubeHasH
 
 function moveListRows(label: string, moves: readonly string[], width = 56) {
   if (moves.length === 0) return [`${pad(label, 10)}none`];
-  const wrapped = wrapWords(moves.join(" "), width);
+  const safeWidth = Math.min(width, responsivePanelWidth(panelWidth) - 14);
+  const wrapped = wrapWords(moves.join(" "), safeWidth);
   return wrapped.map((line, index) => `${index === 0 ? pad(label, 10) : pad("", 10)}${line}`);
 }
 
@@ -480,14 +498,14 @@ function cubeHiddenOutput() {
 
 function cubeSourceOutput() {
   return terminalPanel("cube source", [
-    "Visual source:",
-    realisticCubeAssetPath,
-    realisticCubeGlbPath,
-    "public/rubiks-realistic/fingerprints-roughness.jpg",
-    "public/rubiks-realistic/cayley-interior-1k.hdr",
+    panelRule("visual assets"),
+    ...labelRows("blend", realisticCubeAssetPath, 12),
+    ...labelRows("glb", realisticCubeGlbPath, 12),
+    ...labelRows("roughness", "public/rubiks-realistic/fingerprints-roughness.jpg", 12),
+    ...labelRows("hdr", "public/rubiks-realistic/cayley-interior-1k.hdr", 12),
     "",
-    "Interaction reference:",
-    cubeReferenceUrl,
+    panelRule("reference"),
+    ...labelRows("repo", cubeReferenceUrl, 12),
     "",
     "The Blender file is kept with the app assets and exported to GLB for the browser. The face-turn rig wraps the exported cubies so the real model can still move.",
   ]);
@@ -525,11 +543,12 @@ function setupHiddenOutput() {
 
 function setupSourceOutput() {
   return terminalPanel("setup sources", [
-    "MacBook model: Apple MacBook Pro 16 inch 2021 by jc1245",
-    "https://sketchfab.com/3d-models/apple-macbook-pro-16-inch-2021-6a42b31bac064b00a91fbfebec07c852",
+    panelRule("models"),
+    ...labelRows("macbook", "Apple MacBook Pro 16 inch 2021 by jc1245", 12),
+    ...labelRows("url", "https://sketchfab.com/3d-models/apple-macbook-pro-16-inch-2021-6a42b31bac064b00a91fbfebec07c852", 12),
     "",
-    "Keyboard layout/material inspiration:",
-    "https://github.com/crsnbrt/keysim",
+    panelRule("keyboard"),
+    ...labelRows("source", "https://github.com/crsnbrt/keysim", 12),
   ]);
 }
 
@@ -552,6 +571,7 @@ function contextualNudge(name: string, visited: ReadonlySet<string>, cubeVisible
     "setup",
     "theme",
     "timeline",
+    "ui",
   ]);
   if (quietCommands.has(name)) return "";
 
@@ -574,8 +594,8 @@ function completionCandidates(current: string) {
 function completionOutput(current: string, matches: readonly string[]) {
   const listed = matches.length > 0 ? matches.join("  ") : "no matches";
   return terminalPanel("completion", [
-    current ? `${pad("input", 8)}${current}` : `${pad("input", 8)}empty`,
-    `${pad("matches", 8)}${listed}`,
+    ...labelRows("input", current || "empty", 8),
+    ...labelRows("matches", listed, 8),
     "",
     matches.length > 1 ? "Keep typing to narrow it, or press Tab again after a unique prefix." : "Press Enter to run it.",
   ]);
@@ -634,12 +654,6 @@ function suggestCommand(command: string) {
   return best && best.score <= Math.max(2, Math.floor(name.length / 3)) ? best.item : null;
 }
 
-function field(label: string, value: string, width = 30) {
-  return wrapWords(value, width)
-    .map((line, index) => `${index === 0 ? pad(label) : pad("")}${line}`)
-    .join(newline);
-}
-
 function compactTerminalViewport() {
   return typeof window !== "undefined" && window.innerWidth <= 640;
 }
@@ -654,6 +668,7 @@ function bootOutput(compact = compactTerminalViewport()) {
         commandRow("proof", "demos and repo evidence"),
         commandRow("projects", "selected work"),
         commandRow("guide", "guided route"),
+        commandRow("ui", "toggle the command rail"),
         "",
         panelRule("side quests"),
         commandRow("cube", "3D side quest"),
@@ -672,6 +687,7 @@ function bootOutput(compact = compactTerminalViewport()) {
         commandRow("projects", "selected work"),
         commandRow("resume", "terminal resume dashboard"),
         commandRow("proof", "demos and repo evidence"),
+        commandRow("ui", "toggle the command rail"),
         "",
         panelRule("interactive scenes"),
         commandRow("cube", "floating scrambler + solver"),
@@ -709,6 +725,7 @@ function helpOutput(visited: ReadonlySet<string>) {
       commandRow("next", "next recommended command"),
       commandRow("hint", "context-aware suggestions"),
       commandRow("map", "route and shortcuts"),
+      commandRow("ui", "show or hide the command rail"),
       "",
       panelRule("resume and proof"),
       commandRow("resume", "terminal-native resume"),
@@ -746,21 +763,21 @@ function helpOutput(visited: ReadonlySet<string>) {
 }
 
 function lsOutput() {
-  return [
+  return terminalPanel("files", [
     `${color("about.md", "cyan")}       ${color("projects/", "blue")}      ${color("experience.log", "yellow")}`,
     `${color("skills.json", "green")}    ${color("contact.txt", "magenta")}    ${color("resume.txt", "white")}`,
     `${color("proof.links", "cyan")}    ${color("timeline.log", "yellow")}`,
-  ].join(newline);
+  ]);
 }
 
 function aboutOutput() {
-  return [
-    headline(portfolio.name),
-    `${pad("role")}${portfolio.title}`,
-    `${pad("base")}${portfolio.location}`,
+  return terminalPanel("profile", [
+    color(portfolio.name, "cyan"),
+    ...labelRows("role", portfolio.title),
+    ...labelRows("base", portfolio.location),
     "",
-    field("", portfolio.summary, 34),
-  ].join(newline);
+    ...pretextWrap(portfolio.summary, responsivePanelWidth(panelWidth) - 4),
+  ]);
 }
 
 function aboutProgramSource() {
@@ -801,10 +818,12 @@ function projectsOutput() {
     "Short scan. Use resume projects for full detail.",
     "",
     panelRule("shipped systems"),
-    ...portfolio.projects.map((project, index) => {
-      const name = compactTerminalViewport() ? project.name.replace("Decibel / Shelby Agent Infrastructure", "Decibel / Shelby") : project.name;
-      return `${color(`${index + 1}.`, "yellow")} ${padVisible(color(name, "yellow"), compactTerminalViewport() ? 21 : 40)}${projectSignal(project.name)}`;
-    }),
+    ...portfolio.projects.flatMap((project, index) => [
+      `${color(`${index + 1}.`, "yellow")} ${color(truncatePlain(project.name, responsivePanelWidth(panelWidth) - 8), "yellow")}`,
+      ...labelRows("signal", projectSignal(project.name), 10),
+      ...(project.link ? labelRows("url", project.link, 10) : []),
+      "",
+    ]),
     "",
     panelRule("next commands"),
     commandRow("proof", "evidence links"),
@@ -813,56 +832,49 @@ function projectsOutput() {
 }
 
 function experienceOutput() {
-  return [
-    headline("experience"),
+  return terminalPanel("experience", [
     ...portfolio.roles.flatMap((role) => [
+      panelRule(role.company),
+      `${color(role.title, "yellow")}`,
+      ...labelRows("period", role.period),
+      ...labelRows("impact", role.impact),
       "",
-      `${color(role.title, "yellow")} @ ${role.company}`,
-      `${pad("period")}${role.period}`,
-      field("impact", role.impact),
     ]),
-  ].join(newline);
+  ]);
 }
 
 function skillsOutput() {
-  return [
-    headline("focus map"),
+  return terminalPanel("focus map", [
     ...portfolio.focus.map((item, index) => {
       const marks = ["[########--]", "[#######---]", "[#########-]", "[#######---]"];
       return `${color(marks[index] ?? "[######----]", "green")}  ${item}`;
     }),
-  ].join(newline);
+  ]);
 }
 
 function contactOutput() {
-  return [
-    headline("contact"),
-    `${pad("email")}${portfolio.links.email.replace("mailto:", "")}`,
-    `${pad("github")}${portfolio.links.github}`,
-    `${pad("linkedin")}${portfolio.links.linkedin}`,
-    `${pad("resume")}${portfolio.links.resume}`,
-  ].join(newline);
+  return terminalPanel("contact", [
+    ...labelRows("email", portfolio.links.email.replace("mailto:", "")),
+    ...labelRows("github", portfolio.links.github),
+    ...labelRows("linkedin", portfolio.links.linkedin),
+    ...labelRows("resume", portfolio.links.resume),
+  ]);
 }
 
 function linksOutput() {
-  return [
-    headline("links"),
-    `${pad("github")}${portfolio.links.github}`,
-    `${pad("linkedin")}${portfolio.links.linkedin}`,
-    `${pad("resume")}${portfolio.links.resume}`,
-  ].join(newline);
-}
-
-function metric(label: string, value: string, detail: string) {
-  return `${padVisible(color(value, "cyan"), 10)}${padVisible(label, 16)}${detail}`;
+  return terminalPanel("links", [
+    ...labelRows("github", portfolio.links.github),
+    ...labelRows("linkedin", portfolio.links.linkedin),
+    ...labelRows("resume", portfolio.links.resume),
+  ]);
 }
 
 function resumeHeaderRows() {
   return [
     `${color("MAXWELL MOHAMMADI", "cyan")} ${ansi.dim}// ${portfolio.title}${ansi.reset}`,
-    `${pad("base", 12)}${portfolio.location}`,
-    `${pad("email", 12)}${portfolio.links.email.replace("mailto:", "")}`,
-    `${pad("resume", 12)}${portfolio.links.resume}`,
+    ...labelRows("base", portfolio.location),
+    ...labelRows("email", portfolio.links.email.replace("mailto:", "")),
+    ...labelRows("resume", portfolio.links.resume),
   ];
 }
 
@@ -879,10 +891,10 @@ function resumeSnapshotOutput() {
       ),
       "",
       panelRule("signals"),
-      metric("throughput", "10k TPS", "prediction market Move contract"),
-      metric("agent infra", "MCP", "Decibel + Shelby protocol tooling"),
-      metric("trading", "bots", "PineScript to onchain strategies"),
-      metric("security", "EY", "custody audits + incident response"),
+      ...labelRows("throughput", "10k TPS | prediction market Move contract"),
+      ...labelRows("agent infra", "MCP | Decibel + Shelby protocol tooling"),
+      ...labelRows("trading", "bots | PineScript to onchain strategies"),
+      ...labelRows("security", "EY | custody audits + incident response"),
     ]),
     "",
     terminalPanel("resume commands", [
@@ -897,35 +909,48 @@ function resumeSnapshotOutput() {
 
 function resumeWorkOutput() {
   return terminalPanel("work history", [
-    `${color("Aptos Labs", "yellow")} | Software Engineer | September 2025 -> Present`,
-    "Ships LLM MCP servers for Decibel Trade and Shelby Protocol.",
-    "Built Decibel bots that convert TradingView PineScript into onchain smart contract trading strategies.",
-    "Built and optimized a prediction market Move contract with Aptos engineers until benchmark throughput reached 10k TPS.",
-    "Built Polymarket and Whop demos for partner pitches and product feedback conversations.",
+    panelRule("Aptos Labs"),
+    ...labelRows("role", "Software Engineer"),
+    ...labelRows("dates", "September 2025 -> Present"),
+    ...labelRows("ship", "LLM MCP servers for Decibel Trade and Shelby Protocol."),
+    ...labelRows("ship", "Decibel bots that convert TradingView PineScript into onchain smart contract trading strategies."),
+    ...labelRows("key", "Prediction market Move contract optimized with Aptos engineers until benchmark throughput reached 10k TPS."),
+    ...labelRows("pitch", "Polymarket and Whop demos for partner pitches and product feedback conversations."),
     "",
-    `${color("Ernst & Young, EY Blockchain", "yellow")} | Blockchain Security Consultant | August 2022 -> September 2025`,
-    "Audited enterprise crypto custody infrastructure alongside Trail of Bits.",
-    "Led crypto incident response investigations with TRM Labs.",
-    "Authored stablecoin and protocol risk research for EY Blockchain clients.",
-    "Key achievement: developed cross-chain expertise across EVM, Move, Aptos, Sui, and emerging platforms.",
+    panelRule("Ernst & Young, EY Blockchain"),
+    ...labelRows("role", "Blockchain Security Consultant"),
+    ...labelRows("dates", "August 2022 -> September 2025"),
+    ...labelRows("audit", "Enterprise crypto custody infrastructure alongside Trail of Bits."),
+    ...labelRows("incident", "Crypto incident response investigations with TRM Labs."),
+    ...labelRows("research", "Stablecoin and protocol risk research for EY Blockchain clients."),
+    ...labelRows("key", "Cross-chain expertise across EVM, Move, Aptos, Sui, and emerging platforms."),
     "",
-    `${color("Ernst & Young", "yellow")} | Forensic Data Analyst Intern | June 2021 -> August 2021`,
-    "Built anomaly detection for forensic financial analysis and researched Ethereum, Celo, Solidity, EVM, and DeFi protocols.",
+    panelRule("Ernst & Young"),
+    ...labelRows("role", "Forensic Data Analyst Intern"),
+    ...labelRows("dates", "June 2021 -> August 2021"),
+    ...labelRows("ship", "Anomaly detection for forensic financial analysis."),
+    ...labelRows("key", "Ethereum, Celo, Solidity, EVM, and DeFi protocol research for client-facing product work."),
     "",
-    `${color("Sydereal", "yellow")} | Software Engineering Intern | December 2020 -> June 2021`,
-    "Migrated satellite telemetry from SQLite to InfluxDB and implemented spacecraft anomaly detection, saving about $150K.",
+    panelRule("Sydereal"),
+    ...labelRows("role", "Software Engineering Intern"),
+    ...labelRows("dates", "December 2020 -> June 2021"),
+    ...labelRows("ship", "Migrated satellite telemetry from SQLite to InfluxDB."),
+    ...labelRows("key", "Neural network anomaly detection for spacecraft telemetry, saving about $150K."),
     "",
-    `${color("Proximai AI", "yellow")} | AI Research Intern | April 2020 -> May 2021`,
-    "Prepared NASA NIAC proposals and contributed to RaDAR, a spatial temporal framework for military aircraft GO/NO GO decisions.",
+    panelRule("Proximai AI"),
+    ...labelRows("role", "AI Research Intern"),
+    ...labelRows("dates", "April 2020 -> May 2021"),
+    ...labelRows("ship", "Prepared three NASA NIAC advanced technology proposals."),
+    ...labelRows("key", "RaDAR contribution for spatial temporal military aircraft GO/NO GO decisions."),
   ]);
 }
 
 function projectDetailRows() {
   return portfolio.projects.flatMap((project, index) => [
-    `${color(`${index + 1}. ${project.name}`, "yellow")}`,
-    `${pad("stack", 10)}${project.stack}`,
-    ...pretextWrap(project.summary, 62).map((line) => `${pad("ship", 10)}${line}`),
-    project.link ? `${pad("url", 10)}${project.link}` : "",
+    panelRule(`${index + 1}. ${project.name}`),
+    ...labelRows("stack", project.stack, 10),
+    ...labelRows("ship", project.summary, 10),
+    ...(project.link ? labelRows("url", project.link, 10) : []),
     "",
   ]);
 }
@@ -969,11 +994,12 @@ function proofOutput() {
   return terminalPanel("proof board", [
     "Evidence index. Use repos for raw URLs.",
     "",
-    panelRule("live demos and repos"),
-    ...proofRows.map(([kind, label, url], index) => {
-      const badge = kind === "live" ? color("live", "green") : color("repo", "cyan");
-      return `${color(`${index + 1}.`, "yellow")} ${padVisible(badge, 6)}${padVisible(label, compactTerminalViewport() ? 17 : 20)}${url}`;
-    }),
+    ...proofRows.flatMap(([kind, label, url], index) => [
+      panelRule(`${index + 1}. ${label}`),
+      ...labelRows("type", kind, 8),
+      ...labelRows("url", url, 8),
+      "",
+    ]),
     "",
     panelRule("next commands"),
     commandRow("repos", "show raw URL deck"),
@@ -981,9 +1007,29 @@ function proofOutput() {
   ]);
 }
 
+function uiOutput(visible: boolean) {
+  return terminalPanel("tui layer", [
+    visible ? "The browser-native command rail is on." : "The browser-native command rail is hidden.",
+    "",
+    panelRule("placement"),
+    ...labelRows("layout", "The rail sits above terminal output instead of covering it, so command results stay clean."),
+    ...labelRows("purpose", "Click shortcuts when useful; keep typing when the shell is faster."),
+    "",
+    panelRule("commands"),
+    commandRow("ui show", "show the rail"),
+    commandRow("ui hide", "hide the rail"),
+    commandRow("help", "full command deck"),
+  ]);
+}
+
 function reposOutput() {
   return terminalPanel("repo deck", [
-    ...proofLinks.flatMap((item) => [`${padVisible(color(item.label, "yellow"), 24)}${item.url}`]),
+    ...proofLinks.flatMap((item) => [
+      panelRule(item.label),
+      ...labelRows("url", item.url, 8),
+      ...labelRows("does", item.detail, 8),
+      "",
+    ]),
     "",
     "Some partner-pitch repos are private or organization-scoped, but the terminal still shows the exact project trail.",
   ]);
@@ -991,24 +1037,36 @@ function reposOutput() {
 
 function timelineOutput() {
   return terminalPanel("timeline", [
-    `${padVisible(color("2025 -> now", "cyan"), 16)}Aptos Labs | Software Engineer`,
-    "                LLM MCP servers, Decibel bots, prediction market Move contract, Whop and Polymarket demos.",
-    `${padVisible(color("2022 -> 2025", "cyan"), 16)}EY Blockchain | Blockchain Security Consultant`,
-    "                Custody audits, Trail of Bits collaboration, TRM Labs incident response, cross-chain protocol research.",
-    `${padVisible(color("2021", "cyan"), 16)}Ernst & Young | Forensic Data Analyst Intern`,
-    "                Anomaly detection, Ethereum and Celo protocol research, Solidity and EVM product research.",
-    `${padVisible(color("2020 -> 2021", "cyan"), 16)}Sydereal | Software Engineering Intern`,
-    "                Satellite telemetry migration and neural network anomaly detection for spacecraft monitoring.",
-    `${padVisible(color("2020 -> 2021", "cyan"), 16)}Proximai AI | AI Research Intern`,
-    "                NASA NIAC proposals and RaDAR research for aircraft GO/NO GO decision systems.",
+    panelRule("2025 -> now"),
+    ...labelRows("role", "Aptos Labs | Software Engineer"),
+    ...labelRows("ship", "LLM MCP servers, Decibel bots, prediction market Move contract, Whop and Polymarket demos."),
+    "",
+    panelRule("2022 -> 2025"),
+    ...labelRows("role", "EY Blockchain | Blockchain Security Consultant"),
+    ...labelRows("ship", "Custody audits, Trail of Bits collaboration, TRM Labs incident response, cross-chain protocol research."),
+    "",
+    panelRule("2021"),
+    ...labelRows("role", "Ernst & Young | Forensic Data Analyst Intern"),
+    ...labelRows("ship", "Anomaly detection, Ethereum and Celo protocol research, Solidity and EVM product research."),
+    "",
+    panelRule("2020 -> 2021"),
+    ...labelRows("role", "Sydereal | Software Engineering Intern"),
+    ...labelRows("ship", "Satellite telemetry migration and neural network anomaly detection for spacecraft monitoring."),
+    "",
+    panelRule("2020 -> 2021"),
+    ...labelRows("role", "Proximai AI | AI Research Intern"),
+    ...labelRows("ship", "NASA NIAC proposals and RaDAR research for aircraft GO/NO GO decision systems."),
   ]);
 }
 
 function nowOutput() {
   return terminalPanel("now", [
-    `${color("Aptos Labs", "yellow")} in Palo Alto`,
+    ...labelRows("where", "Aptos Labs in Palo Alto"),
     "",
-    "Current work centers on agent-facing protocol infrastructure, onchain trading systems, and high-throughput Aptos demos that founders and partner teams can actually touch.",
+    ...labelRows(
+      "focus",
+      "Agent-facing protocol infrastructure, onchain trading systems, and high-throughput Aptos demos that founders and partner teams can actually touch.",
+    ),
     "",
     commandRow("proof", "show demos and repo evidence"),
     commandRow("resume work", "show role history"),
@@ -1026,8 +1084,8 @@ function resumeOutput(args: string[] = []) {
   if (mode === "timeline") return timelineOutput();
   if (mode === "pdf" || mode === "download") {
     return terminalPanel("resume pdf", [
-      `${pad("path", 10)}${portfolio.links.resume}`,
-      `${pad("command", 10)}open resume`,
+      ...labelRows("path", portfolio.links.resume, 10),
+      ...labelRows("command", "open resume", 10),
       "",
       "The terminal view is optimized for scanning; the PDF is the print-ready version.",
     ]);
@@ -1040,9 +1098,9 @@ function resumeOutput(args: string[] = []) {
 }
 
 function signatureOutput() {
-  return [
-    `${color("signature", "yellow")}: drawing the handwritten mark`,
-    `${ansi.dim}Reserved below so the ink never sits on top of terminal text.${ansi.reset}`,
+  return terminalPanel("signature", [
+    color("drawing the handwritten mark", "yellow"),
+    "Reserved below so the ink never sits on top of terminal text.",
     "",
     "",
     "",
@@ -1050,20 +1108,19 @@ function signatureOutput() {
     "",
     "",
     "",
-  ].join(newline);
+  ]);
 }
 
 function statusOutput(theme: TerminalTheme, hasEnteredTerminal: boolean, cubeMode: CubeMode) {
-  return [
-    headline("system"),
-    `${pad("renderer")}wterm/dom`,
-    `${pad("theme")}${theme}`,
-    `${pad("mode")}interactive portfolio`,
-    `${pad("idle")}${hasEnteredTerminal ? "fire dismissed" : "fire waiting"}`,
-    `${pad("cube")}${cubeMode}`,
-    `${pad("pretext")}terminal copy layout + suggestions`,
-    `${pad("signal")}available for sharp product work`,
-  ].join(newline);
+  return terminalPanel("system", [
+    ...labelRows("renderer", "wterm/dom"),
+    ...labelRows("theme", theme),
+    ...labelRows("mode", "interactive portfolio"),
+    ...labelRows("idle", hasEnteredTerminal ? "fire dismissed" : "fire waiting"),
+    ...labelRows("cube", cubeMode),
+    ...labelRows("pretext", "terminal copy layout + suggestions"),
+    ...labelRows("signal", "available for sharp product work"),
+  ]);
 }
 
 function neofetchOutput(theme: TerminalTheme, cubeMode: CubeMode) {
@@ -1125,6 +1182,71 @@ function openExternal(target: string) {
   if (key === "linkedin") return portfolio.links.linkedin;
   if (key === "resume") return portfolio.links.resume;
   return null;
+}
+
+type TuiCommandRailProps = {
+  visible: boolean;
+  nextCommand: string;
+  onCommand: (command: string) => void;
+  onHide: () => void;
+};
+
+const railCommands = [
+  { command: "resume", label: "Resume", detail: "scan" },
+  { command: "proof", label: "Proof", detail: "links" },
+  { command: "projects", label: "Projects", detail: "work" },
+  { command: "cube", label: "Cube", detail: "3D" },
+  { command: "signature", label: "Signature", detail: "draw" },
+] as const;
+
+function TuiCommandRail({ visible, nextCommand, onCommand, onHide }: TuiCommandRailProps) {
+  if (!visible) return null;
+
+  return (
+    <div
+      className="terminal-tui-rail"
+      data-webtui-theme="dark"
+      onPointerDown={(event) => {
+        event.stopPropagation();
+      }}
+    >
+      <div className="tui-rail-copy">
+        <span className="tui-rail-badge" {...{ "is-": "badge", "variant-": "foreground1", "cap-": "round" }}>
+          command rail
+        </span>
+        <button
+          className="tui-rail-next"
+          type="button"
+          onClick={() => onCommand(nextCommand)}
+          {...{ "is-": "button", "size-": "small", "variant-": "foreground1" }}
+        >
+          next: {nextCommand}
+        </button>
+      </div>
+      <div className="tui-rail-actions" aria-label="Portfolio command shortcuts">
+        {railCommands.map((item) => (
+          <button
+            className="tui-rail-action"
+            type="button"
+            key={item.command}
+            onClick={() => onCommand(item.command)}
+            {...{ "is-": "button", "size-": "small", "variant-": item.command === nextCommand ? "foreground0" : "foreground2" }}
+          >
+            <span>{item.label}</span>
+            <small>{item.detail}</small>
+          </button>
+        ))}
+      </div>
+      <button
+        className="tui-rail-hide"
+        type="button"
+        onClick={onHide}
+        {...{ "is-": "button", "size-": "small", "variant-": "foreground2" }}
+      >
+        hide
+      </button>
+    </div>
+  );
 }
 
 function seededNoise(value: number) {
@@ -1927,6 +2049,7 @@ function App() {
   const [cubeLastScramble, setCubeLastScramble] = useState<string[]>([]);
   const [cubeLastSolution, setCubeLastSolution] = useState<string[]>([]);
   const [setupVisible, setSetupVisible] = useState(false);
+  const [tuiRailVisible, setTuiRailVisible] = useState(false);
   const cubeStateRef = useRef<RubiksCubeState>(cubeState);
   const cubeHistoryRef = useRef<string[]>([]);
   const cubeVisibleRef = useRef(cubeVisible);
@@ -2327,6 +2450,14 @@ function App() {
         return;
       }
 
+      if (name === "ui") {
+        const action = args[0]?.toLowerCase() ?? "show";
+        const nextVisible = !(action === "hide" || action === "off" || action === "close");
+        setTuiRailVisible(nextVisible);
+        writeCommandScreen(command, uiOutput(nextVisible));
+        return;
+      }
+
       if (name === "signature" || name === "sign") {
         visitedCommandsRef.current.add("signature");
         setSignatureRunId((value) => value + 1);
@@ -2552,11 +2683,19 @@ function App() {
     setTerminalError(error instanceof Error ? error.message : "Terminal failed to load.");
   }, []);
 
+  const railNextCommand = nextGuideStep(visitedCommandsRef.current)?.command ?? "contact";
+  const runRailCommand = useCallback(
+    (command: string) => {
+      void runCommand(command);
+    },
+    [runCommand],
+  );
+
   return (
     <main className="terminal-stage min-h-dvh bg-zinc-950 p-2 text-zinc-100 sm:p-4">
       <LogueBackdrop />
       <section
-        className="terminal-machine"
+        className={cn("terminal-machine", tuiRailVisible && "has-tui-rail")}
         aria-label="Interactive portfolio terminal"
         data-webtui-theme="dark"
         onPointerDown={() => {
@@ -2590,6 +2729,15 @@ function App() {
             systems ready
           </span>
         </div>
+        <TuiCommandRail
+          visible={tuiRailVisible}
+          nextCommand={railNextCommand}
+          onCommand={runRailCommand}
+          onHide={() => {
+            setTuiRailVisible(false);
+            focus();
+          }}
+        />
         <Terminal
           key={terminalSessionKey}
           ref={ref}
