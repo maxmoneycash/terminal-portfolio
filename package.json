@@ -15,6 +15,7 @@
     "@wterm/dom": "0.3.0",
     "@wterm/react": "0.3.0",
     "clsx": "^2.1.1",
+    "framer-motion": "^12.39.0",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
     "tailwind-merge": "^3.4.0",

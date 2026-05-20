@@ -18,6 +18,7 @@ import {
 } from "./lib/rubiks";
 import { RubiksThreeOverlay } from "./components/RubiksThreeOverlay";
 import { SetupThreeOverlay } from "./components/SetupThreeOverlay";
+import { PortfolioBookletOverlay } from "./components/PortfolioBookletOverlay";
 import { cn } from "./lib/cn";
 
 const ansi = {
@@ -38,6 +39,8 @@ const newline = "\r\n";
 const availableCommands = [
   "?",
   "about",
+  "book",
+  "booklet",
   "cat",
   "clear",
   "contact",
@@ -79,6 +82,7 @@ type CubeMode = "ready" | "scrambling" | "scrambled" | "solving" | "solved";
 const commandExamples = [
   ...availableCommands,
   "cat about.md",
+  "booklet hide",
   "cat contact.txt",
   "cat experience.log",
   "cat proof.links",
@@ -392,6 +396,7 @@ function mapOutput(visited: ReadonlySet<string>) {
     commandRow("resume", "terminal-native resume"),
     commandRow("proof", "live demos and repo links"),
     commandRow("timeline", "career path with dates"),
+    commandRow("booklet", "flip-through portfolio booklet"),
     commandRow("cube", "floating cube controls"),
     commandRow("setup", "MacBook + custom 60% keyboard"),
     commandRow("ls", "show portfolio files"),
@@ -552,9 +557,35 @@ function setupSourceOutput() {
   ]);
 }
 
+function bookletOutput() {
+  return terminalPanel("booklet", [
+    "Opening the interactive portfolio booklet.",
+    "",
+    panelRule("controls"),
+    commandRow("click book", "open and turn one page"),
+    commandRow("click final", "reset to the cover"),
+    commandRow("booklet hide", "close the booklet overlay"),
+    "",
+    panelRule("content"),
+    ...labelRows("cover", "Maxwell Mohammadi, smart contract engineer"),
+    ...labelRows("inside", "Aptos Labs, project proof, technical systems, contact links"),
+  ]);
+}
+
+function bookletHiddenOutput() {
+  return terminalPanel("booklet hidden", [
+    "The booklet overlay is closed.",
+    "",
+    commandRow("booklet", "open it again"),
+    commandRow("resume", "return to terminal resume"),
+  ]);
+}
+
 function contextualNudge(name: string, visited: ReadonlySet<string>, cubeVisible: boolean, cubeHasHistory: boolean) {
   const quietCommands = new Set([
     "?",
+    "book",
+    "booklet",
     "clear",
     "cube",
     "desk",
@@ -671,6 +702,7 @@ function bootOutput(compact = compactTerminalViewport()) {
         commandRow("ui", "toggle the command rail"),
         "",
         panelRule("side quests"),
+        commandRow("booklet", "flip-through portfolio"),
         commandRow("cube", "3D side quest"),
         commandRow("contact", "links and email"),
         "",
@@ -690,6 +722,7 @@ function bootOutput(compact = compactTerminalViewport()) {
         commandRow("ui", "toggle the command rail"),
         "",
         panelRule("interactive scenes"),
+        commandRow("booklet", "interactive portfolio booklet"),
         commandRow("cube", "floating scrambler + solver"),
         commandRow("setup", "MacBook + custom keyboard scene"),
         commandRow("intro", "type out the about program"),
@@ -735,6 +768,7 @@ function helpOutput(visited: ReadonlySet<string>) {
       commandRow("timeline", "career path with dates"),
       "",
       panelRule("interactive"),
+      commandRow("booklet", "flip-through portfolio booklet"),
       commandRow("cube", "floating Rubik's cube controller"),
       commandRow("setup", "MacBook + matte-white keyboard scene"),
       commandRow("signature", "draw the handwritten mark"),
@@ -1195,8 +1229,8 @@ const railCommands = [
   { command: "resume", label: "Resume", detail: "scan" },
   { command: "proof", label: "Proof", detail: "links" },
   { command: "projects", label: "Projects", detail: "work" },
+  { command: "booklet", label: "Booklet", detail: "flip" },
   { command: "cube", label: "Cube", detail: "3D" },
-  { command: "signature", label: "Signature", detail: "draw" },
 ] as const;
 
 function TuiCommandRail({ visible, nextCommand, onCommand, onHide }: TuiCommandRailProps) {
@@ -2049,6 +2083,7 @@ function App() {
   const [cubeLastScramble, setCubeLastScramble] = useState<string[]>([]);
   const [cubeLastSolution, setCubeLastSolution] = useState<string[]>([]);
   const [setupVisible, setSetupVisible] = useState(false);
+  const [bookletVisible, setBookletVisible] = useState(false);
   const [tuiRailVisible, setTuiRailVisible] = useState(false);
   const cubeStateRef = useRef<RubiksCubeState>(cubeState);
   const cubeHistoryRef = useRef<string[]>([]);
@@ -2418,6 +2453,7 @@ function App() {
 
       if (name === "clear") {
         clearTypingTimers();
+        setBookletVisible(false);
         void resetTerminalScreen("", true);
         return;
       }
@@ -2460,8 +2496,23 @@ function App() {
 
       if (name === "signature" || name === "sign") {
         visitedCommandsRef.current.add("signature");
+        setBookletVisible(false);
         setSignatureRunId((value) => value + 1);
         writeCommandScreen(command, signatureOutput());
+        return;
+      }
+
+      if (name === "booklet" || name === "book") {
+        const action = args[0]?.toLowerCase() ?? "show";
+        if (action === "hide" || action === "off" || action === "close") {
+          setBookletVisible(false);
+          writeCommandScreen(command, bookletHiddenOutput());
+        } else {
+          setBookletVisible(true);
+          setCubeVisible(false);
+          setSetupVisible(false);
+          writeCommandScreen(command, bookletOutput());
+        }
         return;
       }
 
@@ -2478,6 +2529,7 @@ function App() {
 
       if (name === "cube") {
         setSetupVisible(false);
+        setBookletVisible(false);
         const output = runCubeCommand(args);
         writeCommandScreen(command, output);
         return;
@@ -2491,10 +2543,12 @@ function App() {
         } else if (action === "source") {
           setSetupVisible(true);
           setCubeVisible(false);
+          setBookletVisible(false);
           writeCommandScreen(command, setupSourceOutput());
         } else {
           setSetupVisible(true);
           setCubeVisible(false);
+          setBookletVisible(false);
           writeCommandScreen(command, setupOutput());
         }
         return;
@@ -2714,6 +2768,13 @@ function App() {
           hasScramble={cubeLastScramble.length > 0 || cubeLastSolution.length > 0}
         />
         <SetupThreeOverlay visible={setupVisible} />
+        <PortfolioBookletOverlay
+          visible={bookletVisible}
+          onClose={() => {
+            setBookletVisible(false);
+            focus();
+          }}
+        />
         <div className="terminal-chrome">
           <span className="terminal-label" {...{ "is-": "badge", "variant-": "foreground1", "cap-": "round" }}>
             portfolio shell

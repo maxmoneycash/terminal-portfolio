@@ -150,7 +150,8 @@ a {
 .terminal-machine.has-tui-rail .logue-terminal-fire-canvas,
 .terminal-machine.has-tui-rail .signature-draw-layer,
 .terminal-machine.has-tui-rail .rubiks-three-orbit,
-.terminal-machine.has-tui-rail .setup-three-orbit {
+.terminal-machine.has-tui-rail .setup-three-orbit,
+.terminal-machine.has-tui-rail .booklet-orbit {
   inset: calc(var(--terminal-chrome-height) + var(--terminal-rail-height)) 0 0;
 }
 
@@ -261,6 +262,117 @@ a {
   color: #fecaca;
   font-size: 0.98rem;
   font-weight: 700;
+}
+
+.booklet-orbit {
+  position: absolute;
+  inset: var(--terminal-chrome-height) 0 0;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+  padding: clamp(1rem, 3vw, 2.5rem);
+  pointer-events: none;
+}
+
+.portfolio-booklet {
+  position: relative;
+  display: flex;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  padding: 0;
+  pointer-events: auto;
+}
+
+.portfolio-booklet:focus-visible {
+  outline: 1px solid rgb(191 219 254 / 0.7);
+  outline-offset: 0.75rem;
+}
+
+.booklet-scene {
+  --book-page-width: clamp(15rem, 24vw, 25rem);
+  --book-page-height: calc(var(--book-page-width) * 1.5);
+  width: calc(var(--book-page-width) * 2.06);
+  height: calc(var(--book-page-height) + 2rem);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  perspective: 2500px;
+  perspective-origin: 50% 50%;
+  overflow: visible;
+}
+
+.booklet-book {
+  position: relative;
+  width: var(--book-page-width);
+  height: var(--book-page-height);
+  box-shadow: 5px 5px 10px 0 rgb(0 0 0 / 0.4);
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+.booklet-book.is-open {
+  box-shadow: none;
+}
+
+.booklet-leaf {
+  position: absolute;
+  inset: 0;
+  transform-origin: left center;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+.booklet-face {
+  position: absolute;
+  inset: 0;
+  display: block;
+  overflow: hidden;
+  background-color: transparent;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.booklet-face-front {
+  border-radius: 0 10px 10px 0;
+}
+
+.booklet-face-back {
+  border-radius: 10px 0 0 10px;
+  transform: rotateY(180deg) translateZ(0.01px);
+}
+
+.booklet-face img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+  user-select: none;
+}
+
+.booklet-spine-gradient {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 12%;
+  background: linear-gradient(to right, rgb(0 0 0 / 0.18), transparent);
+  pointer-events: none;
+}
+
+.booklet-spine-gradient.is-back {
+  right: 0;
+  left: auto;
+  transform: scaleX(-1);
 }
 
 .signature-handwriting-stage {
@@ -752,6 +864,25 @@ a {
     font-size: 0.78rem;
   }
 
+  .booklet-orbit {
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem 0.65rem 1.05rem;
+  }
+
+  .portfolio-booklet {
+    width: 100%;
+    height: 100%;
+  }
+
+  .booklet-scene {
+    --book-page-width: min(39vw, 10.25rem);
+    --book-page-height: calc(var(--book-page-width) * 1.5);
+    width: calc(var(--book-page-width) * 2.12);
+    height: calc(var(--book-page-height) + 1rem);
+    perspective: 1350px;
+  }
+
   .portfolio-terminal.wterm.theme-logue,
   .portfolio-terminal.wterm.theme-midnight,
   .portfolio-terminal.wterm.theme-paper {
@@ -799,11 +930,21 @@ a {
     --term-font-size: 12px;
     --term-row-height: 17px;
   }
+
+  .booklet-scene {
+    --book-page-width: min(38vw, 9.2rem);
+    --book-page-height: calc(var(--book-page-width) * 1.5);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .rubiks-three-readout,
   .setup-three-readout {
     text-shadow: none;
+  }
+
+  .booklet-book,
+  .booklet-leaf {
+    transition: none;
   }
 }
