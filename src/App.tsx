@@ -1,8 +1,11 @@
 import {
   useCallback,
   useEffect,
+  useLayoutEffect,
+  useMemo,
   useRef,
   useState,
+  type MouseEvent as ReactMouseEvent,
   type PointerEvent as ReactPointerEvent,
   type ReactNode,
 } from "react";
@@ -19,7 +22,9 @@ type BootPhase = "boot" | "login" | "welcome" | "desktop";
 type AppId = "about" | "resume" | "projects" | "demos" | "contact" | "stats";
 type EdgeState = {
   top: boolean;
+  right: boolean;
   bottom: boolean;
+  left: boolean;
 };
 type WindowRecord = {
   id: AppId;
@@ -115,9 +120,17 @@ function playSound(name: "login" | "logoff" | "balloon") {
   void audio.play().catch(() => {});
 }
 
+function readCrtPreference() {
+  try {
+    return window.localStorage.getItem("maxxp:crt") === "on";
+  } catch {
+    return false;
+  }
+}
+
 function ScrollPane({ children, className }: { children: ReactNode; className?: string }) {
   const viewportRef = useRef<HTMLDivElement | null>(null);
-  const [edges, setEdges] = useState<EdgeState>({ top: false, bottom: false });
+  const [edges, setEdges] = useState<EdgeState>({ top: false, right: false, bottom: false, left: false });
 
   const updateEdges = useCallback(() => {
     const viewport = viewportRef.current;
@@ -125,9 +138,18 @@ function ScrollPane({ children, className }: { children: ReactNode; className?: 
     const epsilon = 2;
     const next = {
       top: viewport.scrollTop > epsilon,
+      right: viewport.scrollLeft + viewport.clientWidth < viewport.scrollWidth - epsilon,
       bottom: viewport.scrollTop + viewport.clientHeight < viewport.scrollHeight - epsilon,
+      left: viewport.scrollLeft > epsilon,
     };
-    setEdges((current) => (current.top === next.top && current.bottom === next.bottom ? current : next));
+    setEdges((current) =>
+      current.top === next.top &&
+      current.right === next.right &&
+      current.bottom === next.bottom &&
+      current.left === next.left
+        ? current
+        : next,
+    );
   }, []);
 
   useEffect(() => {
@@ -147,12 +169,23 @@ function ScrollPane({ children, className }: { children: ReactNode; className?: 
   }, [updateEdges, children]);
 
   return (
-    <div className={cn("scroll-surface", edges.top && "has-top-edge", edges.bottom && "has-bottom-edge", className)}>
+    <div
+      className={cn(
+        "scroll-surface",
+        edges.top && "has-top-edge",
+        edges.right && "has-right-edge",
+        edges.bottom && "has-bottom-edge",
+        edges.left && "has-left-edge",
+        className,
+      )}
+    >
       <div className="scroll-viewport" ref={viewportRef} tabIndex={0}>
         <div className="scroll-content">{children}</div>
       </div>
       <div className="scroll-edge scroll-edge-top" aria-hidden="true" />
+      <div className="scroll-edge scroll-edge-right" aria-hidden="true" />
       <div className="scroll-edge scroll-edge-bottom" aria-hidden="true" />
+      <div className="scroll-edge scroll-edge-left" aria-hidden="true" />
     </div>
   );
 }
@@ -194,7 +227,7 @@ function LoginScreen({ onLogin }: { onLogin: () => void }) {
           </p>
         </div>
         <div className="login-divider" />
-        <button className="login-user" type="button" onClick={onLogin}>
+        <button className="login-user" type="button" autoFocus onClick={onLogin}>
           <span className="login-avatar">M</span>
           <span>
             <strong>{portfolio.name}</strong>
@@ -218,6 +251,7 @@ function WelcomeScreen() {
   return (
     <section className="xp-welcome-screen" aria-label="Welcome">
       <span>welcome</span>
+      <small>loading your portfolio…</small>
     </section>
   );
 }
@@ -301,10 +335,64 @@ function formatCodeTokens(tokens: number) {
 
 function AllReposView() {
   const { repos, totalTokens, generatedAt } = githubProjects;
+  const [query, setQuery] = useState("");
+  const [filter, setFilter] = useState<"all" | "live" | "public" | "private" | "seam">("all");
+  const visibleRepos = useMemo(() => {
+    const normalizedQuery = query.trim().toLowerCase();
+    return repos.filter((repo) => {
+      const matchesFilter =
+        filter === "all" ||
+        (filter === "live" && Boolean(repo.homepage)) ||
+        (filter === "public" && !repo.private) ||
+        (filter === "private" && repo.private) ||
+        (filter === "seam" && repo.owner === "seammoney");
+      if (!matchesFilter) return false;
+      if (!normalizedQuery) return true;
+      return [repo.owner, repo.name, repo.description, repo.language]
+        .filter(Boolean)
+        .some((value) => String(value).toLowerCase().includes(normalizedQuery));
+    });
+  }, [filter, query, repos]);
+
+  const filters = [
+    { id: "all", label: "All" },
+    { id: "live", label: "Live" },
+    { id: "public", label: "Public" },
+    { id: "private", label: "Private" },
+    { id: "seam", label: "Seam" },
+  ] as const;
+
   return (
     <div className="repo-explorer">
+      <div className="repo-tools">
+        <label className="repo-search">
+          <span>Search</span>
+          <input
+            type="search"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder={`Search ${repos.length} repositories`}
+          />
+        </label>
+        <div className="repo-filters" aria-label="Filter repositories">
+          {filters.map((option) => (
+            <button
+              key={option.id}
+              type="button"
+              className={cn(filter === option.id && "is-active")}
+              aria-pressed={filter === option.id}
+              onClick={() => setFilter(option.id)}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+        <span className="repo-result-count" aria-live="polite">
+          {visibleRepos.length} shown
+        </span>
+      </div>
       <ScrollPane className="repo-table-pane">
-        <table className="repo-table">
+        <table className="repo-table" aria-label="GitHub repositories ranked by estimated code tokens">
           <thead>
             <tr>
               <th>Name</th>
@@ -314,7 +402,7 @@ function AllReposView() {
             </tr>
           </thead>
           <tbody>
-            {repos.map((repo) => (
+            {visibleRepos.map((repo) => (
               <tr key={`${repo.owner}/${repo.name}`}>
                 <td>
                   <span className="repo-name">
@@ -338,6 +426,13 @@ function AllReposView() {
                 <td className="repo-desc">{repo.description ?? ""}</td>
               </tr>
             ))}
+            {visibleRepos.length === 0 ? (
+              <tr>
+                <td className="repo-empty" colSpan={4}>
+                  No repositories match this search.
+                </td>
+              </tr>
+            ) : null}
           </tbody>
         </table>
       </ScrollPane>
@@ -482,20 +577,37 @@ function WindowChrome({
 }) {
   const app = appCatalog[record.id];
   const sectionRef = useRef<HTMLElement | null>(null);
+  const exitAnimationRef = useRef<Animation | null>(null);
+  const layoutAnimationRef = useRef<Animation | null>(null);
+  const maximizeFromRectRef = useRef<DOMRect | null>(null);
+  const previousMinimizedRef = useRef(record.minimized);
   const style = record.maximized
     ? { zIndex: record.z }
     : { left: record.x, top: record.y, width: record.width, height: record.height, zIndex: record.z };
 
-  const animateOut = (keyframes: Keyframe[], done: () => void) => {
+  const animateOut = (
+    keyframes: Keyframe[],
+    done: () => void,
+    options: { duration?: number; easing?: string } = {},
+  ) => {
     const element = sectionRef.current;
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (exitAnimationRef.current) return;
     if (!element || reduceMotion || typeof element.animate !== "function") {
       done();
       return;
     }
-    element
-      .animate(keyframes, { duration: 160, easing: "cubic-bezier(0.77, 0, 0.175, 1)", fill: "forwards" })
-      .finished.then(done, done);
+    layoutAnimationRef.current?.cancel();
+    layoutAnimationRef.current = null;
+    const animation = element.animate(keyframes, {
+      duration: options.duration ?? 150,
+      easing: options.easing ?? "cubic-bezier(0.23, 1, 0.32, 1)",
+      fill: "forwards",
+    });
+    exitAnimationRef.current = animation;
+    void animation.finished.then(done).catch(() => {
+      exitAnimationRef.current = null;
+    });
   };
 
   const handleClose = () =>
@@ -507,14 +619,93 @@ function WindowChrome({
       () => onClose(record.id),
     );
 
-  const handleMinimize = () =>
+  const handleMinimize = () => {
+    const element = sectionRef.current;
+    const taskbarButton = document.querySelector<HTMLElement>(`[data-taskbar-app="${record.id}"]`);
+    const windowRect = element?.getBoundingClientRect();
+    const taskbarRect = taskbarButton?.getBoundingClientRect();
+    const x = windowRect && taskbarRect ? taskbarRect.left + taskbarRect.width / 2 - (windowRect.left + windowRect.width / 2) : 0;
+    const y = windowRect && taskbarRect ? taskbarRect.top + taskbarRect.height / 2 - (windowRect.top + windowRect.height / 2) : 46;
     animateOut(
       [
-        { opacity: 1, transform: "translateY(0) scale(1)" },
-        { opacity: 0, transform: "translateY(46px) scale(0.9)" },
+        { opacity: 1, transform: "translate3d(0, 0, 0) scale(1)", transformOrigin: "center" },
+        { opacity: 0, transform: `translate3d(${x}px, ${y}px, 0) scale(0.18)`, transformOrigin: "center" },
       ],
       () => onMinimize(record.id),
+      { duration: 190, easing: "cubic-bezier(0.77, 0, 0.175, 1)" },
     );
+  };
+
+  const handleMaximize = (event?: ReactMouseEvent<HTMLElement>) => {
+    if (event && (event.target as Element).closest(".window-buttons")) return;
+    maximizeFromRectRef.current = sectionRef.current?.getBoundingClientRect() ?? null;
+    onMaximize(record.id);
+  };
+
+  useLayoutEffect(() => {
+    const element = sectionRef.current;
+    const from = maximizeFromRectRef.current;
+    maximizeFromRectRef.current = null;
+    if (!element || !from || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    const to = element.getBoundingClientRect();
+    if (to.width <= 0 || to.height <= 0) return;
+    const x = from.left - to.left;
+    const y = from.top - to.top;
+    const scaleX = from.width / to.width;
+    const scaleY = from.height / to.height;
+    layoutAnimationRef.current?.cancel();
+    const animation = element.animate(
+      [
+        {
+          transform: `translate3d(${x}px, ${y}px, 0) scale(${scaleX}, ${scaleY})`,
+          transformOrigin: "top left",
+        },
+        { transform: "translate3d(0, 0, 0) scale(1)", transformOrigin: "top left" },
+      ],
+      { duration: 220, easing: "cubic-bezier(0.23, 1, 0.32, 1)", fill: "both" },
+    );
+    layoutAnimationRef.current = animation;
+    void animation.finished.then(() => animation.cancel()).catch(() => {});
+  }, [record.maximized]);
+
+  useLayoutEffect(() => {
+    const wasMinimized = previousMinimizedRef.current;
+    previousMinimizedRef.current = record.minimized;
+    if (!wasMinimized || record.minimized) return;
+
+    const element = sectionRef.current;
+    const taskbarButton = document.querySelector<HTMLElement>(`[data-taskbar-app="${record.id}"]`);
+    if (!element || !taskbarButton || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      exitAnimationRef.current?.cancel();
+      exitAnimationRef.current = null;
+      return;
+    }
+
+    exitAnimationRef.current?.cancel();
+    exitAnimationRef.current = null;
+    const windowRect = element.getBoundingClientRect();
+    const taskbarRect = taskbarButton.getBoundingClientRect();
+    const x = taskbarRect.left + taskbarRect.width / 2 - (windowRect.left + windowRect.width / 2);
+    const y = taskbarRect.top + taskbarRect.height / 2 - (windowRect.top + windowRect.height / 2);
+    layoutAnimationRef.current?.cancel();
+    const animation = element.animate(
+      [
+        { opacity: 0, transform: `translate3d(${x}px, ${y}px, 0) scale(0.18)`, transformOrigin: "center" },
+        { opacity: 1, transform: "translate3d(0, 0, 0) scale(1)", transformOrigin: "center" },
+      ],
+      { duration: 210, easing: "cubic-bezier(0.23, 1, 0.32, 1)", fill: "both" },
+    );
+    layoutAnimationRef.current = animation;
+    void animation.finished.then(() => animation.cancel()).catch(() => {});
+  }, [record.id, record.minimized]);
+
+  useEffect(
+    () => () => {
+      layoutAnimationRef.current?.cancel();
+    },
+    [],
+  );
 
   const menus: WindowMenu[] = [
     {
@@ -544,7 +735,7 @@ function WindowChrome({
         { label: "CRT Effects", checked: crtEnabled, onSelect: onToggleCrt },
         { label: "Full Screen", onSelect: () => document.documentElement.requestFullscreen?.() },
         "separator",
-        { label: record.maximized ? "Restore" : "Maximize", onSelect: () => onMaximize(record.id) },
+        { label: record.maximized ? "Restore" : "Maximize", onSelect: () => handleMaximize() },
       ],
     },
     {
@@ -561,12 +752,23 @@ function WindowChrome({
   return (
     <section
       ref={sectionRef}
-      className={cn("xp-window", active && "is-active", record.maximized && "is-maximized")}
+      className={cn(
+        "xp-window",
+        active && "is-active",
+        record.maximized && "is-maximized",
+        record.minimized && "is-minimized",
+      )}
       style={style}
       aria-label={app.title}
+      aria-hidden={record.minimized}
+      inert={record.minimized}
       onPointerDown={() => onFocus(record.id)}
     >
-      <header className="window-titlebar" onPointerDown={(event) => onDragStart(event, record)}>
+      <header
+        className="window-titlebar"
+        onPointerDown={(event) => onDragStart(event, record)}
+        onDoubleClick={(event) => handleMaximize(event)}
+      >
         <div className="titlebar-title">
           <img src={app.icon} alt="" draggable={false} />
           <strong>{app.title}</strong>
@@ -578,7 +780,11 @@ function WindowChrome({
             </button>
           </Tooltip>
           <Tooltip label={record.maximized ? "Restore Down" : "Maximize"}>
-            <button type="button" aria-label={`Maximize ${app.title}`} onClick={() => onMaximize(record.id)}>
+            <button
+              type="button"
+              aria-label={`${record.maximized ? "Restore" : "Maximize"} ${app.title}`}
+              onClick={() => handleMaximize()}
+            >
               □
             </button>
           </Tooltip>
@@ -629,9 +835,50 @@ function WindowChrome({
   );
 }
 
-function StartMenu({ openApp, onLogOff }: { openApp: (id: AppId) => void; onLogOff: () => void }) {
+function StartMenu({
+  open,
+  openApp,
+  onClose,
+  onLogOff,
+}: {
+  open: boolean;
+  openApp: (id: AppId) => void;
+  onClose: () => void;
+  onLogOff: () => void;
+}) {
+  const menuRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const handlePointerDown = (event: PointerEvent) => {
+      const target = event.target as Element;
+      if (menuRef.current?.contains(target) || target.closest(".start-button")) return;
+      onClose();
+    };
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        onClose();
+        window.requestAnimationFrame(() => document.querySelector<HTMLButtonElement>(".start-button")?.focus());
+      }
+    };
+    document.addEventListener("pointerdown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [onClose, open]);
+
   return (
-    <aside className="start-menu" aria-label="Start menu">
+    <aside
+      ref={menuRef}
+      id="maxxp-start-menu"
+      className="start-menu"
+      data-state={open ? "open" : "closed"}
+      aria-label="Start menu"
+      aria-hidden={!open}
+      inert={!open}
+    >
       <header className="start-menu-header">
         <span className="start-avatar">M</span>
         <strong>{portfolio.name}</strong>
@@ -684,19 +931,39 @@ function StartMenu({ openApp, onLogOff }: { openApp: (id: AppId) => void; onLogO
 function App() {
   const [phase, setPhase] = useState<BootPhase>("boot");
   const [startOpen, setStartOpen] = useState(false);
-  const [crtEnabled, setCrtEnabled] = useState(true);
+  const [crtEnabled, setCrtEnabled] = useState(readCrtPreference);
   const [showWelcome, setShowWelcome] = useState(false);
+  const [now, setNow] = useState(() => new Date());
   const [windows, setWindows] = useState<WindowRecord[]>([
     { id: "about", x: 168, y: 78, width: 790, height: 650, z: 2, minimized: false, maximized: false },
   ]);
-  const [activeWindow, setActiveWindow] = useState<AppId>("about");
+  const [activeWindow, setActiveWindow] = useState<AppId | null>("about");
   const [drag, setDrag] = useState<DragState | null>(null);
   const zRef = useRef(3);
 
   useEffect(() => {
-    const timer = window.setTimeout(() => setPhase("login"), 2100);
+    const timer = window.setTimeout(() => setPhase("login"), 1800);
     return () => window.clearTimeout(timer);
   }, []);
+
+  useEffect(() => {
+    if (phase !== "welcome") return;
+    const timer = window.setTimeout(() => setPhase("desktop"), 720);
+    return () => window.clearTimeout(timer);
+  }, [phase]);
+
+  useEffect(() => {
+    const interval = window.setInterval(() => setNow(new Date()), 30_000);
+    return () => window.clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem("maxxp:crt", crtEnabled ? "on" : "off");
+    } catch {
+      // Storage is optional; the toggle still works for the current visit.
+    }
+  }, [crtEnabled]);
 
   useEffect(() => {
     if (phase !== "desktop") return;
@@ -713,6 +980,14 @@ function App() {
   }, [showWelcome]);
 
   useEffect(() => {
+    if (activeWindow && windows.some((windowRecord) => windowRecord.id === activeWindow && !windowRecord.minimized)) return;
+    const next = [...windows]
+      .filter((windowRecord) => !windowRecord.minimized)
+      .sort((a, b) => b.z - a.z)[0];
+    setActiveWindow(next?.id ?? null);
+  }, [activeWindow, windows]);
+
+  useEffect(() => {
     if (!drag) return;
 
     const handleMove = (event: PointerEvent) => {
@@ -727,10 +1002,12 @@ function App() {
             };
           }
           const app = appCatalog[windowRecord.id];
+          const maxWidth = Math.max(app.dimensions.minWidth, window.innerWidth - windowRecord.x - 8);
+          const maxHeight = Math.max(app.dimensions.minHeight, window.innerHeight - windowRecord.y - 39);
           return {
             ...windowRecord,
-            width: Math.max(app.dimensions.minWidth, drag.width + event.clientX - drag.startX),
-            height: Math.max(app.dimensions.minHeight, drag.height + event.clientY - drag.startY),
+            width: Math.min(maxWidth, Math.max(app.dimensions.minWidth, drag.width + event.clientX - drag.startX)),
+            height: Math.min(maxHeight, Math.max(app.dimensions.minHeight, drag.height + event.clientY - drag.startY)),
           };
         }),
       );
@@ -755,6 +1032,8 @@ function App() {
     );
   }, []);
 
+  const closeStartMenu = useCallback(() => setStartOpen(false), []);
+
   const openApp = useCallback(
     (id: AppId) => {
       setStartOpen(false);
@@ -767,12 +1046,14 @@ function App() {
         }
         const app = appCatalog[id];
         const offset = current.length * 24;
+        const x = Math.max(8, Math.min(150 + offset, window.innerWidth - app.dimensions.width - 8));
+        const y = Math.max(8, Math.min(72 + offset, window.innerHeight - app.dimensions.height - 39));
         return [
           ...current,
           {
             id,
-            x: 150 + offset,
-            y: 72 + offset,
+            x,
+            y,
             width: app.dimensions.width,
             height: app.dimensions.height,
             z: ++zRef.current,
@@ -787,13 +1068,14 @@ function App() {
   );
 
   const login = () => {
-    setPhase("desktop");
+    setPhase("welcome");
     playSound("login");
   };
 
   const logOff = () => {
     playSound("logoff");
     setStartOpen(false);
+    setShowWelcome(false);
     setPhase("login");
   };
 
@@ -831,14 +1113,22 @@ function App() {
     focusWindow(record.id);
   };
 
-  const contentByApp = {
-    about: <AboutApp openApp={openApp} />,
-    resume: <ResumeApp />,
-    projects: <ProjectsApp />,
-    demos: <ReelsApp />,
-    contact: <ContactApp />,
-    stats: <StatsApp />,
-  } satisfies Record<AppId, ReactNode>;
+  const contentForWindow = (windowRecord: WindowRecord) => {
+    switch (windowRecord.id) {
+      case "about":
+        return <AboutApp openApp={openApp} />;
+      case "resume":
+        return <ResumeApp />;
+      case "projects":
+        return <ProjectsApp />;
+      case "demos":
+        return <ReelsApp active={!windowRecord.minimized} />;
+      case "contact":
+        return <ContactApp />;
+      case "stats":
+        return <StatsApp />;
+    }
+  };
 
   if (phase === "boot") return <BootScreen />;
   if (phase === "login") return <LoginScreen onLogin={login} />;
@@ -846,9 +1136,7 @@ function App() {
 
   return (
     <main className={cn("maxxp-desktop", crtEnabled && "crt-on")}>
-      <div className="maxxp-wallpaper" aria-hidden="true">
-        <span>MAX</span>
-      </div>
+      <div className="maxxp-wallpaper" aria-hidden="true" />
 
       <section className="desktop-icons" id="desktop-icons" aria-label="Desktop applications">
         {desktopApps.map((id) => (
@@ -859,9 +1147,9 @@ function App() {
         ))}
       </section>
 
-      <div className="windows-layer" aria-live="polite">
+      <div className="windows-layer">
         {windows
-          .filter((windowRecord) => !windowRecord.minimized)
+          .slice()
           .sort((a, b) => a.z - b.z)
           .map((windowRecord) => (
             <WindowChrome
@@ -878,12 +1166,12 @@ function App() {
               crtEnabled={crtEnabled}
               onToggleCrt={() => setCrtEnabled((value) => !value)}
             >
-              {contentByApp[windowRecord.id]}
+              {contentForWindow(windowRecord)}
             </WindowChrome>
           ))}
       </div>
 
-      {startOpen ? <StartMenu openApp={openApp} onLogOff={logOff} /> : null}
+      <StartMenu open={startOpen} openApp={openApp} onClose={closeStartMenu} onLogOff={logOff} />
 
       <TrayBalloon title="Welcome to MaxXP" visible={showWelcome} onClose={() => setShowWelcome(false)}>
         Take the tour — open Demo Reel for the new reels feed, or browse the projects and resume. Every window is
@@ -891,22 +1179,31 @@ function App() {
       </TrayBalloon>
 
       <footer className="taskbar">
-        <button className={cn("start-button", startOpen && "is-active")} type="button" onClick={() => setStartOpen((value) => !value)}>
+        <button
+          className={cn("start-button", startOpen && "is-active")}
+          type="button"
+          aria-expanded={startOpen}
+          aria-controls="maxxp-start-menu"
+          onClick={() => setStartOpen((value) => !value)}
+        >
           <img src={`${xp}/gui/taskbar/start-button.webp`} alt="Start" />
         </button>
-        <div className="taskbar-programs">
-          {windows.map((windowRecord) => (
-            <button
-              key={windowRecord.id}
-              className={cn(activeWindow === windowRecord.id && !windowRecord.minimized && "is-active")}
-              type="button"
-              onClick={() => focusWindow(windowRecord.id)}
-            >
-              <img src={appCatalog[windowRecord.id].icon} alt="" />
-              {appCatalog[windowRecord.id].shortTitle}
-            </button>
-          ))}
-        </div>
+        <ScrollPane className="taskbar-programs-scroll">
+          <div className="taskbar-programs">
+            {windows.map((windowRecord) => (
+              <button
+                key={windowRecord.id}
+                data-taskbar-app={windowRecord.id}
+                className={cn(activeWindow === windowRecord.id && !windowRecord.minimized && "is-active")}
+                type="button"
+                onClick={() => focusWindow(windowRecord.id)}
+              >
+                <img src={appCatalog[windowRecord.id].icon} alt="" />
+                {appCatalog[windowRecord.id].shortTitle}
+              </button>
+            ))}
+          </div>
+        </ScrollPane>
         <div className="system-tray">
           <Tooltip label="Show welcome message">
             <button type="button" aria-label="Show welcome message" onClick={() => setShowWelcome((value) => !value)}>
@@ -923,8 +1220,8 @@ function App() {
               <img src={`${xp}/gui/taskbar/fullscreen.webp`} alt="" />
             </button>
           </Tooltip>
-          <Tooltip label={new Date().toLocaleDateString([], { weekday: "long", year: "numeric", month: "long", day: "numeric" })}>
-            <time>{new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}</time>
+          <Tooltip label={now.toLocaleDateString([], { weekday: "long", year: "numeric", month: "long", day: "numeric" })}>
+            <time dateTime={now.toISOString()}>{now.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}</time>
           </Tooltip>
         </div>
       </footer>

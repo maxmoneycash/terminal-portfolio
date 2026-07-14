@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import { portfolio, type PortfolioVideo } from "../data/portfolio";
 import { cn } from "../lib/cn";
 import { Tooltip } from "./Tooltip";
@@ -18,7 +18,7 @@ function orderSources(video: PortfolioVideo, preferHls: boolean) {
   });
 }
 
-export function ReelsApp() {
+export function ReelsApp({ active = true }: { active?: boolean }) {
   const videos = useMemo(() => {
     const featured = portfolio.videos.find((video) => video.id === featuredVideoId);
     const rest = portfolio.videos.filter((video) => video.id !== featuredVideoId);
@@ -27,6 +27,7 @@ export function ReelsApp() {
   const [preferHls, setPreferHls] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
   const [muted, setMuted] = useState(true);
+  const [playing, setPlaying] = useState(false);
   const feedRef = useRef<HTMLDivElement | null>(null);
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
 
@@ -48,6 +49,7 @@ export function ReelsApp() {
       (entries) => {
         entries.forEach((entry) => {
           if (!entry.isIntersecting) return;
+          setPlaying(false);
           setActiveIndex(Number((entry.target as HTMLElement).dataset.reelIndex));
         });
       },
@@ -61,19 +63,20 @@ export function ReelsApp() {
     videoRefs.current.forEach((element, index) => {
       if (!element) return;
       element.muted = muted;
-      if (index === activeIndex) {
+      if (active && index === activeIndex) {
         void element.play().catch(() => {});
       } else {
         element.pause();
       }
     });
-  }, [activeIndex, muted]);
+  }, [active, activeIndex, muted]);
 
   const scrollToIndex = (index: number) => {
     if (index < 0 || index >= videos.length) return;
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     feedRef.current
       ?.querySelector(`[data-reel-index="${index}"]`)
-      ?.scrollIntoView({ behavior: "smooth", block: "start" });
+      ?.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
   };
 
   const togglePlayback = (index: number) => {
@@ -86,9 +89,31 @@ export function ReelsApp() {
     }
   };
 
+  const handleKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
+    if (event.key === "ArrowDown" || event.key === "PageDown") {
+      event.preventDefault();
+      scrollToIndex(activeIndex + 1);
+    } else if (event.key === "ArrowUp" || event.key === "PageUp") {
+      event.preventDefault();
+      scrollToIndex(activeIndex - 1);
+    } else if (event.key === " " || event.key === "Enter") {
+      event.preventDefault();
+      togglePlayback(activeIndex);
+    } else if (event.key.toLowerCase() === "m") {
+      event.preventDefault();
+      setMuted((value) => !value);
+    }
+  };
+
   return (
     <div className="reels-app">
-      <div className="reels-feed" ref={feedRef} tabIndex={0} aria-label="Demo reels feed">
+      <div
+        className="reels-feed"
+        ref={feedRef}
+        tabIndex={0}
+        aria-label="Demo reels feed. Use arrow keys to change clips, space to pause, and M to mute."
+        onKeyDown={handleKeyDown}
+      >
         {videos.map((video, index) => (
           <section
             className={cn("reel-slide", activeIndex === index && "is-active")}
@@ -102,11 +127,17 @@ export function ReelsApp() {
                 videoRefs.current[index] = element;
               }}
               playsInline
-              muted
+              muted={muted}
               loop
               preload={index === 0 ? "auto" : "none"}
               poster={video.poster}
               onClick={() => togglePlayback(index)}
+              onPlay={() => {
+                if (index === activeIndex) setPlaying(true);
+              }}
+              onPause={() => {
+                if (index === activeIndex) setPlaying(false);
+              }}
             >
               {orderSources(video, preferHls).map((source) => (
                 <source key={source.src} src={source.src} type={source.type} />
@@ -137,6 +168,18 @@ export function ReelsApp() {
         <span className="reels-count">
           {activeIndex + 1}/{videos.length}
         </span>
+        <div className="reels-progress" aria-label="Choose a demo clip">
+          {videos.map((video, index) => (
+            <button
+              key={video.id}
+              type="button"
+              className={cn(index === activeIndex && "is-active")}
+              aria-label={`Open clip ${index + 1}: ${video.title}`}
+              aria-current={index === activeIndex ? "true" : undefined}
+              onClick={() => scrollToIndex(index)}
+            />
+          ))}
+        </div>
         <Tooltip label="Next clip">
           <button
             className="reel-nav"
@@ -146,6 +189,16 @@ export function ReelsApp() {
             onClick={() => scrollToIndex(activeIndex + 1)}
           >
             ▼
+          </button>
+        </Tooltip>
+        <Tooltip label={playing ? "Pause clip" : "Play clip"}>
+          <button
+            className="reel-nav reel-playback"
+            type="button"
+            aria-label={playing ? "Pause clip" : "Play clip"}
+            onClick={() => togglePlayback(activeIndex)}
+          >
+            {playing ? "Ⅱ" : "▶"}
           </button>
         </Tooltip>
         <Tooltip label={muted ? "Turn sound on" : "Mute"}>

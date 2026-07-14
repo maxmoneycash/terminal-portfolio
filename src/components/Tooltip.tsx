@@ -13,16 +13,25 @@ import {
 import { createPortal } from "react-dom";
 
 const SHOW_DELAY_MS = 400;
+const INSTANT_WINDOW_MS = 650;
+let instantUntil = 0;
 
 export function Tooltip({ label, children }: { label: string; children: ReactElement<HTMLAttributes<HTMLElement>> }) {
   const [anchor, setAnchor] = useState<DOMRect | null>(null);
   const [style, setStyle] = useState<CSSProperties | null>(null);
   const tipRef = useRef<HTMLSpanElement | null>(null);
   const timerRef = useRef<number | null>(null);
+  const visibleRef = useRef(false);
+  const [instant, setInstant] = useState(false);
 
   const show = (event: MouseEvent<HTMLElement> | FocusEvent<HTMLElement>) => {
     const rect = event.currentTarget.getBoundingClientRect();
-    timerRef.current = window.setTimeout(() => setAnchor(rect), SHOW_DELAY_MS);
+    const showInstantly = event.type === "focus" || performance.now() < instantUntil;
+    setInstant(showInstantly);
+    timerRef.current = window.setTimeout(() => {
+      visibleRef.current = true;
+      setAnchor(rect);
+    }, showInstantly ? 0 : SHOW_DELAY_MS);
   };
 
   const hide = () => {
@@ -30,6 +39,8 @@ export function Tooltip({ label, children }: { label: string; children: ReactEle
       window.clearTimeout(timerRef.current);
       timerRef.current = null;
     }
+    if (visibleRef.current) instantUntil = performance.now() + INSTANT_WINDOW_MS;
+    visibleRef.current = false;
     setAnchor(null);
     setStyle(null);
   };
@@ -51,7 +62,13 @@ export function Tooltip({ label, children }: { label: string; children: ReactEle
       {cloneElement(children, { onMouseEnter: show, onMouseLeave: hide, onFocus: show, onBlur: hide })}
       {anchor
         ? createPortal(
-            <span ref={tipRef} className="xp-tooltip" role="tooltip" style={style ?? { top: -9999, left: -9999 }}>
+            <span
+              ref={tipRef}
+              className="xp-tooltip"
+              data-instant={instant || undefined}
+              role="tooltip"
+              style={style ?? { top: -9999, left: -9999 }}
+            >
               {label}
             </span>,
             document.body,

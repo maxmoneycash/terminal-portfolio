@@ -11,10 +11,14 @@ export function TrayBalloon({
   visible: boolean;
   onClose: () => void;
 }) {
-  if (!visible) return null;
-
   return (
-    <div className="xp-balloon" role="status">
+    <div
+      className="xp-balloon"
+      data-state={visible ? "visible" : "hidden"}
+      role={visible ? "status" : undefined}
+      aria-hidden={!visible}
+      inert={!visible}
+    >
       <header>
         <img src="/xp/gui/taskbar/welcome.webp" alt="" />
         <strong>{title}</strong>
