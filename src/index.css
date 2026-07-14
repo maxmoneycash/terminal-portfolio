@@ -933,6 +933,125 @@ p {
   font-size: 12px;
 }
 
+.projects-shell {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 4px;
+  height: 100%;
+  min-height: 0;
+}
+
+.projects-views {
+  display: flex;
+  gap: 2px;
+}
+
+.projects-views button {
+  border: 1px solid #7f9db9;
+  border-radius: 3px;
+  background: linear-gradient(#fff, #ece9d8);
+  padding: 3px 10px;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.projects-views button.is-active {
+  border-color: #316ac5;
+  background: #dcebff;
+  font-weight: 700;
+}
+
+.repo-explorer {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 4px;
+  height: 100%;
+  min-height: 0;
+}
+
+.repo-table-pane .scroll-viewport {
+  padding: 0;
+}
+
+.repo-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+}
+
+.repo-table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  border: 1px solid #aca899;
+  border-top: none;
+  background: linear-gradient(#fff, #ece9d8);
+  font-weight: 400;
+  padding: 3px 8px;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.repo-table td {
+  border-bottom: 1px solid #efece0;
+  padding: 3px 8px;
+  vertical-align: top;
+}
+
+.repo-table tr:hover td {
+  background: #dcebff;
+}
+
+.repo-name {
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.repo-name small {
+  color: var(--xp-muted);
+  font-weight: 400;
+}
+
+.repo-tag {
+  margin-left: 5px;
+  border: 1px solid #c9c5ae;
+  border-radius: 2px;
+  background: #f1eedd;
+  color: #6d6a58;
+  font-size: 9px;
+  font-style: normal;
+  padding: 0 3px;
+  vertical-align: 1px;
+  white-space: nowrap;
+}
+
+.repo-tokens {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.repo-table a {
+  color: #0046d5;
+  white-space: nowrap;
+}
+
+.repo-offline {
+  color: #b5b29e;
+}
+
+.repo-desc {
+  min-width: 200px;
+  color: var(--xp-muted);
+  line-height: 1.4;
+}
+
+.repo-footer {
+  color: var(--xp-muted);
+  font-size: 11px;
+  padding: 0 2px 2px;
+}
+
 .projects-app,
 .reels-app {
   display: grid;

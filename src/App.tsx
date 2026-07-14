@@ -7,6 +7,7 @@ import {
   type ReactNode,
 } from "react";
 import { portfolio } from "./data/portfolio";
+import githubProjects from "./data/github-projects.json";
 import { cn } from "./lib/cn";
 import { MenuBar, type WindowMenu } from "./components/MenuBar";
 import { ReelsApp } from "./components/ReelsApp";
@@ -292,13 +293,92 @@ function ResumeApp() {
   );
 }
 
+function formatCodeTokens(tokens: number) {
+  if (tokens >= 1e6) return `${(tokens / 1e6).toFixed(2)}M`;
+  if (tokens >= 1e3) return `${(tokens / 1e3).toFixed(0)}K`;
+  return `${tokens}`;
+}
+
+function AllReposView() {
+  const { repos, totalTokens, generatedAt } = githubProjects;
+  return (
+    <div className="repo-explorer">
+      <ScrollPane className="repo-table-pane">
+        <table className="repo-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Code Tokens</th>
+              <th>Live</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            {repos.map((repo) => (
+              <tr key={`${repo.owner}/${repo.name}`}>
+                <td>
+                  <span className="repo-name">
+                    {repo.owner === "seammoney" ? <small>seam / </small> : null}
+                    {repo.name}
+                  </span>
+                  {repo.private ? <em className="repo-tag">private</em> : null}
+                  {repo.fork ? <em className="repo-tag">fork</em> : null}
+                  {repo.archived ? <em className="repo-tag">archived</em> : null}
+                </td>
+                <td className="repo-tokens">{formatCodeTokens(repo.tokens)}</td>
+                <td>
+                  {repo.homepage ? (
+                    <a href={repo.homepage} target="_blank" rel="noreferrer">
+                      Open ↗
+                    </a>
+                  ) : (
+                    <span className="repo-offline">—</span>
+                  )}
+                </td>
+                <td className="repo-desc">{repo.description ?? ""}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </ScrollPane>
+      <p className="repo-footer">
+        {githubProjects.repos.length} repositories · ~{(totalTokens / 1e6).toFixed(1)}M tokens of code · refreshed{" "}
+        {new Date(generatedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+      </p>
+    </div>
+  );
+}
+
 function ProjectsApp() {
+  const [view, setView] = useState<"featured" | "all">("featured");
   const [selectedProjectName, setSelectedProjectName] = useState(portfolio.projects[0]?.name ?? "");
   const selectedProject = portfolio.projects.find((project) => project.name === selectedProjectName) ?? portfolio.projects[0];
 
   if (!selectedProject) return null;
 
   return (
+    <div className="projects-shell">
+      <div className="projects-views" role="tablist">
+        <button
+          type="button"
+          role="tab"
+          aria-selected={view === "featured"}
+          className={cn(view === "featured" && "is-active")}
+          onClick={() => setView("featured")}
+        >
+          Featured
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={view === "all"}
+          className={cn(view === "all" && "is-active")}
+          onClick={() => setView("all")}
+        >
+          All Repositories ({githubProjects.repos.length})
+        </button>
+      </div>
+      {view === "all" ? <AllReposView /> : (
     <div className="projects-app">
       <ScrollPane className="projects-list-pane">
         <div className="project-list">
@@ -334,9 +414,10 @@ function ProjectsApp() {
         </article>
       </ScrollPane>
     </div>
+      )}
+    </div>
   );
 }
-
 
 function ContactApp() {
   return (
