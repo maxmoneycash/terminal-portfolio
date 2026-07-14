@@ -18,6 +18,8 @@
 
 :root {
   color-scheme: light;
+  --ease-out-strong: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out-strong: cubic-bezier(0.77, 0, 0.175, 1);
   --xp-blue-900: #003399;
   --xp-blue-800: #0754d6;
   --xp-blue-700: #1d62d0;
@@ -2020,6 +2022,147 @@ p {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* ---- Motion: entries via @starting-style, presses via :active. Exits for
+   windows run through WAAPI in WindowChrome so removal stays smooth. ---- */
+
+.xp-control:active,
+.desktop-icon:active,
+.window-toolbar button:active,
+.taskbar-programs button:active,
+.start-menu-left button:active,
+.start-menu-right button:active,
+.start-menu-right a:active,
+.start-menu-footer button:active,
+.reel-nav:active:not(:disabled),
+.tm-range:active,
+.projects-views button:active,
+.login-user:active {
+  transform: scale(0.97);
+}
+
+.window-buttons button:active {
+  filter: brightness(0.82);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .xp-control,
+  .desktop-icon,
+  .window-toolbar button,
+  .taskbar-programs button,
+  .start-menu-left button,
+  .start-menu-right button,
+  .start-menu-right a,
+  .start-menu-footer button,
+  .reel-nav,
+  .tm-range,
+  .projects-views button,
+  .login-user {
+    transition: transform 140ms var(--ease-out-strong);
+  }
+
+  .window-buttons button {
+    transition: filter 120ms ease;
+  }
+
+  .xp-window {
+    transition: opacity 180ms var(--ease-out-strong), transform 180ms var(--ease-out-strong);
+  }
+
+  .start-menu {
+    transform-origin: bottom left;
+    transition: opacity 150ms var(--ease-out-strong), transform 150ms var(--ease-out-strong);
+  }
+
+  .menu-dropdown {
+    transition: opacity 100ms ease-out;
+  }
+
+  .xp-tooltip {
+    transition: opacity 125ms ease-out, transform 125ms ease-out;
+  }
+
+  .xp-balloon {
+    transition: opacity 200ms var(--ease-out-strong), transform 200ms var(--ease-out-strong);
+  }
+
+  .xp-login-screen,
+  .maxxp-desktop,
+  .xp-boot-screen {
+    transition: opacity 280ms ease-out;
+  }
+
+  @starting-style {
+    .xp-window {
+      opacity: 0;
+      transform: scale(0.96);
+    }
+
+    .start-menu {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+
+    .menu-dropdown {
+      opacity: 0;
+    }
+
+    .xp-tooltip {
+      opacity: 0;
+      transform: scale(0.98);
+    }
+
+    .xp-balloon {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+
+    .xp-login-screen,
+    .maxxp-desktop,
+    .xp-boot-screen {
+      opacity: 0;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .xp-window,
+  .start-menu,
+  .menu-dropdown,
+  .xp-tooltip,
+  .xp-balloon {
+    transition: opacity 150ms ease;
+  }
+
+  @starting-style {
+    .xp-window,
+    .start-menu,
+    .menu-dropdown,
+    .xp-tooltip,
+    .xp-balloon {
+      opacity: 0;
+    }
+  }
+}
+
+.reel-caption {
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 240ms ease-out 60ms, transform 240ms ease-out 60ms;
+}
+
+.reel-slide.is-active .reel-caption {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reel-caption {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
 }
 
 .crt-on .crt-scanline,

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { portfolio, type PortfolioVideo } from "../data/portfolio";
+import { cn } from "../lib/cn";
 import { Tooltip } from "./Tooltip";
 
 const featuredVideoId = "best-1";
@@ -89,7 +90,12 @@ export function ReelsApp() {
     <div className="reels-app">
       <div className="reels-feed" ref={feedRef} tabIndex={0} aria-label="Demo reels feed">
         {videos.map((video, index) => (
-          <section className="reel-slide" data-reel-index={index} key={video.id} aria-label={video.title}>
+          <section
+            className={cn("reel-slide", activeIndex === index && "is-active")}
+            data-reel-index={index}
+            key={video.id}
+            aria-label={video.title}
+          >
             <video
               key={`${video.id}-${preferHls ? "hls" : "mp4"}`}
               ref={(element) => {

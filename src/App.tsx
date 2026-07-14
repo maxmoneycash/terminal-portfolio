@@ -481,9 +481,40 @@ function WindowChrome({
   onToggleCrt: () => void;
 }) {
   const app = appCatalog[record.id];
+  const sectionRef = useRef<HTMLElement | null>(null);
   const style = record.maximized
     ? { zIndex: record.z }
     : { left: record.x, top: record.y, width: record.width, height: record.height, zIndex: record.z };
+
+  const animateOut = (keyframes: Keyframe[], done: () => void) => {
+    const element = sectionRef.current;
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (!element || reduceMotion || typeof element.animate !== "function") {
+      done();
+      return;
+    }
+    element
+      .animate(keyframes, { duration: 160, easing: "cubic-bezier(0.77, 0, 0.175, 1)", fill: "forwards" })
+      .finished.then(done, done);
+  };
+
+  const handleClose = () =>
+    animateOut(
+      [
+        { opacity: 1, transform: "scale(1)" },
+        { opacity: 0, transform: "scale(0.96)" },
+      ],
+      () => onClose(record.id),
+    );
+
+  const handleMinimize = () =>
+    animateOut(
+      [
+        { opacity: 1, transform: "translateY(0) scale(1)" },
+        { opacity: 0, transform: "translateY(46px) scale(0.9)" },
+      ],
+      () => onMinimize(record.id),
+    );
 
   const menus: WindowMenu[] = [
     {
@@ -492,7 +523,7 @@ function WindowChrome({
         { label: "New Window", disabled: true },
         { label: "Open Resume PDF", href: portfolio.links.resume },
         "separator",
-        { label: "Close", onSelect: () => onClose(record.id) },
+        { label: "Close", onSelect: handleClose },
       ],
     },
     {
@@ -529,6 +560,7 @@ function WindowChrome({
 
   return (
     <section
+      ref={sectionRef}
       className={cn("xp-window", active && "is-active", record.maximized && "is-maximized")}
       style={style}
       aria-label={app.title}
@@ -541,7 +573,7 @@ function WindowChrome({
         </div>
         <div className="window-buttons" onPointerDown={(event) => event.stopPropagation()}>
           <Tooltip label="Minimize">
-            <button type="button" aria-label={`Minimize ${app.title}`} onClick={() => onMinimize(record.id)}>
+            <button type="button" aria-label={`Minimize ${app.title}`} onClick={handleMinimize}>
               _
             </button>
           </Tooltip>
@@ -551,7 +583,7 @@ function WindowChrome({
             </button>
           </Tooltip>
           <Tooltip label="Close">
-            <button type="button" aria-label={`Close ${app.title}`} onClick={() => onClose(record.id)}>
+            <button type="button" aria-label={`Close ${app.title}`} onClick={handleClose}>
               ×
             </button>
           </Tooltip>
