@@ -19,3 +19,8 @@ pnpm-debug.log*
 
 *.tsbuildinfo
 .vercel
+
+# Working artifacts (agent screenshots, design extraction)
+ui-comparison/
+.extract-design-system/
+design-system/
