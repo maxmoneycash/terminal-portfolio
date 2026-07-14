@@ -1,6 +1,4 @@
 import type { ReactNode } from "react";
-import { AnimatePresence, motion } from "framer-motion";
-import { motionTransition, press, sheet } from "../lib/motion";
 
 export function TrayBalloon({
   title,
@@ -14,32 +12,21 @@ export function TrayBalloon({
   onClose: () => void;
 }) {
   return (
-    <AnimatePresence>
-    {visible ? (
-    <motion.div
+    <div
       className="xp-balloon"
-      role="status"
-      variants={sheet}
-      initial="hidden"
-      animate="visible"
-      exit="exit"
+      data-state={visible ? "visible" : "hidden"}
+      role={visible ? "status" : undefined}
+      aria-hidden={!visible}
+      inert={!visible}
     >
       <header>
         <img src="/xp/gui/taskbar/welcome.webp" alt="" />
         <strong>{title}</strong>
-        <motion.button
-          type="button"
-          aria-label="Close notification"
-          onClick={onClose}
-          whileTap={press}
-          transition={motionTransition.micro}
-        >
+        <button type="button" aria-label="Close notification" onClick={onClose}>
           ×
-        </motion.button>
+        </button>
       </header>
       <p>{children}</p>
-    </motion.div>
-    ) : null}
-    </AnimatePresence>
+    </div>
   );
 }

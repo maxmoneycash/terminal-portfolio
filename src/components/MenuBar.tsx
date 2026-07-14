@@ -1,7 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "../lib/cn";
-import { motionTransition, press } from "../lib/motion";
 
 export type WindowMenuItem =
   | {
@@ -45,45 +43,34 @@ export function MenuBar({ menus, ariaLabel }: { menus: WindowMenu[]; ariaLabel: 
     <nav className="window-menu" aria-label={ariaLabel} ref={navRef}>
       {menus.map((menu, index) => (
         <span className="menu-root" key={menu.label}>
-          <motion.button
+          <button
             type="button"
             className={cn(openIndex === index && "is-open")}
             aria-haspopup="menu"
             aria-expanded={openIndex === index}
             onClick={() => setOpenIndex((current) => (current === index ? null : index))}
             onMouseEnter={() => setOpenIndex((current) => (current === null ? current : index))}
-            whileTap={press}
-            transition={motionTransition.micro}
           >
             {menu.label}
-          </motion.button>
-          <AnimatePresence>
+          </button>
           {openIndex === index ? (
-            <motion.div
-              className="menu-dropdown"
-              role="menu"
-              initial={{ opacity: 0, transform: "translate3d(0, -3px, 0) scale(0.985)" }}
-              animate={{ opacity: 1, transform: "translate3d(0, 0, 0) scale(1)" }}
-              exit={{ opacity: 0, transform: "translate3d(0, -2px, 0) scale(0.99)" }}
-              transition={motionTransition.micro}
-            >
+            <div className="menu-dropdown" role="menu">
               {menu.items.map((item, itemIndex) =>
                 item === "separator" ? (
                   <div className="menu-separator" key={`separator-${itemIndex}`} role="separator" />
                 ) : item.href ? (
-                  <motion.a
+                  <a
                     key={item.label}
                     href={item.href}
                     target="_blank"
                     rel="noreferrer"
                     role="menuitem"
                     onClick={() => setOpenIndex(null)}
-                    whileTap={press}
                   >
                     {item.label}
-                  </motion.a>
+                  </a>
                 ) : (
-                  <motion.button
+                  <button
                     key={item.label}
                     type="button"
                     role="menuitem"
@@ -92,7 +79,6 @@ export function MenuBar({ menus, ariaLabel }: { menus: WindowMenu[]; ariaLabel: 
                       setOpenIndex(null);
                       item.onSelect?.();
                     }}
-                    whileTap={press}
                   >
                     {item.checked ? (
                       <span className="menu-check" aria-hidden="true">
@@ -100,12 +86,11 @@ export function MenuBar({ menus, ariaLabel }: { menus: WindowMenu[]; ariaLabel: 
                       </span>
                     ) : null}
                     {item.label}
-                  </motion.button>
+                  </button>
                 ),
               )}
-            </motion.div>
+            </div>
           ) : null}
-          </AnimatePresence>
         </span>
       ))}
     </nav>

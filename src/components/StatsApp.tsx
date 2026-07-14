@@ -1,7 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { AnimatePresence, LayoutGroup, animate, motion, useReducedMotion } from "framer-motion";
 import { cn } from "../lib/cn";
-import { easeOut, fadeThrough, motionTransition, press, stagger, staggerItem } from "../lib/motion";
 
 const handle = "maxmoneycash";
 const api = (path: string) => `/cm/${path}`;
@@ -74,26 +72,28 @@ const integer = (n: number) => n.toLocaleString("en-US", { maximumFractionDigits
 function useAnimatedNumber(target: number, duration = 800) {
   const [display, setDisplay] = useState(target);
   const fromRef = useRef(target);
-  const reduceMotion = useReducedMotion();
 
   useEffect(() => {
     const from = fromRef.current;
-    if (target === from || reduceMotion) {
-      setDisplay(target);
+    const delta = target - from;
+    if (delta === 0) return;
+    const start = performance.now();
+    let raf = 0;
+    const tick = (now: number) => {
+      const progress = Math.min(1, (now - start) / duration);
+      setDisplay(from + delta * progress);
+      if (progress < 1) {
+        raf = requestAnimationFrame(tick);
+      } else {
+        fromRef.current = target;
+      }
+    };
+    raf = requestAnimationFrame(tick);
+    return () => {
+      cancelAnimationFrame(raf);
       fromRef.current = target;
-      return;
-    }
-    const controls = animate(from, target, {
-      duration: duration / 1000,
-      ease: easeOut,
-      onUpdate: (value) => {
-        fromRef.current = value;
-        setDisplay(value);
-      },
-      onComplete: () => { fromRef.current = target; },
-    });
-    return () => controls.stop();
-  }, [target, duration, reduceMotion]);
+    };
+  }, [target, duration]);
 
   return display;
 }
@@ -376,10 +376,7 @@ export function StatsApp() {
   const [tab, setTab] = useState<Tab>("Performance");
   const [range, setRange] = useState<(typeof ranges)[number]["key"]>("1y");
   const [series, setSeries] = useState<ChartSeries | null>(null);
-  const [seriesFailed, setSeriesFailed] = useState(false);
-  const [seriesRequest, setSeriesRequest] = useState(0);
   const [ticker, setTicker] = useState<Ticker | null>(null);
-  const reduceMotion = useReducedMotion();
   const { tokens, connected, tape, ratePerSec } = useLiveUsage();
 
   useEffect(() => {
@@ -394,15 +391,12 @@ export function StatsApp() {
   useEffect(() => {
     const controller = new AbortController();
     setSeries(null);
-    setSeriesFailed(false);
     fetch(api(`chart?handle=${handle}&range=${range}`), { signal: controller.signal })
       .then((response) => (response.ok ? response.json() : Promise.reject(new Error(String(response.status)))))
       .then(setSeries)
-      .catch(() => {
-        if (!controller.signal.aborted) setSeriesFailed(true);
-      });
+      .catch(() => {});
     return () => controller.abort();
-  }, [range, seriesRequest]);
+  }, [range]);
 
   const animatedTotal = useAnimatedNumber(tokens?.total ?? 0);
   const animatedSession = useAnimatedNumber(tokens?.live_total ?? 0);
@@ -418,32 +412,26 @@ export function StatsApp() {
 
   return (
     <div className="stats-app">
-      <LayoutGroup id="stats-tabs">
       <div className="tm-tabs" role="tablist">
         {tabs.map((name) => (
-          <motion.button
+          <button
             key={name}
             type="button"
             role="tab"
             aria-selected={tab === name}
             className={cn("tm-tab", tab === name && "is-active")}
             onClick={() => setTab(name)}
-            whileTap={press}
-            transition={motionTransition.micro}
           >
-            {tab === name ? <motion.span className="tm-tab-active" layoutId="tm-tab-active" transition={motionTransition.spatial} /> : null}
-            <span>{name}</span>
-          </motion.button>
+            {name}
+          </button>
         ))}
         <span className={cn("tm-live-pill", live ? "is-live" : "is-offline")}>
           {live ? "● LIVE" : connected === null ? "○ CONNECTING" : "○ OFFLINE"}
         </span>
       </div>
-      </LayoutGroup>
 
-      <AnimatePresence mode="wait" initial={false}>
       {tab === "Performance" ? (
-        <motion.div className="tm-panel" role="tabpanel" key="performance" variants={fadeThrough} initial="hidden" animate="visible" exit="exit">
+        <div className="tm-panel" role="tabpanel">
           <div className="tm-perf-top">
             <GroupBox label="Token Rate">
               <div className="tm-meter-box">
@@ -489,11 +477,11 @@ export function StatsApp() {
               <StatRow label="Plan" value="max20" />
             </GroupBox>
           </div>
-        </motion.div>
+        </div>
       ) : null}
 
       {tab === "Processes" ? (
-        <motion.div className="tm-panel tm-panel-flush" role="tabpanel" key="processes" variants={fadeThrough} initial="hidden" animate="visible" exit="exit">
+        <div className="tm-panel tm-panel-flush" role="tabpanel">
           <table className="tm-processes">
             <thead>
               <tr>
@@ -504,28 +492,19 @@ export function StatsApp() {
               </tr>
             </thead>
             <tbody>
-              {models.map((model, index) => {
+              {models.map((model) => {
                 const modelTokens = model.in + model.out + model.cacheRead + model.cacheWrite;
                 return (
-                  <motion.tr
-                    key={model.name}
-                    initial={{ opacity: 0, transform: "translate3d(0, 4px, 0)" }}
-                    animate={{ opacity: 1, transform: "translate3d(0, 0, 0)" }}
-                    transition={{ ...motionTransition.short, delay: Math.min(index * 0.025, 0.3) }}
-                  >
+                  <tr key={model.name}>
                     <td>{model.name}</td>
                     <td>{fmtTokens(modelTokens)}</td>
                     <td>{model.cost > 0 ? fmtUsd(model.cost) : "—"}</td>
                     <td>
                       <span className="tm-bar" aria-hidden="true">
-                        <motion.span
-                          initial={{ transform: "scaleX(0)" }}
-                          animate={{ transform: `scaleX(${Math.max(0.02, model.cost / maxModelCost)})` }}
-                          transition={motionTransition.page}
-                        />
+                        <span style={{ width: `${Math.max(2, (model.cost / maxModelCost) * 100)}%` }} />
                       </span>
                     </td>
-                  </motion.tr>
+                  </tr>
                 );
               })}
               {models.length === 0 ? (
@@ -535,26 +514,22 @@ export function StatsApp() {
               ) : null}
             </tbody>
           </table>
-        </motion.div>
+        </div>
       ) : null}
 
       {tab === "Velocity" ? (
-        <motion.div className="tm-panel" role="tabpanel" key="velocity" variants={fadeThrough} initial="hidden" animate="visible" exit="exit">
+        <div className="tm-panel" role="tabpanel">
           <GroupBox label={`${ticker?.symbol ?? "$MAXMONEYCASH"} — commit velocity`}>
-            <LayoutGroup id="velocity-ranges">
             <div className="tm-range-row">
               {ranges.map((option) => (
-                <motion.button
+                <button
                   key={option.key}
                   type="button"
                   className={cn("tm-range", range === option.key && "is-active")}
                   onClick={() => setRange(option.key)}
-                  whileTap={press}
-                  transition={motionTransition.micro}
                 >
-                  {range === option.key ? <motion.span className="tm-range-active" layoutId="tm-range-active" transition={motionTransition.spatial} /> : null}
-                  <span>{option.label}</span>
-                </motion.button>
+                  {option.label}
+                </button>
               ))}
               {ticker ? (
                 <span className={cn("tm-quote", ticker.direction === "up" ? "is-up" : "is-down")}>
@@ -564,33 +539,8 @@ export function StatsApp() {
                 </span>
               ) : null}
             </div>
-            </LayoutGroup>
             <div className="tm-canvas-box tm-canvas-main">
-              {series ? (
-                <motion.div className="tm-chart-reveal" variants={fadeThrough} initial="hidden" animate="visible">
-                  <CandleChart series={series} />
-                </motion.div>
-              ) : seriesFailed ? (
-                <motion.div className="tm-canvas tm-canvas-error" variants={fadeThrough} initial="hidden" animate="visible">
-                  <span>Commit series unavailable.</span>
-                  <motion.button
-                    type="button"
-                    onClick={() => setSeriesRequest((request) => request + 1)}
-                    whileTap={press}
-                    transition={motionTransition.micro}
-                  >
-                    Retry
-                  </motion.button>
-                </motion.div>
-              ) : (
-                <motion.div
-                  className="tm-canvas tm-canvas-loading"
-                  animate={reduceMotion ? { opacity: 1 } : { opacity: [0.45, 1, 0.45] }}
-                  transition={reduceMotion ? { duration: 0 } : { duration: 1.4, repeat: Infinity, ease: easeOut }}
-                >
-                  Loading commit series…
-                </motion.div>
-              )}
+              {series ? <CandleChart series={series} /> : <div className="tm-canvas tm-canvas-loading">loading series…</div>}
             </div>
           </GroupBox>
           <div className="tm-groups">
@@ -608,9 +558,8 @@ export function StatsApp() {
             </GroupBox>
           </div>
           {ticker ? <p className="tm-analyst">{ticker.analyst}</p> : null}
-        </motion.div>
+        </div>
       ) : null}
-      </AnimatePresence>
 
       <footer className="tm-statusbar">
         <span>Processes: {tokens ? integer(tokens.models_used) : "…"}</span>

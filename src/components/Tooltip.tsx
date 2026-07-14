@@ -11,10 +11,8 @@ import {
   type ReactElement,
 } from "react";
 import { createPortal } from "react-dom";
-import { AnimatePresence, motion } from "framer-motion";
-import { motionTransition } from "../lib/motion";
 
-const SHOW_DELAY_MS = 850;
+const SHOW_DELAY_MS = 400;
 const INSTANT_WINDOW_MS = 650;
 let instantUntil = 0;
 
@@ -44,6 +42,7 @@ export function Tooltip({ label, children }: { label: string; children: ReactEle
     if (visibleRef.current) instantUntil = performance.now() + INSTANT_WINDOW_MS;
     visibleRef.current = false;
     setAnchor(null);
+    setStyle(null);
   };
 
   useEffect(() => hide, []);
@@ -53,35 +52,28 @@ export function Tooltip({ label, children }: { label: string; children: ReactEle
     if (!anchor || !tip) return;
     const rect = tip.getBoundingClientRect();
     let top = anchor.bottom + 5;
-    const placedAbove = top + rect.height > window.innerHeight - 4;
-    if (placedAbove) top = anchor.top - rect.height - 5;
+    if (top + rect.height > window.innerHeight - 4) top = anchor.top - rect.height - 5;
     const left = Math.max(4, Math.min(anchor.left + anchor.width / 2 - rect.width / 2, window.innerWidth - rect.width - 4));
-    setStyle({ top, left, transformOrigin: placedAbove ? "bottom center" : "top center" });
+    setStyle({ top, left });
   }, [anchor]);
 
   return (
     <>
       {cloneElement(children, { onMouseEnter: show, onMouseLeave: hide, onFocus: show, onBlur: hide })}
-      {createPortal(
-        <AnimatePresence>
-          {anchor ? (
-            <motion.span
+      {anchor
+        ? createPortal(
+            <span
               ref={tipRef}
               className="xp-tooltip"
               data-instant={instant || undefined}
               role="tooltip"
               style={style ?? { top: -9999, left: -9999 }}
-              initial={{ opacity: 0, transform: "translate3d(0, 2px, 0) scale(0.985)" }}
-              animate={{ opacity: 1, transform: "translate3d(0, 0, 0) scale(1)" }}
-              exit={{ opacity: 0, transform: "translate3d(0, 1px, 0) scale(0.99)" }}
-              transition={instant ? { duration: 0 } : motionTransition.micro}
             >
               {label}
-            </motion.span>
-          ) : null}
-        </AnimatePresence>,
-        document.body,
-      )}
+            </span>,
+            document.body,
+          )
+        : null}
     </>
   );
 }

@@ -1,8 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
-import { AnimatePresence, LayoutGroup, animate, motion, useReducedMotion, type AnimationPlaybackControls } from "framer-motion";
 import { portfolio, type PortfolioVideo } from "../data/portfolio";
 import { cn } from "../lib/cn";
-import { easeOut, motionTransition, press, stagger, staggerItem } from "../lib/motion";
 import { Tooltip } from "./Tooltip";
 
 const featuredVideoId = "best-1";
@@ -30,11 +28,8 @@ export function ReelsApp({ active = true }: { active?: boolean }) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [muted, setMuted] = useState(true);
   const [playing, setPlaying] = useState(false);
-  const [saveData, setSaveData] = useState(false);
   const feedRef = useRef<HTMLDivElement | null>(null);
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
-  const scrollAnimationRef = useRef<AnimationPlaybackControls | null>(null);
-  const reduceMotion = useReducedMotion();
 
   useEffect(() => {
     const userAgent = navigator.userAgent;
@@ -43,8 +38,6 @@ export function ReelsApp({ active = true }: { active?: boolean }) {
     const isSafari = /Safari/i.test(userAgent) && !/Chrome|CriOS|FxiOS|Edg|OPR/i.test(userAgent);
 
     setPreferHls(isAppleMobile || isSafari);
-    const connection = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection;
-    setSaveData(Boolean(connection?.saveData));
   }, []);
 
   useEffect(() => {
@@ -70,44 +63,20 @@ export function ReelsApp({ active = true }: { active?: boolean }) {
     videoRefs.current.forEach((element, index) => {
       if (!element) return;
       element.muted = muted;
-      if (active && !saveData && index === activeIndex) {
+      if (active && index === activeIndex) {
         void element.play().catch(() => {});
       } else {
         element.pause();
       }
     });
-  }, [active, activeIndex, muted, saveData]);
-
-  useEffect(() => {
-    const feed = feedRef.current;
-    if (!feed) return;
-    const stopProgrammaticScroll = () => scrollAnimationRef.current?.stop();
-    feed.addEventListener("wheel", stopProgrammaticScroll, { passive: true });
-    feed.addEventListener("touchstart", stopProgrammaticScroll, { passive: true });
-    feed.addEventListener("pointerdown", stopProgrammaticScroll, { passive: true });
-    return () => {
-      scrollAnimationRef.current?.stop();
-      feed.removeEventListener("wheel", stopProgrammaticScroll);
-      feed.removeEventListener("touchstart", stopProgrammaticScroll);
-      feed.removeEventListener("pointerdown", stopProgrammaticScroll);
-    };
-  }, []);
+  }, [active, activeIndex, muted]);
 
   const scrollToIndex = (index: number) => {
     if (index < 0 || index >= videos.length) return;
-    const feed = feedRef.current;
-    const target = feed?.querySelector<HTMLElement>(`[data-reel-index="${index}"]`);
-    if (!feed || !target) return;
-    scrollAnimationRef.current?.stop();
-    if (reduceMotion) {
-      feed.scrollTop = target.offsetTop;
-      return;
-    }
-    scrollAnimationRef.current = animate(feed.scrollTop, target.offsetTop, {
-      duration: 0.28,
-      ease: easeOut,
-      onUpdate: (value) => { feed.scrollTop = value; },
-    });
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    feedRef.current
+      ?.querySelector(`[data-reel-index="${index}"]`)
+      ?.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
   };
 
   const togglePlayback = (index: number) => {
@@ -146,7 +115,7 @@ export function ReelsApp({ active = true }: { active?: boolean }) {
         onKeyDown={handleKeyDown}
       >
         {videos.map((video, index) => (
-          <motion.section
+          <section
             className={cn("reel-slide", activeIndex === index && "is-active")}
             data-reel-index={index}
             key={video.id}
@@ -160,7 +129,7 @@ export function ReelsApp({ active = true }: { active?: boolean }) {
               playsInline
               muted={muted}
               loop
-              preload={index === 0 && !saveData ? "metadata" : "none"}
+              preload={index === 0 ? "auto" : "none"}
               poster={video.poster}
               onClick={() => togglePlayback(index)}
               onPlay={() => {
@@ -174,106 +143,75 @@ export function ReelsApp({ active = true }: { active?: boolean }) {
                 <source key={source.src} src={source.src} type={source.type} />
               ))}
             </video>
-            <AnimatePresence>
-              {activeIndex === index ? (
-                <motion.div
-                  className="reel-caption"
-                  initial={{ opacity: 0, transform: "translate3d(0, 10px, 0) scale(0.99)" }}
-                  animate={{ opacity: 1, transform: "translate3d(0, 0, 0) scale(1)" }}
-                  exit={{ opacity: 0, transform: "translate3d(0, 5px, 0) scale(0.995)" }}
-                  transition={motionTransition.panel}
-                >
-                  <p className="reel-kicker">
-                    {String(index + 1).padStart(2, "0")} / {String(videos.length).padStart(2, "0")} · {video.date}
-                  </p>
-                  <strong>{video.title}</strong>
-                  <p>{video.summary}</p>
-                  {saveData ? <small>Data Saver is on · tap the video to play</small> : null}
-                </motion.div>
-              ) : null}
-            </AnimatePresence>
-          </motion.section>
+            <div className="reel-caption">
+              <p className="reel-kicker">
+                {String(index + 1).padStart(2, "0")} / {String(videos.length).padStart(2, "0")} • {video.date}
+              </p>
+              <strong>{video.title}</strong>
+              <p>{video.summary}</p>
+            </div>
+          </section>
         ))}
       </div>
-      <motion.div className="reels-rail" variants={stagger} initial="hidden" animate="visible">
+      <div className="reels-rail">
         <Tooltip label="Previous clip">
-          <motion.button
+          <button
             className="reel-nav"
             type="button"
             aria-label="Previous clip"
             disabled={activeIndex === 0}
             onClick={() => scrollToIndex(activeIndex - 1)}
-            variants={staggerItem}
-            whileTap={press}
-            transition={motionTransition.micro}
           >
             ▲
-          </motion.button>
+          </button>
         </Tooltip>
         <span className="reels-count">
           {activeIndex + 1}/{videos.length}
         </span>
-        <LayoutGroup id="reels-progress">
         <div className="reels-progress" aria-label="Choose a demo clip">
           {videos.map((video, index) => (
-            <motion.button
+            <button
               key={video.id}
               type="button"
               className={cn(index === activeIndex && "is-active")}
               aria-label={`Open clip ${index + 1}: ${video.title}`}
               aria-current={index === activeIndex ? "true" : undefined}
               onClick={() => scrollToIndex(index)}
-              whileTap={press}
-              transition={motionTransition.micro}
-            >
-              {index === activeIndex ? (
-                <motion.span className="reel-progress-active" layoutId="reel-progress-active" transition={motionTransition.spatial} />
-              ) : null}
-            </motion.button>
+            />
           ))}
         </div>
-        </LayoutGroup>
         <Tooltip label="Next clip">
-          <motion.button
+          <button
             className="reel-nav"
             type="button"
             aria-label="Next clip"
             disabled={activeIndex === videos.length - 1}
             onClick={() => scrollToIndex(activeIndex + 1)}
-            variants={staggerItem}
-            whileTap={press}
-            transition={motionTransition.micro}
           >
             ▼
-          </motion.button>
+          </button>
         </Tooltip>
         <Tooltip label={playing ? "Pause clip" : "Play clip"}>
-          <motion.button
+          <button
             className="reel-nav reel-playback"
             type="button"
             aria-label={playing ? "Pause clip" : "Play clip"}
             onClick={() => togglePlayback(activeIndex)}
-            variants={staggerItem}
-            whileTap={press}
-            transition={motionTransition.micro}
           >
             {playing ? "Ⅱ" : "▶"}
-          </motion.button>
+          </button>
         </Tooltip>
         <Tooltip label={muted ? "Turn sound on" : "Mute"}>
-          <motion.button
+          <button
             className="reel-nav reel-sound"
             type="button"
             aria-label={muted ? "Turn sound on" : "Mute"}
             onClick={() => setMuted((value) => !value)}
-            variants={staggerItem}
-            whileTap={press}
-            transition={motionTransition.micro}
           >
-            {muted ? "MUTED" : "SOUND"}
-          </motion.button>
+            {muted ? "🔇" : "🔊"}
+          </button>
         </Tooltip>
-      </motion.div>
+      </div>
     </div>
   );
 }
