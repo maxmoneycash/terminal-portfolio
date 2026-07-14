@@ -1,4 +1,10 @@
 {
+  "rewrites": [
+    {
+      "source": "/cm/:path*",
+      "destination": "https://commits.sh/api/:path*"
+    }
+  ],
   "headers": [
     {
       "source": "/videos/hls/(.*).m3u8",
