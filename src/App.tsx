@@ -1,17 +1,30 @@
 import {
   useCallback,
+  useDeferredValue,
   useEffect,
-  useLayoutEffect,
   useMemo,
   useRef,
   useState,
-  type MouseEvent as ReactMouseEvent,
   type PointerEvent as ReactPointerEvent,
   type ReactNode,
 } from "react";
+import { AnimatePresence, LayoutGroup, MotionConfig, motion, useReducedMotion, type Variants } from "framer-motion";
 import { portfolio } from "./data/portfolio";
 import githubProjects from "./data/github-projects.json";
 import { cn } from "./lib/cn";
+import {
+  easeInOut,
+  easeOut,
+  fadeThrough,
+  motionTransition,
+  press,
+  quickItem,
+  quickStagger,
+  rise,
+  sheet,
+  stagger,
+  staggerItem,
+} from "./lib/motion";
 import { MenuBar, type WindowMenu } from "./components/MenuBar";
 import { ReelsApp } from "./components/ReelsApp";
 import { StatsApp } from "./components/StatsApp";
@@ -104,6 +117,7 @@ const appCatalog: Record<
 };
 
 const desktopApps: AppId[] = ["about", "resume", "projects", "demos", "stats", "contact"];
+const mobileDockApps: AppId[] = ["about", "projects", "demos", "stats", "contact"];
 
 function externalLabel(url?: string) {
   if (!url) return "";
@@ -126,6 +140,22 @@ function readCrtPreference() {
   } catch {
     return false;
   }
+}
+
+function useMediaQuery(query: string) {
+  const [matches, setMatches] = useState(() =>
+    typeof window === "undefined" ? false : window.matchMedia(query).matches,
+  );
+
+  useEffect(() => {
+    const media = window.matchMedia(query);
+    const update = () => setMatches(media.matches);
+    update();
+    media.addEventListener("change", update);
+    return () => media.removeEventListener("change", update);
+  }, [query]);
+
+  return matches;
 }
 
 function ScrollPane({ children, className }: { children: ReactNode; className?: string }) {
@@ -182,105 +212,214 @@ function ScrollPane({ children, className }: { children: ReactNode; className?: 
       <div className="scroll-viewport" ref={viewportRef} tabIndex={0}>
         <div className="scroll-content">{children}</div>
       </div>
-      <div className="scroll-edge scroll-edge-top" aria-hidden="true" />
-      <div className="scroll-edge scroll-edge-right" aria-hidden="true" />
-      <div className="scroll-edge scroll-edge-bottom" aria-hidden="true" />
-      <div className="scroll-edge scroll-edge-left" aria-hidden="true" />
+      <motion.div className="scroll-edge scroll-edge-top" aria-hidden="true" animate={{ opacity: edges.top ? 1 : 0 }} transition={motionTransition.micro} />
+      <motion.div className="scroll-edge scroll-edge-right" aria-hidden="true" animate={{ opacity: edges.right ? 1 : 0 }} transition={motionTransition.micro} />
+      <motion.div className="scroll-edge scroll-edge-bottom" aria-hidden="true" animate={{ opacity: edges.bottom ? 1 : 0 }} transition={motionTransition.micro} />
+      <motion.div className="scroll-edge scroll-edge-left" aria-hidden="true" animate={{ opacity: edges.left ? 1 : 0 }} transition={motionTransition.micro} />
     </div>
   );
 }
 
 function BootScreen() {
+  const reduceMotion = useReducedMotion();
+  const stages = ["Reading portfolio data", "Warming live telemetry", "Building your workspace"];
+  const [stage, setStage] = useState(0);
+
+  useEffect(() => {
+    const first = window.setTimeout(() => setStage(1), 520);
+    const second = window.setTimeout(() => setStage(2), 1120);
+    return () => {
+      window.clearTimeout(first);
+      window.clearTimeout(second);
+    };
+  }, []);
+
   return (
-    <section className="xp-boot-screen" aria-label="Booting MaxXP">
-      <div className="boot-center">
-        <div className="boot-logo-mark">MaxXP</div>
-        <div className="boot-progress" aria-hidden="true">
-          <span />
-          <span />
-          <span />
+    <motion.section
+      className="xp-boot-screen"
+      aria-label="Booting MaxXP"
+      variants={fadeThrough}
+      initial="hidden"
+      animate="visible"
+      exit="exit"
+    >
+      <motion.div className="boot-center" variants={stagger} initial="hidden" animate="visible">
+        <motion.div className="boot-logo-lockup" variants={staggerItem}>
+          <span className="boot-logo-mark">MaxXP</span>
+          <span className="boot-edition">Portfolio Edition</span>
+        </motion.div>
+        <motion.div className="boot-progress" aria-hidden="true" variants={staggerItem}>
+          {[0, 1, 2].map((item) => (
+            <motion.span
+              key={item}
+              animate={
+                reduceMotion
+                  ? { opacity: 0.7 }
+                  : {
+                      opacity: [0.25, 1, 0.25],
+                      transform: [
+                        "translate3d(-8px, 0, 0) scale(0.92)",
+                        "translate3d(0, 0, 0) scale(1)",
+                        "translate3d(8px, 0, 0) scale(0.92)",
+                      ],
+                    }
+              }
+              transition={{ duration: 0.9, delay: item * 0.12, repeat: Infinity, ease: easeInOut }}
+            />
+          ))}
+        </motion.div>
+        <div className="boot-status" aria-live="polite">
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.span
+              key={stages[stage]}
+              initial={{ opacity: 0, transform: "translate3d(0, 4px, 0)" }}
+              animate={{ opacity: 1, transform: "translate3d(0, 0, 0)" }}
+              exit={{ opacity: 0, transform: "translate3d(0, -4px, 0)" }}
+              transition={motionTransition.short}
+            >
+              {stages[stage]}
+            </motion.span>
+          </AnimatePresence>
+          <span>{stage + 1} / {stages.length}</span>
         </div>
-      </div>
-      <div className="boot-corner boot-left">For the best experience</div>
-      <div className="boot-corner boot-right">Enter full screen</div>
-    </section>
+      </motion.div>
+      <motion.div className="boot-corner boot-left" variants={rise} initial="hidden" animate="visible">
+        Real projects. Real telemetry.
+      </motion.div>
+      <motion.div className="boot-corner boot-right" variants={rise} initial="hidden" animate="visible">
+        MaxXP · 2026
+      </motion.div>
+    </motion.section>
   );
 }
 
 function LoginScreen({ onLogin }: { onLogin: () => void }) {
   return (
-    <section className="xp-login-screen" aria-label="Log in">
-      <div className="login-panel">
-        <div className="login-brand">
-          <span className="windows-flag" aria-hidden="true">
-            <i />
-            <i />
-            <i />
-            <i />
-          </span>
+    <motion.section
+      className="xp-login-screen"
+      aria-label="Log in"
+      variants={fadeThrough}
+      initial="hidden"
+      animate="visible"
+      exit="exit"
+    >
+      <motion.div className="login-panel" variants={stagger} initial="hidden" animate="visible">
+        <motion.div className="login-brand" variants={staggerItem}>
+          <motion.span
+            className="windows-flag"
+            aria-hidden="true"
+            initial={{ opacity: 0, transform: "translate3d(0, 8px, 0) rotate(-10deg) scale(0.9)" }}
+            animate={{ opacity: 1, transform: "translate3d(0, 0, 0) rotate(-6deg) scale(1)" }}
+            transition={motionTransition.spatial}
+          >
+            {[0, 1, 2, 3].map((item) => <i key={item} />)}
+          </motion.span>
           <strong>
             Max<span>XP</span>
           </strong>
           <em>{portfolio.title}</em>
           <p>
-            To begin, click on <span>{portfolio.handle}</span> to log in
+            Open a workspace built around <span>real product proof</span>.
           </p>
-        </div>
-        <div className="login-divider" />
-        <button className="login-user" type="button" autoFocus onClick={onLogin}>
+        </motion.div>
+        <motion.div className="login-divider" variants={staggerItem} />
+        <motion.button
+          className="login-user"
+          type="button"
+          autoFocus
+          onClick={onLogin}
+          variants={staggerItem}
+          whileTap={press}
+          transition={motionTransition.micro}
+        >
           <span className="login-avatar">M</span>
           <span>
             <strong>{portfolio.name}</strong>
-            <small>{portfolio.title}</small>
+            <small>Enter MaxXP →</small>
           </span>
-        </button>
-      </div>
-      <div className="login-footer-left">
+        </motion.button>
+      </motion.div>
+      <motion.div className="login-footer-left" variants={rise} initial="hidden" animate="visible">
         <span className="restart-dot" aria-hidden="true" />
-        Restart MaxXP
-      </div>
-      <div className="login-footer-right">
-        <span>After you log on, the system is yours to explore.</span>
-        <span>Every window is wired to real portfolio content.</span>
-      </div>
-    </section>
+        Available for ambitious technical work
+      </motion.div>
+      <motion.div className="login-footer-right" variants={rise} initial="hidden" animate="visible">
+        <span>Projects, recordings, resume, and live developer telemetry.</span>
+        <span>Desktop workspace · mobile app shell</span>
+      </motion.div>
+    </motion.section>
   );
 }
 
 function WelcomeScreen() {
   return (
-    <section className="xp-welcome-screen" aria-label="Welcome">
-      <span>welcome</span>
-      <small>loading your portfolio…</small>
-    </section>
+    <motion.section
+      className="xp-welcome-screen"
+      aria-label="Welcome"
+      initial={{ opacity: 0, transform: "translate3d(0, 2px, 0) scale(0.995)" }}
+      animate={{ opacity: 1, transform: "translate3d(0, 0, 0) scale(1)" }}
+      exit={{ opacity: 0, transform: "translate3d(0, -1px, 0) scale(0.998)" }}
+      transition={motionTransition.short}
+    >
+      <motion.span
+        initial={{ opacity: 0, transform: "translate3d(0, 10px, 0) scale(0.96)" }}
+        animate={{ opacity: 1, transform: "translate3d(0, 0, 0) scale(1)" }}
+        transition={motionTransition.spatial}
+      >
+        welcome
+      </motion.span>
+      <motion.small variants={rise} initial="hidden" animate="visible">your workspace is ready</motion.small>
+    </motion.section>
   );
 }
 
 function AboutApp({ openApp }: { openApp: (id: AppId) => void }) {
   return (
     <ScrollPane>
-      <div className="about-app">
-        <div className="about-avatar">M</div>
-        <div className="about-copy">
+      <motion.div className="about-app" variants={stagger} initial="hidden" animate="visible">
+        <motion.div className="about-avatar" variants={staggerItem}>M</motion.div>
+        <motion.div className="about-copy" variants={staggerItem}>
           <p className="app-kicker">{portfolio.location}</p>
           <h1>{portfolio.name}</h1>
           <p>{portfolio.summary}</p>
           <div className="about-actions">
-            <button className="xp-control primary" type="button" onClick={() => openApp("projects")}>
-              My Projects
-            </button>
-            <button className="xp-control" type="button" onClick={() => openApp("demos")}>
-              Watch Demos
-            </button>
+            <motion.button
+              className="xp-control primary"
+              type="button"
+              onClick={() => openApp("projects")}
+              whileTap={press}
+              transition={motionTransition.micro}
+            >
+              Browse projects
+            </motion.button>
+            <motion.button
+              className="xp-control"
+              type="button"
+              onClick={() => openApp("demos")}
+              whileTap={press}
+              transition={motionTransition.micro}
+            >
+              Watch proof
+            </motion.button>
           </div>
-        </div>
-      </div>
-      <div className="focus-grid">
-        {portfolio.focus.map((item) => (
-          <span key={item}>{item}</span>
+        </motion.div>
+      </motion.div>
+      <motion.div className="about-proof" variants={stagger} initial="hidden" animate="visible">
+        {[
+          [String(githubProjects.repos.length), "repositories"],
+          [`${(githubProjects.totalTokens / 1e6).toFixed(1)}M`, "code tokens"],
+          [String(portfolio.videos.length), "product demos"],
+        ].map(([value, label]) => (
+          <motion.div key={label} variants={staggerItem}>
+            <strong>{value}</strong>
+            <span>{label}</span>
+          </motion.div>
         ))}
-      </div>
-      <section className="xp-document">
+      </motion.div>
+      <motion.div className="focus-grid" variants={stagger} initial="hidden" animate="visible">
+        {portfolio.focus.map((item) => <motion.span key={item} variants={staggerItem}>{item}</motion.span>)}
+      </motion.div>
+      <motion.section className="xp-document" variants={rise} initial="hidden" animate="visible">
         <h2>What I build</h2>
         <p>
           I work where product, Move contracts, and agent tooling meet. The through-line is shipping demos that
@@ -290,7 +429,8 @@ function AboutApp({ openApp }: { openApp: (id: AppId) => void }) {
           Most of the work here is Aptos-focused: markets, transaction composition, content rewards, trading agents,
           and infrastructure that helps teams understand what the chain can actually do.
         </p>
-      </section>
+        <p className="about-colophon">MaxXP is a working portfolio: live APIs, production links, and screen recordings—not mockups.</p>
+      </motion.section>
     </ScrollPane>
   );
 }
@@ -298,31 +438,38 @@ function AboutApp({ openApp }: { openApp: (id: AppId) => void }) {
 function ResumeApp() {
   return (
     <ScrollPane>
-      <div className="resume-app">
-        <aside className="resume-sidebar">
+      <motion.div className="resume-app" variants={stagger} initial="hidden" animate="visible">
+        <motion.aside className="resume-sidebar" variants={staggerItem}>
           <img src={`${xp}/gui/desktop/resume.webp`} alt="" />
           <strong>{portfolio.name}</strong>
           <span>{portfolio.title}</span>
-          <a className="xp-control primary" href={portfolio.links.resume} target="_blank" rel="noreferrer">
+          <motion.a
+            className="xp-control primary"
+            href={portfolio.links.resume}
+            target="_blank"
+            rel="noreferrer"
+            whileTap={press}
+            transition={motionTransition.micro}
+          >
             Open PDF
-          </a>
-        </aside>
-        <section className="resume-sheet">
+          </motion.a>
+        </motion.aside>
+        <motion.section className="resume-sheet" variants={staggerItem}>
           <h1>{portfolio.name}</h1>
           <p>{portfolio.summary}</p>
           <h2>Experience</h2>
           {portfolio.roles.map((role) => (
-            <article className="resume-role" key={`${role.company}-${role.period}`}>
+            <motion.article className="resume-role" key={`${role.company}-${role.period}`} variants={staggerItem}>
               <div>
                 <strong>{role.company}</strong>
                 <span>{role.period}</span>
               </div>
               <h3>{role.title}</h3>
               <p>{role.impact}</p>
-            </article>
+            </motion.article>
           ))}
-        </section>
-      </div>
+        </motion.section>
+      </motion.div>
     </ScrollPane>
   );
 }
@@ -333,12 +480,29 @@ function formatCodeTokens(tokens: number) {
   return `${tokens}`;
 }
 
+function HighlightedText({ text, query }: { text: string; query: string }) {
+  const normalized = query.trim();
+  if (!normalized) return text;
+  const escaped = normalized.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const pieces = text.split(new RegExp(`(${escaped})`, "ig"));
+  return (
+    <>
+      {pieces.map((piece, index) =>
+        piece.toLowerCase() === normalized.toLowerCase() ? <mark key={`${piece}-${index}`}>{piece}</mark> : piece,
+      )}
+    </>
+  );
+}
+
 function AllReposView() {
   const { repos, totalTokens, generatedAt } = githubProjects;
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<"all" | "live" | "public" | "private" | "seam">("all");
+  const [visibleLimit, setVisibleLimit] = useState(24);
+  const deferredQuery = useDeferredValue(query);
+  const compact = useMediaQuery("(max-width: 56.25rem)");
   const visibleRepos = useMemo(() => {
-    const normalizedQuery = query.trim().toLowerCase();
+    const normalizedQuery = deferredQuery.trim().toLowerCase();
     return repos.filter((repo) => {
       const matchesFilter =
         filter === "all" ||
@@ -352,7 +516,9 @@ function AllReposView() {
         .filter(Boolean)
         .some((value) => String(value).toLowerCase().includes(normalizedQuery));
     });
-  }, [filter, query, repos]);
+  }, [deferredQuery, filter, repos]);
+
+  useEffect(() => setVisibleLimit(24), [deferredQuery, filter]);
 
   const filters = [
     { id: "all", label: "All" },
@@ -374,23 +540,31 @@ function AllReposView() {
             placeholder={`Search ${repos.length} repositories`}
           />
         </label>
+        <LayoutGroup id="repo-filters">
         <div className="repo-filters" aria-label="Filter repositories">
           {filters.map((option) => (
-            <button
+            <motion.button
               key={option.id}
               type="button"
               className={cn(filter === option.id && "is-active")}
               aria-pressed={filter === option.id}
               onClick={() => setFilter(option.id)}
+              whileTap={press}
+              transition={motionTransition.micro}
             >
-              {option.label}
-            </button>
+              {filter === option.id ? (
+                <motion.span className="repo-filter-active" layoutId="repo-filter-active" transition={motionTransition.spatial} />
+              ) : null}
+              <span>{option.label}</span>
+            </motion.button>
           ))}
         </div>
+        </LayoutGroup>
         <span className="repo-result-count" aria-live="polite">
           {visibleRepos.length} shown
         </span>
       </div>
+      {!compact ? (
       <ScrollPane className="repo-table-pane">
         <table className="repo-table" aria-label="GitHub repositories ranked by estimated code tokens">
           <thead>
@@ -407,7 +581,7 @@ function AllReposView() {
                 <td>
                   <span className="repo-name">
                     {repo.owner === "seammoney" ? <small>seam / </small> : null}
-                    {repo.name}
+                    <HighlightedText text={repo.name} query={deferredQuery} />
                   </span>
                   {repo.private ? <em className="repo-tag">private</em> : null}
                   {repo.fork ? <em className="repo-tag">fork</em> : null}
@@ -423,7 +597,9 @@ function AllReposView() {
                     <span className="repo-offline">—</span>
                   )}
                 </td>
-                <td className="repo-desc">{repo.description ?? ""}</td>
+                <td className="repo-desc">
+                  <HighlightedText text={repo.description ?? ""} query={deferredQuery} />
+                </td>
               </tr>
             ))}
             {visibleRepos.length === 0 ? (
@@ -436,6 +612,69 @@ function AllReposView() {
           </tbody>
         </table>
       </ScrollPane>
+      ) : null}
+      {compact ? (
+      <ScrollPane className="repo-mobile-pane">
+        <motion.div className="repo-card-list" variants={stagger} initial="hidden" animate="visible" key={`${filter}-${deferredQuery}`}>
+          {visibleRepos.slice(0, visibleLimit).map((repo) => (
+            <motion.article className="repo-card" key={`${repo.owner}/${repo.name}`} variants={staggerItem} layout="position">
+              <header>
+                <div>
+                  <small>{repo.owner === "seammoney" ? "SEAMMONEY" : "MAXMONEYCASH"}</small>
+                  <h3><HighlightedText text={repo.name} query={deferredQuery} /></h3>
+                </div>
+                <strong>{formatCodeTokens(repo.tokens)}</strong>
+              </header>
+              <p><HighlightedText text={repo.description ?? "No description provided."} query={deferredQuery} /></p>
+              <footer>
+                <div className="repo-card-tags">
+                  {repo.language ? <span>{repo.language}</span> : null}
+                  {repo.private ? <span>Private</span> : <span>Public</span>}
+                  {repo.fork ? <span>Fork</span> : null}
+                </div>
+                {repo.homepage ? (
+                  <motion.a
+                    href={repo.homepage}
+                    target="_blank"
+                    rel="noreferrer"
+                    whileTap={press}
+                    transition={motionTransition.micro}
+                  >
+                    Open live ↗
+                  </motion.a>
+                ) : null}
+              </footer>
+            </motion.article>
+          ))}
+          {visibleRepos.length === 0 ? (
+            <motion.div className="repo-empty-card" variants={staggerItem}>
+              <strong>No matching repositories</strong>
+              <p>Change the search or return to the complete repository index.</p>
+              <motion.button
+                type="button"
+                className="xp-control"
+                onClick={() => { setQuery(""); setFilter("all"); }}
+                whileTap={press}
+                transition={motionTransition.micro}
+              >
+                Clear filters
+              </motion.button>
+            </motion.div>
+          ) : null}
+          {visibleLimit < visibleRepos.length ? (
+            <motion.button
+              type="button"
+              className="repo-load-more"
+              onClick={() => setVisibleLimit((current) => current + 24)}
+              whileTap={press}
+              transition={motionTransition.micro}
+            >
+              Show 24 more <span>{visibleRepos.length - visibleLimit} remaining</span>
+            </motion.button>
+          ) : null}
+        </motion.div>
+      </ScrollPane>
+      ) : null}
       <p className="repo-footer">
         {githubProjects.repos.length} repositories · ~{(totalTokens / 1e6).toFixed(1)}M tokens of code · refreshed{" "}
         {new Date(generatedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
@@ -453,48 +692,74 @@ function ProjectsApp() {
 
   return (
     <div className="projects-shell">
+      <LayoutGroup id="project-views">
       <div className="projects-views" role="tablist">
-        <button
+        <motion.button
           type="button"
           role="tab"
           aria-selected={view === "featured"}
           className={cn(view === "featured" && "is-active")}
           onClick={() => setView("featured")}
+          whileTap={press}
+          transition={motionTransition.micro}
         >
-          Featured
-        </button>
-        <button
+          {view === "featured" ? <motion.span className="projects-view-active" layoutId="projects-view-active" /> : null}
+          <span>Featured</span>
+        </motion.button>
+        <motion.button
           type="button"
           role="tab"
           aria-selected={view === "all"}
           className={cn(view === "all" && "is-active")}
           onClick={() => setView("all")}
+          whileTap={press}
+          transition={motionTransition.micro}
         >
-          All Repositories ({githubProjects.repos.length})
-        </button>
+          {view === "all" ? <motion.span className="projects-view-active" layoutId="projects-view-active" /> : null}
+          <span>All repos <b>{githubProjects.repos.length}</b></span>
+        </motion.button>
       </div>
-      {view === "all" ? <AllReposView /> : (
-    <div className="projects-app">
+      </LayoutGroup>
+      <AnimatePresence mode="wait" initial={false}>
+      {view === "all" ? (
+        <motion.div className="projects-view-panel" key="all" variants={fadeThrough} initial="hidden" animate="visible" exit="exit">
+          <AllReposView />
+        </motion.div>
+      ) : (
+    <motion.div className="projects-app" key="featured" variants={fadeThrough} initial="hidden" animate="visible" exit="exit">
       <ScrollPane className="projects-list-pane">
         <div className="project-list">
           {portfolio.projects.map((project) => (
-            <button
+            <motion.button
               className={cn("project-row", selectedProject.name === project.name && "is-selected")}
               key={project.name}
               type="button"
               onClick={() => setSelectedProjectName(project.name)}
+              whileTap={press}
+              transition={motionTransition.micro}
             >
+              {selectedProject.name === project.name ? (
+                <motion.span className="project-row-active" layoutId="project-row-active" transition={motionTransition.spatial} />
+              ) : null}
               <span className="project-thumb">{project.name.slice(0, 1)}</span>
               <span>
                 <strong>{project.name}</strong>
                 <small>{project.stack}</small>
               </span>
-            </button>
+            </motion.button>
           ))}
         </div>
       </ScrollPane>
       <ScrollPane className="project-detail-pane">
-        <article className="project-detail">
+        <AnimatePresence mode="wait" initial={false}>
+        <motion.article
+          className="project-detail"
+          key={selectedProject.name}
+          initial={{ opacity: 0, transform: "translate3d(8px, 0, 0)" }}
+          animate={{ opacity: 1, transform: "translate3d(0, 0, 0)" }}
+          exit={{ opacity: 0, transform: "translate3d(-6px, 0, 0)" }}
+          transition={motionTransition.short}
+        >
           <div className="project-hero">
             <span>{selectedProject.name.slice(0, 2)}</span>
           </div>
@@ -502,14 +767,23 @@ function ProjectsApp() {
           <h1>{selectedProject.name}</h1>
           <p>{selectedProject.summary}</p>
           {selectedProject.link ? (
-            <a className="xp-control primary" href={selectedProject.link} target="_blank" rel="noreferrer">
+            <motion.a
+              className="xp-control primary"
+              href={selectedProject.link}
+              target="_blank"
+              rel="noreferrer"
+              whileTap={press}
+              transition={motionTransition.micro}
+            >
               Open {externalLabel(selectedProject.link)}
-            </a>
+            </motion.a>
           ) : null}
-        </article>
+        </motion.article>
+        </AnimatePresence>
       </ScrollPane>
-    </div>
+    </motion.div>
       )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -517,33 +791,39 @@ function ProjectsApp() {
 function ContactApp() {
   return (
     <ScrollPane>
-      <section className="contact-app">
-        <div className="mail-header">
+      <motion.section className="contact-app" variants={stagger} initial="hidden" animate="visible">
+        <motion.div className="contact-intro" variants={staggerItem}>
+          <span>START A CONVERSATION</span>
+          <h1>Send the hard part.</h1>
+          <p>Move systems, trading infrastructure, transaction composition, agent tooling, or a product demo that needs to feel real.</p>
+        </motion.div>
+        <motion.div className="mail-header" variants={staggerItem}>
           <span>To:</span>
           <a href={portfolio.links.email}>maxwell.mohammadi@gmail.com</a>
-        </div>
-        <div className="mail-header">
+        </motion.div>
+        <motion.div className="mail-header" variants={staggerItem}>
           <span>Subject:</span>
           <strong>Aptos product / agent infrastructure</strong>
-        </div>
-        <textarea
+        </motion.div>
+        <motion.textarea
           readOnly
           value={
             "Send context on the protocol, product, or workflow you want to ship. Email is the fastest way to reach me.\n\nI can help with Move systems, demo infrastructure, transaction composition, onchain trading flows, and agent tooling."
           }
+          variants={staggerItem}
         />
-        <div className="contact-actions">
-          <a className="xp-control primary" href={portfolio.links.email}>
+        <motion.div className="contact-actions" variants={staggerItem}>
+          <motion.a className="xp-control primary" href={portfolio.links.email} whileTap={press} transition={motionTransition.micro}>
             Send Message
-          </a>
-          <a className="xp-control" href={portfolio.links.github} target="_blank" rel="noreferrer">
+          </motion.a>
+          <motion.a className="xp-control" href={portfolio.links.github} target="_blank" rel="noreferrer" whileTap={press} transition={motionTransition.micro}>
             GitHub
-          </a>
-          <a className="xp-control" href={portfolio.links.linkedin} target="_blank" rel="noreferrer">
+          </motion.a>
+          <motion.a className="xp-control" href={portfolio.links.linkedin} target="_blank" rel="noreferrer" whileTap={press} transition={motionTransition.micro}>
             LinkedIn
-          </a>
-        </div>
-      </section>
+          </motion.a>
+        </motion.div>
+      </motion.section>
     </ScrollPane>
   );
 }
@@ -558,6 +838,7 @@ function WindowChrome({
   onMaximize,
   onDragStart,
   onResizeStart,
+  isInteracting,
   openApp,
   crtEnabled,
   onToggleCrt,
@@ -571,53 +852,18 @@ function WindowChrome({
   onMaximize: (id: AppId) => void;
   onDragStart: (event: ReactPointerEvent, record: WindowRecord) => void;
   onResizeStart: (event: ReactPointerEvent, record: WindowRecord) => void;
+  isInteracting: boolean;
   openApp: (id: AppId) => void;
   crtEnabled: boolean;
   onToggleCrt: () => void;
 }) {
   const app = appCatalog[record.id];
   const sectionRef = useRef<HTMLElement | null>(null);
-  const exitAnimationRef = useRef<Animation | null>(null);
-  const layoutAnimationRef = useRef<Animation | null>(null);
-  const maximizeFromRectRef = useRef<DOMRect | null>(null);
-  const previousMinimizedRef = useRef(record.minimized);
+  const reduceMotion = useReducedMotion();
+  const [minimizeVector, setMinimizeVector] = useState({ x: 0, y: 48 });
   const style = record.maximized
     ? { zIndex: record.z }
     : { left: record.x, top: record.y, width: record.width, height: record.height, zIndex: record.z };
-
-  const animateOut = (
-    keyframes: Keyframe[],
-    done: () => void,
-    options: { duration?: number; easing?: string } = {},
-  ) => {
-    const element = sectionRef.current;
-    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (exitAnimationRef.current) return;
-    if (!element || reduceMotion || typeof element.animate !== "function") {
-      done();
-      return;
-    }
-    layoutAnimationRef.current?.cancel();
-    layoutAnimationRef.current = null;
-    const animation = element.animate(keyframes, {
-      duration: options.duration ?? 150,
-      easing: options.easing ?? "cubic-bezier(0.23, 1, 0.32, 1)",
-      fill: "forwards",
-    });
-    exitAnimationRef.current = animation;
-    void animation.finished.then(done).catch(() => {
-      exitAnimationRef.current = null;
-    });
-  };
-
-  const handleClose = () =>
-    animateOut(
-      [
-        { opacity: 1, transform: "scale(1)" },
-        { opacity: 0, transform: "scale(0.96)" },
-      ],
-      () => onClose(record.id),
-    );
 
   const handleMinimize = () => {
     const element = sectionRef.current;
@@ -626,86 +872,25 @@ function WindowChrome({
     const taskbarRect = taskbarButton?.getBoundingClientRect();
     const x = windowRect && taskbarRect ? taskbarRect.left + taskbarRect.width / 2 - (windowRect.left + windowRect.width / 2) : 0;
     const y = windowRect && taskbarRect ? taskbarRect.top + taskbarRect.height / 2 - (windowRect.top + windowRect.height / 2) : 46;
-    animateOut(
-      [
-        { opacity: 1, transform: "translate3d(0, 0, 0) scale(1)", transformOrigin: "center" },
-        { opacity: 0, transform: `translate3d(${x}px, ${y}px, 0) scale(0.18)`, transformOrigin: "center" },
-      ],
-      () => onMinimize(record.id),
-      { duration: 190, easing: "cubic-bezier(0.77, 0, 0.175, 1)" },
-    );
+    setMinimizeVector({ x, y });
+    onMinimize(record.id);
   };
 
-  const handleMaximize = (event?: ReactMouseEvent<HTMLElement>) => {
-    if (event && (event.target as Element).closest(".window-buttons")) return;
-    maximizeFromRectRef.current = sectionRef.current?.getBoundingClientRect() ?? null;
-    onMaximize(record.id);
-  };
+  const handleMaximize = () => onMaximize(record.id);
 
-  useLayoutEffect(() => {
-    const element = sectionRef.current;
-    const from = maximizeFromRectRef.current;
-    maximizeFromRectRef.current = null;
-    if (!element || !from || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-
-    const to = element.getBoundingClientRect();
-    if (to.width <= 0 || to.height <= 0) return;
-    const x = from.left - to.left;
-    const y = from.top - to.top;
-    const scaleX = from.width / to.width;
-    const scaleY = from.height / to.height;
-    layoutAnimationRef.current?.cancel();
-    const animation = element.animate(
-      [
-        {
-          transform: `translate3d(${x}px, ${y}px, 0) scale(${scaleX}, ${scaleY})`,
-          transformOrigin: "top left",
-        },
-        { transform: "translate3d(0, 0, 0) scale(1)", transformOrigin: "top left" },
-      ],
-      { duration: 220, easing: "cubic-bezier(0.23, 1, 0.32, 1)", fill: "both" },
-    );
-    layoutAnimationRef.current = animation;
-    void animation.finished.then(() => animation.cancel()).catch(() => {});
-  }, [record.maximized]);
-
-  useLayoutEffect(() => {
-    const wasMinimized = previousMinimizedRef.current;
-    previousMinimizedRef.current = record.minimized;
-    if (!wasMinimized || record.minimized) return;
-
-    const element = sectionRef.current;
-    const taskbarButton = document.querySelector<HTMLElement>(`[data-taskbar-app="${record.id}"]`);
-    if (!element || !taskbarButton || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      exitAnimationRef.current?.cancel();
-      exitAnimationRef.current = null;
-      return;
-    }
-
-    exitAnimationRef.current?.cancel();
-    exitAnimationRef.current = null;
-    const windowRect = element.getBoundingClientRect();
-    const taskbarRect = taskbarButton.getBoundingClientRect();
-    const x = taskbarRect.left + taskbarRect.width / 2 - (windowRect.left + windowRect.width / 2);
-    const y = taskbarRect.top + taskbarRect.height / 2 - (windowRect.top + windowRect.height / 2);
-    layoutAnimationRef.current?.cancel();
-    const animation = element.animate(
-      [
-        { opacity: 0, transform: `translate3d(${x}px, ${y}px, 0) scale(0.18)`, transformOrigin: "center" },
-        { opacity: 1, transform: "translate3d(0, 0, 0) scale(1)", transformOrigin: "center" },
-      ],
-      { duration: 210, easing: "cubic-bezier(0.23, 1, 0.32, 1)", fill: "both" },
-    );
-    layoutAnimationRef.current = animation;
-    void animation.finished.then(() => animation.cancel()).catch(() => {});
-  }, [record.id, record.minimized]);
-
-  useEffect(
-    () => () => {
-      layoutAnimationRef.current?.cancel();
-    },
-    [],
-  );
+  const windowMotion = record.minimized
+    ? {
+        opacity: 0,
+        transform: reduceMotion
+          ? "translate3d(0, 0, 0) scale(1)"
+          : `translate3d(${minimizeVector.x}px, ${minimizeVector.y}px, 0) scale(0.18)`,
+        transitionEnd: { visibility: "hidden" as const },
+      }
+    : {
+        opacity: 1,
+        transform: "translate3d(0, 0, 0) scale(1)",
+        visibility: "visible" as const,
+      };
 
   const menus: WindowMenu[] = [
     {
@@ -714,7 +899,7 @@ function WindowChrome({
         { label: "New Window", disabled: true },
         { label: "Open Resume PDF", href: portfolio.links.resume },
         "separator",
-        { label: "Close", onSelect: handleClose },
+        { label: "Close", onSelect: () => onClose(record.id) },
       ],
     },
     {
@@ -735,7 +920,7 @@ function WindowChrome({
         { label: "CRT Effects", checked: crtEnabled, onSelect: onToggleCrt },
         { label: "Full Screen", onSelect: () => document.documentElement.requestFullscreen?.() },
         "separator",
-        { label: record.maximized ? "Restore" : "Maximize", onSelect: () => handleMaximize() },
+        { label: record.maximized ? "Restore" : "Maximize", onSelect: handleMaximize },
       ],
     },
     {
@@ -750,7 +935,7 @@ function WindowChrome({
   ];
 
   return (
-    <section
+    <motion.section
       ref={sectionRef}
       className={cn(
         "xp-window",
@@ -763,11 +948,19 @@ function WindowChrome({
       aria-hidden={record.minimized}
       inert={record.minimized}
       onPointerDown={() => onFocus(record.id)}
+      layout={!isInteracting}
+      initial={{ opacity: 0, transform: "translate3d(0, 10px, 0) scale(0.97)" }}
+      animate={windowMotion}
+      exit={{ opacity: 0, transform: "translate3d(0, 6px, 0) scale(0.96)" }}
+      transition={reduceMotion ? { duration: 0.15 } : motionTransition.spatial}
     >
       <header
         className="window-titlebar"
         onPointerDown={(event) => onDragStart(event, record)}
-        onDoubleClick={(event) => handleMaximize(event)}
+        onDoubleClick={(event) => {
+          if ((event.target as Element).closest(".window-buttons")) return;
+          handleMaximize();
+        }}
       >
         <div className="titlebar-title">
           <img src={app.icon} alt="" draggable={false} />
@@ -775,44 +968,58 @@ function WindowChrome({
         </div>
         <div className="window-buttons" onPointerDown={(event) => event.stopPropagation()}>
           <Tooltip label="Minimize">
-            <button type="button" aria-label={`Minimize ${app.title}`} onClick={handleMinimize}>
+            <motion.button
+              type="button"
+              aria-label={`Minimize ${app.title}`}
+              onClick={handleMinimize}
+              whileTap={press}
+              transition={motionTransition.micro}
+            >
               _
-            </button>
+            </motion.button>
           </Tooltip>
           <Tooltip label={record.maximized ? "Restore Down" : "Maximize"}>
-            <button
+            <motion.button
               type="button"
               aria-label={`${record.maximized ? "Restore" : "Maximize"} ${app.title}`}
-              onClick={() => handleMaximize()}
+              onClick={handleMaximize}
+              whileTap={press}
+              transition={motionTransition.micro}
             >
               □
-            </button>
+            </motion.button>
           </Tooltip>
           <Tooltip label="Close">
-            <button type="button" aria-label={`Close ${app.title}`} onClick={handleClose}>
+            <motion.button
+              type="button"
+              aria-label={`Close ${app.title}`}
+              onClick={() => onClose(record.id)}
+              whileTap={press}
+              transition={motionTransition.micro}
+            >
               ×
-            </button>
+            </motion.button>
           </Tooltip>
         </div>
       </header>
       <MenuBar menus={menus} ariaLabel={`${app.title} menu`} />
       <div className="window-toolbar">
-        <button type="button" onClick={() => openApp("projects")}>
+        <motion.button type="button" onClick={() => openApp("projects")} whileTap={press} transition={motionTransition.micro}>
           <img src={appCatalog.projects.icon} alt="" />
           Projects
-        </button>
-        <button type="button" onClick={() => openApp("demos")}>
+        </motion.button>
+        <motion.button type="button" onClick={() => openApp("demos")} whileTap={press} transition={motionTransition.micro}>
           <img src={appCatalog.demos.icon} alt="" />
           Demos
-        </button>
-        <button type="button" onClick={() => openApp("stats")}>
+        </motion.button>
+        <motion.button type="button" onClick={() => openApp("stats")} whileTap={press} transition={motionTransition.micro}>
           <img src={appCatalog.stats.icon} alt="" />
           Stats
-        </button>
-        <button type="button" onClick={() => openApp("contact")}>
+        </motion.button>
+        <motion.button type="button" onClick={() => openApp("contact")} whileTap={press} transition={motionTransition.micro}>
           <img src={appCatalog.contact.icon} alt="" />
           Contact
-        </button>
+        </motion.button>
       </div>
       <div className="address-bar">
         <span>Address</span>
@@ -824,14 +1031,16 @@ function WindowChrome({
       <div className="window-content">{children}</div>
       <footer className="window-status">{app.status}</footer>
       {!record.maximized ? (
-        <button
+        <motion.button
           className="resize-handle"
           type="button"
           aria-label={`Resize ${app.title}`}
           onPointerDown={(event) => onResizeStart(event, record)}
+          whileTap={press}
+          transition={motionTransition.micro}
         />
       ) : null}
-    </section>
+    </motion.section>
   );
 }
 
@@ -870,67 +1079,351 @@ function StartMenu({
   }, [onClose, open]);
 
   return (
-    <aside
+    <AnimatePresence>
+    {open ? (
+    <motion.aside
       ref={menuRef}
       id="maxxp-start-menu"
       className="start-menu"
-      data-state={open ? "open" : "closed"}
       aria-label="Start menu"
-      aria-hidden={!open}
-      inert={!open}
+      variants={sheet}
+      initial="hidden"
+      animate="visible"
+      exit="exit"
     >
+      <span className="start-menu-handle" aria-hidden="true" />
       <header className="start-menu-header">
         <span className="start-avatar">M</span>
-        <strong>{portfolio.name}</strong>
+        <span>
+          <strong>{portfolio.name}</strong>
+          <small>MaxXP workspace</small>
+        </span>
       </header>
       <div className="start-menu-body">
-        <div className="start-menu-left">
+        <motion.div className="start-menu-left" variants={quickStagger} initial="hidden" animate="visible">
           {(["projects", "stats", "contact", "about", "resume", "demos"] as AppId[]).map((id) => (
-            <button key={id} type="button" onClick={() => openApp(id)}>
+            <motion.button
+              key={id}
+              type="button"
+              onClick={() => openApp(id)}
+              variants={quickItem}
+              whileTap={press}
+              transition={motionTransition.micro}
+            >
               <img src={appCatalog[id].icon} alt="" />
               <span>
                 <strong>{appCatalog[id].title}</strong>
                 <small>{appCatalog[id].status}</small>
               </span>
-            </button>
+            </motion.button>
           ))}
-        </div>
-        <div className="start-menu-right">
-          <a href={portfolio.links.github} target="_blank" rel="noreferrer">
+        </motion.div>
+        <motion.div className="start-menu-right" variants={quickStagger} initial="hidden" animate="visible">
+          <motion.a href={portfolio.links.github} target="_blank" rel="noreferrer" variants={quickItem} whileTap={press}>
             <img src={`${xp}/gui/start-menu/github.webp`} alt="" />
             GitHub
-          </a>
-          <a href={portfolio.links.linkedin} target="_blank" rel="noreferrer">
+          </motion.a>
+          <motion.a href={portfolio.links.linkedin} target="_blank" rel="noreferrer" variants={quickItem} whileTap={press}>
             <img src={`${xp}/gui/start-menu/linkedin.webp`} alt="" />
             LinkedIn
-          </a>
-          <button type="button" onClick={() => openApp("resume")}>
+          </motion.a>
+          <motion.button type="button" onClick={() => openApp("resume")} variants={quickItem} whileTap={press}>
             <img src={`${xp}/gui/start-menu/recently-used.webp`} alt="" />
-            Recently Used
-          </button>
-          <button type="button" onClick={() => openApp("demos")}>
+            Open resume
+          </motion.button>
+          <motion.button type="button" onClick={() => openApp("demos")} variants={quickItem} whileTap={press}>
             <img src={`${xp}/gui/start-menu/mediaPlayer.webp`} alt="" />
-            Media Player
-          </button>
-        </div>
+            Watch demos
+          </motion.button>
+        </motion.div>
       </div>
       <footer className="start-menu-footer">
-        <button type="button" onClick={onLogOff}>
+        <motion.button type="button" onClick={onLogOff} whileTap={press} transition={motionTransition.micro}>
           <img src={`${xp}/gui/start-menu/logoff.webp`} alt="" />
           Log Off
-        </button>
-        <button type="button" onClick={onLogOff}>
+        </motion.button>
+        <motion.button type="button" onClick={onLogOff} whileTap={press} transition={motionTransition.micro}>
           <img src={`${xp}/gui/start-menu/shutdown.webp`} alt="" />
           Shut Down
-        </button>
+        </motion.button>
       </footer>
-    </aside>
+    </motion.aside>
+    ) : null}
+    </AnimatePresence>
+  );
+}
+
+type CommandItem = {
+  id: string;
+  label: string;
+  description: string;
+  icon: string;
+  run: () => void;
+};
+
+const commandBackdropVariants: Variants = {
+  hidden: { opacity: 0 },
+  visible: (instant: boolean) => ({
+    opacity: 1,
+    transition: instant ? { duration: 0 } : motionTransition.short,
+  }),
+  exit: (instant: boolean) => ({
+    opacity: 0,
+    transition: instant ? { duration: 0 } : motionTransition.short,
+  }),
+};
+
+const commandSheetVariants: Variants = {
+  hidden: { opacity: 0, transform: "translate3d(0, 24px, 0) scale(0.985)" },
+  visible: (instant: boolean) => ({
+    opacity: 1,
+    transform: "translate3d(0, 0, 0) scale(1)",
+    transition: instant ? { duration: 0 } : motionTransition.spatial,
+  }),
+  exit: (instant: boolean) => ({
+    opacity: 0,
+    transform: "translate3d(0, 16px, 0) scale(0.99)",
+    transition: instant ? { duration: 0 } : motionTransition.exit,
+  }),
+};
+
+function CommandPalette({
+  open,
+  instant,
+  onClose,
+  openApp,
+}: {
+  open: boolean;
+  instant: boolean;
+  onClose: (instant?: boolean) => void;
+  openApp: (id: AppId) => void;
+}) {
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  const [query, setQuery] = useState("");
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [keyboardNavigation, setKeyboardNavigation] = useState(false);
+  const commands = useMemo<CommandItem[]>(
+    () => [
+      ...desktopApps.map((id) => ({
+        id,
+        label: appCatalog[id].title,
+        description: appCatalog[id].status,
+        icon: appCatalog[id].icon,
+        run: () => openApp(id),
+      })),
+      {
+        id: "email",
+        label: "Email Max",
+        description: "Start a project conversation",
+        icon: appCatalog.contact.icon,
+        run: () => { window.location.href = portfolio.links.email; },
+      },
+      {
+        id: "github",
+        label: "Open GitHub",
+        description: "Browse public work on GitHub",
+        icon: `${xp}/gui/start-menu/github.webp`,
+        run: () => window.open(portfolio.links.github, "_blank", "noopener,noreferrer"),
+      },
+    ],
+    [openApp],
+  );
+  const filtered = useMemo(() => {
+    const needle = query.trim().toLowerCase();
+    if (!needle) return commands;
+    return commands.filter((command) => `${command.label} ${command.description}`.toLowerCase().includes(needle));
+  }, [commands, query]);
+
+  useEffect(() => {
+    if (!open) return;
+    const previouslyFocused = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    setQuery("");
+    setSelectedIndex(0);
+    setKeyboardNavigation(false);
+    const frame = window.requestAnimationFrame(() => inputRef.current?.focus({ preventScroll: true }));
+    const handleDialogKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        onClose(true);
+        return;
+      }
+      if (event.key !== "Tab") return;
+      const dialog = inputRef.current?.closest<HTMLElement>(".command-palette");
+      if (!dialog) return;
+      const focusable = Array.from(
+        dialog.querySelectorAll<HTMLElement>(
+          'a[href], button:not(:disabled), input:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex="-1"])',
+        ),
+      );
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus({ preventScroll: true });
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus({ preventScroll: true });
+      }
+    };
+    document.addEventListener("keydown", handleDialogKeyDown);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      document.removeEventListener("keydown", handleDialogKeyDown);
+      if (previouslyFocused?.isConnected) previouslyFocused.focus({ preventScroll: true });
+    };
+  }, [onClose, open]);
+
+  useEffect(() => setSelectedIndex(0), [query]);
+
+  const run = (command?: CommandItem, instantClose = false) => {
+    if (!command) return;
+    command.run();
+    onClose(instantClose);
+  };
+
+  return (
+    <AnimatePresence custom={instant}>
+      {open ? (
+        <motion.div
+          className="command-backdrop"
+          custom={instant}
+          variants={commandBackdropVariants}
+          initial={instant ? false : "hidden"}
+          animate="visible"
+          exit="exit"
+          onPointerDown={(event) => {
+            if (event.target === event.currentTarget) onClose(false);
+          }}
+        >
+          <motion.section
+            className="command-palette"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Open an app or link"
+            custom={instant}
+            variants={commandSheetVariants}
+            initial={instant ? false : "hidden"}
+            animate="visible"
+            exit="exit"
+          >
+            <header className="command-search">
+              <span aria-hidden="true">›_</span>
+              <input
+                ref={inputRef}
+                type="search"
+                value={query}
+                onChange={(event) => {
+                  setKeyboardNavigation(true);
+                  setQuery(event.target.value);
+                }}
+                placeholder="Open an app or search MaxXP"
+                aria-label="Search commands"
+                onKeyDown={(event) => {
+                  if (event.key === "ArrowDown") {
+                    event.preventDefault();
+                    setKeyboardNavigation(true);
+                    setSelectedIndex((current) => Math.min(filtered.length - 1, current + 1));
+                  } else if (event.key === "ArrowUp") {
+                    event.preventDefault();
+                    setKeyboardNavigation(true);
+                    setSelectedIndex((current) => Math.max(0, current - 1));
+                  } else if (event.key === "Enter") {
+                    event.preventDefault();
+                    run(filtered[selectedIndex], true);
+                  } else if (event.key === "Escape") {
+                    onClose(true);
+                  }
+                }}
+              />
+              <kbd>ESC</kbd>
+            </header>
+            <motion.div
+              className="command-results"
+              variants={quickStagger}
+              initial={instant ? false : "hidden"}
+              animate="visible"
+            >
+              {filtered.map((command, index) => (
+                <motion.button
+                  key={command.id}
+                  type="button"
+                  className={cn(index === selectedIndex && "is-selected")}
+                  onPointerEnter={() => {
+                    setKeyboardNavigation(false);
+                    setSelectedIndex(index);
+                  }}
+                  onClick={() => run(command, false)}
+                  variants={quickItem}
+                  whileTap={press}
+                  transition={motionTransition.micro}
+                >
+                  {index === selectedIndex ? (
+                    <motion.span
+                      className="command-selection"
+                      layoutId="command-selection"
+                      transition={keyboardNavigation ? { duration: 0 } : motionTransition.spatial}
+                    />
+                  ) : null}
+                  <img src={command.icon} alt="" />
+                  <span>
+                    <strong>{command.label}</strong>
+                    <small>{command.description}</small>
+                  </span>
+                  <kbd>↵</kbd>
+                </motion.button>
+              ))}
+              {filtered.length === 0 ? (
+                <motion.div className="command-empty" variants={quickItem}>
+                  <strong>No matching action</strong>
+                  <span>Try “projects”, “resume”, or “GitHub”.</span>
+                </motion.div>
+              ) : null}
+            </motion.div>
+            <footer className="command-footer">
+              <span>↑↓ navigate</span><span>↵ open</span><span>⌘K toggle</span>
+            </footer>
+          </motion.section>
+        </motion.div>
+      ) : null}
+    </AnimatePresence>
+  );
+}
+
+function MobileHome({ openApp }: { openApp: (id: AppId) => void }) {
+  return (
+    <motion.section className="mobile-home" variants={stagger} initial="hidden" animate="visible">
+      <motion.header variants={staggerItem}>
+        <span>MAXXP / PORTFOLIO</span>
+        <h1>Work you can open, watch, and inspect.</h1>
+        <p>{portfolio.summary}</p>
+      </motion.header>
+      <motion.div className="mobile-home-grid" variants={stagger}>
+        {desktopApps.map((id) => (
+          <motion.button
+            key={id}
+            type="button"
+            onClick={() => openApp(id)}
+            variants={staggerItem}
+            whileTap={press}
+            transition={motionTransition.micro}
+          >
+            <img src={appCatalog[id].icon} alt="" />
+            <span><strong>{appCatalog[id].shortTitle}</strong><small>{appCatalog[id].status}</small></span>
+          </motion.button>
+        ))}
+      </motion.div>
+      <motion.p className="mobile-colophon" variants={staggerItem}>
+        {githubProjects.repos.length} repositories · {(githubProjects.totalTokens / 1e6).toFixed(1)}M estimated code tokens · {portfolio.location}
+      </motion.p>
+    </motion.section>
   );
 }
 
 function App() {
   const [phase, setPhase] = useState<BootPhase>("boot");
   const [startOpen, setStartOpen] = useState(false);
+  const [commandOpen, setCommandOpen] = useState(false);
+  const [commandInstant, setCommandInstant] = useState(false);
   const [crtEnabled, setCrtEnabled] = useState(readCrtPreference);
   const [showWelcome, setShowWelcome] = useState(false);
   const [now, setNow] = useState(() => new Date());
@@ -940,11 +1433,12 @@ function App() {
   const [activeWindow, setActiveWindow] = useState<AppId | null>("about");
   const [drag, setDrag] = useState<DragState | null>(null);
   const zRef = useRef(3);
+  const reduceMotion = useReducedMotion();
 
   useEffect(() => {
-    const timer = window.setTimeout(() => setPhase("login"), 1800);
+    const timer = window.setTimeout(() => setPhase("login"), reduceMotion ? 350 : 1800);
     return () => window.clearTimeout(timer);
-  }, []);
+  }, [reduceMotion]);
 
   useEffect(() => {
     if (phase !== "welcome") return;
@@ -955,6 +1449,19 @@ function App() {
   useEffect(() => {
     const interval = window.setInterval(() => setNow(new Date()), 30_000);
     return () => window.clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        setStartOpen(false);
+        setCommandInstant(true);
+        setCommandOpen((value) => !value);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
   useEffect(() => {
@@ -1033,10 +1540,21 @@ function App() {
   }, []);
 
   const closeStartMenu = useCallback(() => setStartOpen(false), []);
+  const closeCommandPalette = useCallback((instant = false) => {
+    setCommandInstant(instant);
+    setCommandOpen(false);
+  }, []);
+  const openCommandPalette = useCallback(() => {
+    setCommandInstant(false);
+    setStartOpen(false);
+    setCommandOpen(true);
+  }, []);
 
   const openApp = useCallback(
     (id: AppId) => {
       setStartOpen(false);
+      setCommandInstant(false);
+      setCommandOpen(false);
       setWindows((current) => {
         const existing = current.find((windowRecord) => windowRecord.id === id);
         if (existing) {
@@ -1067,6 +1585,14 @@ function App() {
     [],
   );
 
+  const toggleFullscreen = useCallback(() => {
+    if (document.fullscreenElement) {
+      void document.exitFullscreen?.();
+      return;
+    }
+    void document.documentElement.requestFullscreen?.();
+  }, []);
+
   const login = () => {
     setPhase("welcome");
     playSound("login");
@@ -1075,6 +1601,8 @@ function App() {
   const logOff = () => {
     playSound("logoff");
     setStartOpen(false);
+    setCommandInstant(true);
+    setCommandOpen(false);
     setShowWelcome(false);
     setPhase("login");
   };
@@ -1130,104 +1658,218 @@ function App() {
     }
   };
 
-  if (phase === "boot") return <BootScreen />;
-  if (phase === "login") return <LoginScreen onLogin={login} />;
-  if (phase === "welcome") return <WelcomeScreen />;
+  const activeTitle = activeWindow ? appCatalog[activeWindow].shortTitle : "Home";
 
   return (
-    <main className={cn("maxxp-desktop", crtEnabled && "crt-on")}>
-      <div className="maxxp-wallpaper" aria-hidden="true" />
+    <MotionConfig reducedMotion="user">
+      <AnimatePresence mode="wait" initial={false}>
+        {phase === "boot" ? <BootScreen key="boot" /> : null}
+        {phase === "login" ? <LoginScreen key="login" onLogin={login} /> : null}
+        {phase === "welcome" ? <WelcomeScreen key="welcome" /> : null}
+        {phase === "desktop" ? (
+          <motion.main
+            key="desktop"
+            className={cn("maxxp-desktop", crtEnabled && "crt-on")}
+            initial={{ opacity: 0, transform: "translate3d(0, 2px, 0) scale(0.998)" }}
+            animate={{ opacity: 1, transform: "translate3d(0, 0, 0) scale(1)" }}
+            exit={{ opacity: 0, transform: "translate3d(0, -1px, 0) scale(0.999)" }}
+            transition={motionTransition.short}
+          >
+            <motion.div
+              className="maxxp-wallpaper"
+              aria-hidden="true"
+              initial={
+                reduceMotion
+                  ? { transform: "translate3d(0, 0, 0) scale(1.025)" }
+                  : { transform: "translate3d(-0.35%, -0.2%, 0) scale(1.045)" }
+              }
+              animate={
+                { transform: "translate3d(0, 0, 0) scale(1.025)" }
+              }
+              transition={reduceMotion ? { duration: 0 } : { duration: 1.2, ease: easeOut }}
+            />
 
-      <section className="desktop-icons" id="desktop-icons" aria-label="Desktop applications">
-        {desktopApps.map((id) => (
-          <button key={id} className="desktop-icon" type="button" onClick={() => openApp(id)}>
-            <img src={appCatalog[id].icon} alt="" draggable={false} />
-            <span>{appCatalog[id].desktopLabel}</span>
-          </button>
-        ))}
-      </section>
-
-      <div className="windows-layer">
-        {windows
-          .slice()
-          .sort((a, b) => a.z - b.z)
-          .map((windowRecord) => (
-            <WindowChrome
-              key={windowRecord.id}
-              record={windowRecord}
-              active={activeWindow === windowRecord.id}
-              onFocus={focusWindow}
-              onClose={closeWindow}
-              onMinimize={minimizeWindow}
-              onMaximize={maximizeWindow}
-              onDragStart={startDrag}
-              onResizeStart={startResize}
-              openApp={openApp}
-              crtEnabled={crtEnabled}
-              onToggleCrt={() => setCrtEnabled((value) => !value)}
-            >
-              {contentForWindow(windowRecord)}
-            </WindowChrome>
-          ))}
-      </div>
-
-      <StartMenu open={startOpen} openApp={openApp} onClose={closeStartMenu} onLogOff={logOff} />
-
-      <TrayBalloon title="Welcome to MaxXP" visible={showWelcome} onClose={() => setShowWelcome(false)}>
-        Take the tour — open Demo Reel for the new reels feed, or browse the projects and resume. Every window is
-        wired to real portfolio content.
-      </TrayBalloon>
-
-      <footer className="taskbar">
-        <button
-          className={cn("start-button", startOpen && "is-active")}
-          type="button"
-          aria-expanded={startOpen}
-          aria-controls="maxxp-start-menu"
-          onClick={() => setStartOpen((value) => !value)}
-        >
-          <img src={`${xp}/gui/taskbar/start-button.webp`} alt="Start" />
-        </button>
-        <ScrollPane className="taskbar-programs-scroll">
-          <div className="taskbar-programs">
-            {windows.map((windowRecord) => (
-              <button
-                key={windowRecord.id}
-                data-taskbar-app={windowRecord.id}
-                className={cn(activeWindow === windowRecord.id && !windowRecord.minimized && "is-active")}
+            <header className="mobile-shell-header">
+              <span className="mobile-wordmark">MaxXP</span>
+              <AnimatePresence mode="wait" initial={false}>
+                <motion.strong
+                  key={activeTitle}
+                  initial={{ opacity: 0, transform: "translate3d(0, 4px, 0)" }}
+                  animate={{ opacity: 1, transform: "translate3d(0, 0, 0)" }}
+                  exit={{ opacity: 0, transform: "translate3d(0, -4px, 0)" }}
+                  transition={motionTransition.micro}
+                >
+                  {activeTitle}
+                </motion.strong>
+              </AnimatePresence>
+              <motion.button
                 type="button"
-                onClick={() => focusWindow(windowRecord.id)}
+                aria-label="Open command palette"
+                onClick={openCommandPalette}
+                whileTap={press}
+                transition={motionTransition.micro}
               >
-                <img src={appCatalog[windowRecord.id].icon} alt="" />
-                {appCatalog[windowRecord.id].shortTitle}
-              </button>
-            ))}
-          </div>
-        </ScrollPane>
-        <div className="system-tray">
-          <Tooltip label="Show welcome message">
-            <button type="button" aria-label="Show welcome message" onClick={() => setShowWelcome((value) => !value)}>
-              <img src={`${xp}/gui/taskbar/welcome.webp`} alt="" />
-            </button>
-          </Tooltip>
-          <Tooltip label="Toggle CRT effects">
-            <button type="button" aria-label="Toggle CRT effects" onClick={() => setCrtEnabled((value) => !value)}>
-              <img src={`${xp}/gui/taskbar/crt.webp`} alt="" />
-            </button>
-          </Tooltip>
-          <Tooltip label="Enter full screen">
-            <button type="button" aria-label="Toggle fullscreen mode" onClick={() => document.documentElement.requestFullscreen?.()}>
-              <img src={`${xp}/gui/taskbar/fullscreen.webp`} alt="" />
-            </button>
-          </Tooltip>
-          <Tooltip label={now.toLocaleDateString([], { weekday: "long", year: "numeric", month: "long", day: "numeric" })}>
-            <time dateTime={now.toISOString()}>{now.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}</time>
-          </Tooltip>
-        </div>
-      </footer>
-      <div className="crt-scanline" aria-hidden="true" />
-      <div className="crt-vignette" aria-hidden="true" />
-    </main>
+                ⌘K
+              </motion.button>
+            </header>
+
+            <MobileHome openApp={openApp} />
+
+            <motion.section
+              className="desktop-icons"
+              id="desktop-icons"
+              aria-label="Desktop applications"
+              variants={stagger}
+              initial="hidden"
+              animate="visible"
+            >
+              {desktopApps.map((id) => (
+                <motion.button
+                  key={id}
+                  className="desktop-icon"
+                  type="button"
+                  onClick={() => openApp(id)}
+                  variants={staggerItem}
+                  whileTap={press}
+                  transition={motionTransition.micro}
+                >
+                  <img src={appCatalog[id].icon} alt="" draggable={false} />
+                  <span>{appCatalog[id].desktopLabel}</span>
+                </motion.button>
+              ))}
+            </motion.section>
+
+            <div className="windows-layer">
+              <AnimatePresence initial={false}>
+                {windows
+                  .slice()
+                  .sort((a, b) => a.z - b.z)
+                  .map((windowRecord) => (
+                    <WindowChrome
+                      key={windowRecord.id}
+                      record={windowRecord}
+                      active={activeWindow === windowRecord.id}
+                      onFocus={focusWindow}
+                      onClose={closeWindow}
+                      onMinimize={minimizeWindow}
+                      onMaximize={maximizeWindow}
+                      onDragStart={startDrag}
+                      onResizeStart={startResize}
+                      isInteracting={drag?.id === windowRecord.id}
+                      openApp={openApp}
+                      crtEnabled={crtEnabled}
+                      onToggleCrt={() => setCrtEnabled((value) => !value)}
+                    >
+                      {contentForWindow(windowRecord)}
+                    </WindowChrome>
+                  ))}
+              </AnimatePresence>
+            </div>
+
+            <StartMenu open={startOpen} openApp={openApp} onClose={closeStartMenu} onLogOff={logOff} />
+
+            <TrayBalloon title="Welcome to MaxXP" visible={showWelcome} onClose={() => setShowWelcome(false)}>
+              Start with Demo Reel for product proof, then open Projects for the full repository index. Every surface is
+              wired to real content.
+            </TrayBalloon>
+
+            <CommandPalette
+              open={commandOpen}
+              instant={commandInstant}
+              onClose={closeCommandPalette}
+              openApp={openApp}
+            />
+
+            <footer className="taskbar">
+              <motion.button
+                className={cn("start-button", startOpen && "is-active")}
+                type="button"
+                aria-expanded={startOpen}
+                aria-controls="maxxp-start-menu"
+                onClick={() => { closeCommandPalette(false); setStartOpen((value) => !value); }}
+                whileTap={press}
+                transition={motionTransition.micro}
+              >
+                <img src={`${xp}/gui/taskbar/start-button.webp`} alt="Start" />
+                <span className="mobile-start-label">Apps</span>
+              </motion.button>
+              <ScrollPane className="taskbar-programs-scroll">
+                <LayoutGroup id="taskbar-programs">
+                <div className="taskbar-programs">
+                  {windows.map((windowRecord) => {
+                    const isActive = activeWindow === windowRecord.id && !windowRecord.minimized;
+                    return (
+                    <motion.button
+                      key={windowRecord.id}
+                      data-taskbar-app={windowRecord.id}
+                      className={cn(isActive && "is-active")}
+                      type="button"
+                      onClick={() => focusWindow(windowRecord.id)}
+                      whileTap={press}
+                      transition={motionTransition.micro}
+                    >
+                      {isActive ? <motion.span className="taskbar-active" layoutId="taskbar-active" /> : null}
+                      <img src={appCatalog[windowRecord.id].icon} alt="" />
+                      <span>{appCatalog[windowRecord.id].shortTitle}</span>
+                    </motion.button>
+                  )})}
+                </div>
+                </LayoutGroup>
+              </ScrollPane>
+              <nav className="mobile-dock" aria-label="Portfolio apps">
+                <LayoutGroup id="mobile-dock">
+                  {mobileDockApps.map((id) => {
+                    const isActive = activeWindow === id && windows.some((record) => record.id === id && !record.minimized);
+                    return (
+                      <motion.button
+                        key={id}
+                        type="button"
+                        className={cn(isActive && "is-active")}
+                        aria-label={`Open ${appCatalog[id].title}`}
+                        onClick={() => openApp(id)}
+                        whileTap={press}
+                        transition={motionTransition.micro}
+                      >
+                        {isActive ? <motion.span className="mobile-dock-active" layoutId="mobile-dock-active" /> : null}
+                        <img src={appCatalog[id].icon} alt="" />
+                        <span>{appCatalog[id].shortTitle}</span>
+                      </motion.button>
+                    );
+                  })}
+                </LayoutGroup>
+              </nav>
+              <div className="system-tray">
+                <Tooltip label="Open command palette">
+                  <motion.button type="button" aria-label="Open command palette" onClick={openCommandPalette} whileTap={press}>
+                    <span className="tray-command">⌘K</span>
+                  </motion.button>
+                </Tooltip>
+                <Tooltip label="Show welcome message">
+                  <motion.button type="button" aria-label="Show welcome message" onClick={() => setShowWelcome((value) => !value)} whileTap={press}>
+                    <img src={`${xp}/gui/taskbar/welcome.webp`} alt="" />
+                  </motion.button>
+                </Tooltip>
+                <Tooltip label="Toggle CRT effects">
+                  <motion.button type="button" aria-label="Toggle CRT effects" onClick={() => setCrtEnabled((value) => !value)} whileTap={press}>
+                    <img src={`${xp}/gui/taskbar/crt.webp`} alt="" />
+                  </motion.button>
+                </Tooltip>
+                <Tooltip label="Toggle full screen">
+                  <motion.button type="button" aria-label="Toggle fullscreen mode" onClick={toggleFullscreen} whileTap={press}>
+                    <img src={`${xp}/gui/taskbar/fullscreen.webp`} alt="" />
+                  </motion.button>
+                </Tooltip>
+                <Tooltip label={now.toLocaleDateString([], { weekday: "long", year: "numeric", month: "long", day: "numeric" })}>
+                  <time dateTime={now.toISOString()}>{now.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}</time>
+                </Tooltip>
+              </div>
+            </footer>
+            <div className="crt-scanline" aria-hidden="true" />
+            <div className="crt-vignette" aria-hidden="true" />
+          </motion.main>
+        ) : null}
+      </AnimatePresence>
+    </MotionConfig>
   );
 }
 
