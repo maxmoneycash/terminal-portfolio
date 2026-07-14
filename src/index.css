@@ -394,7 +394,7 @@ p {
 .maxxp-wallpaper {
   position: fixed;
   inset: -2.5%;
-  background: #1688cf url("/xp/gui/bgs/bliss.webp") center center / cover no-repeat;
+  background: #1688cf url("/xp/gui/bgs/maxmoneycash-bliss.webp") center center / cover no-repeat;
   overflow: hidden;
   transform: scale(1.025);
   will-change: transform;
