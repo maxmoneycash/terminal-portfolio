@@ -14,12 +14,12 @@ import githubProjects from "./data/github-projects.json";
 import { cn } from "./lib/cn";
 import { MenuBar, type WindowMenu } from "./components/MenuBar";
 import { ReelsApp } from "./components/ReelsApp";
+import { SignatureNoteApp } from "./components/SignatureNoteApp";
 import { StatsApp } from "./components/StatsApp";
 import { Tooltip } from "./components/Tooltip";
-import { TrayBalloon } from "./components/TrayBalloon";
 
 type BootPhase = "boot" | "login" | "welcome" | "desktop";
-type AppId = "about" | "resume" | "projects" | "demos" | "contact" | "stats";
+type AppId = "signature" | "about" | "resume" | "projects" | "demos" | "contact" | "stats";
 type EdgeState = {
   top: boolean;
   right: boolean;
@@ -53,6 +53,14 @@ const appCatalog: Record<
     dimensions: { width: number; height: number; minWidth: number; minHeight: number };
   }
 > = {
+  signature: {
+    title: "welcome.txt - Notepad",
+    shortTitle: "Welcome",
+    icon: `${xp}/gui/start-menu/recently-used.webp`,
+    desktopLabel: "Welcome Note",
+    status: "Maxwell Mohammadi · Welcome to MaxXP",
+    dimensions: { width: 720, height: 470, minWidth: 360, minHeight: 300 },
+  },
   about: {
     title: "About Max",
     shortTitle: "About",
@@ -114,7 +122,7 @@ function externalLabel(url?: string) {
   }
 }
 
-function playSound(name: "login" | "logoff" | "balloon") {
+function playSound(name: "login" | "logoff") {
   const audio = new Audio(`${xp}/sounds/${name}.wav`);
   audio.volume = 0.42;
   void audio.play().catch(() => {});
@@ -576,6 +584,7 @@ function WindowChrome({
   onToggleCrt: () => void;
 }) {
   const app = appCatalog[record.id];
+  const isNotepad = record.id === "signature";
   const sectionRef = useRef<HTMLElement | null>(null);
   const exitAnimationRef = useRef<Animation | null>(null);
   const layoutAnimationRef = useRef<Animation | null>(null);
@@ -707,7 +716,48 @@ function WindowChrome({
     [],
   );
 
-  const menus: WindowMenu[] = [
+  const menus: WindowMenu[] = isNotepad ? [
+    {
+      label: "File",
+      items: [
+        { label: "Open About Max", onSelect: () => openApp("about") },
+        "separator",
+        { label: "Close", onSelect: handleClose },
+      ],
+    },
+    {
+      label: "Edit",
+      items: [
+        {
+          label: "Copy Name",
+          onSelect: () => {
+            void navigator.clipboard?.writeText(portfolio.name).catch(() => {});
+          },
+        },
+        {
+          label: "Copy Email Address",
+          onSelect: () => {
+            void navigator.clipboard?.writeText(portfolio.links.email.replace(/^mailto:/, "")).catch(() => {});
+          },
+        },
+      ],
+    },
+    {
+      label: "Format",
+      items: [{ label: "Word Wrap", checked: true, disabled: true }],
+    },
+    {
+      label: "View",
+      items: [
+        { label: "Status Bar", checked: true, disabled: true },
+        { label: "CRT Effects", checked: crtEnabled, onSelect: onToggleCrt },
+      ],
+    },
+    {
+      label: "Help",
+      items: [{ label: "About Max", onSelect: () => openApp("about") }],
+    },
+  ] : [
     {
       label: "File",
       items: [
@@ -754,6 +804,7 @@ function WindowChrome({
       ref={sectionRef}
       className={cn(
         "xp-window",
+        isNotepad && "is-notepad",
         active && "is-active",
         record.maximized && "is-maximized",
         record.minimized && "is-minimized",
@@ -796,31 +847,35 @@ function WindowChrome({
         </div>
       </header>
       <MenuBar menus={menus} ariaLabel={`${app.title} menu`} />
-      <div className="window-toolbar">
-        <button type="button" onClick={() => openApp("projects")}>
-          <img src={appCatalog.projects.icon} alt="" />
-          Projects
-        </button>
-        <button type="button" onClick={() => openApp("demos")}>
-          <img src={appCatalog.demos.icon} alt="" />
-          Demos
-        </button>
-        <button type="button" onClick={() => openApp("stats")}>
-          <img src={appCatalog.stats.icon} alt="" />
-          Stats
-        </button>
-        <button type="button" onClick={() => openApp("contact")}>
-          <img src={appCatalog.contact.icon} alt="" />
-          Contact
-        </button>
-      </div>
-      <div className="address-bar">
-        <span>Address</span>
-        <div>
-          <img src={app.icon} alt="" />
-          maxxp://{record.id}
-        </div>
-      </div>
+      {!isNotepad ? (
+        <>
+          <div className="window-toolbar">
+            <button type="button" onClick={() => openApp("projects")}>
+              <img src={appCatalog.projects.icon} alt="" />
+              Projects
+            </button>
+            <button type="button" onClick={() => openApp("demos")}>
+              <img src={appCatalog.demos.icon} alt="" />
+              Demos
+            </button>
+            <button type="button" onClick={() => openApp("stats")}>
+              <img src={appCatalog.stats.icon} alt="" />
+              Stats
+            </button>
+            <button type="button" onClick={() => openApp("contact")}>
+              <img src={appCatalog.contact.icon} alt="" />
+              Contact
+            </button>
+          </div>
+          <div className="address-bar">
+            <span>Address</span>
+            <div>
+              <img src={app.icon} alt="" />
+              maxxp://{record.id}
+            </div>
+          </div>
+        </>
+      ) : null}
       <div className="window-content">{children}</div>
       <footer className="window-status">{app.status}</footer>
       {!record.maximized ? (
@@ -885,7 +940,7 @@ function StartMenu({
       </header>
       <div className="start-menu-body">
         <div className="start-menu-left">
-          {(["projects", "stats", "contact", "about", "resume", "demos"] as AppId[]).map((id) => (
+          {(["signature", "projects", "stats", "contact", "about", "resume", "demos"] as AppId[]).map((id) => (
             <button key={id} type="button" onClick={() => openApp(id)}>
               <img src={appCatalog[id].icon} alt="" />
               <span>
@@ -928,16 +983,29 @@ function StartMenu({
   );
 }
 
+function createSignatureWindow(z = 2): WindowRecord {
+  const { width, height } = appCatalog.signature.dimensions;
+  const viewportWidth = typeof window === "undefined" ? 1280 : window.innerWidth;
+  const viewportHeight = typeof window === "undefined" ? 800 : window.innerHeight;
+  return {
+    id: "signature",
+    x: Math.max(16, Math.round((viewportWidth - width) / 2)),
+    y: Math.max(42, Math.round((viewportHeight - height - 31) / 2)),
+    width,
+    height,
+    z,
+    minimized: false,
+    maximized: false,
+  };
+}
+
 function App() {
   const [phase, setPhase] = useState<BootPhase>("boot");
   const [startOpen, setStartOpen] = useState(false);
   const [crtEnabled, setCrtEnabled] = useState(readCrtPreference);
-  const [showWelcome, setShowWelcome] = useState(false);
   const [now, setNow] = useState(() => new Date());
-  const [windows, setWindows] = useState<WindowRecord[]>([
-    { id: "about", x: 168, y: 78, width: 790, height: 650, z: 2, minimized: false, maximized: false },
-  ]);
-  const [activeWindow, setActiveWindow] = useState<AppId | null>("about");
+  const [windows, setWindows] = useState<WindowRecord[]>(() => [createSignatureWindow()]);
+  const [activeWindow, setActiveWindow] = useState<AppId | null>("signature");
   const [drag, setDrag] = useState<DragState | null>(null);
   const zRef = useRef(3);
 
@@ -964,20 +1032,6 @@ function App() {
       // Storage is optional; the toggle still works for the current visit.
     }
   }, [crtEnabled]);
-
-  useEffect(() => {
-    if (phase !== "desktop") return;
-    const show = window.setTimeout(() => setShowWelcome(true), 1400);
-    const hide = window.setTimeout(() => setShowWelcome(false), 12000);
-    return () => {
-      window.clearTimeout(show);
-      window.clearTimeout(hide);
-    };
-  }, [phase]);
-
-  useEffect(() => {
-    if (showWelcome) playSound("balloon");
-  }, [showWelcome]);
 
   useEffect(() => {
     if (activeWindow && windows.some((windowRecord) => windowRecord.id === activeWindow && !windowRecord.minimized)) return;
@@ -1075,7 +1129,8 @@ function App() {
   const logOff = () => {
     playSound("logoff");
     setStartOpen(false);
-    setShowWelcome(false);
+    setWindows([createSignatureWindow(++zRef.current)]);
+    setActiveWindow("signature");
     setPhase("login");
   };
 
@@ -1115,6 +1170,8 @@ function App() {
 
   const contentForWindow = (windowRecord: WindowRecord) => {
     switch (windowRecord.id) {
+      case "signature":
+        return <SignatureNoteApp onContinue={() => openApp("about")} />;
       case "about":
         return <AboutApp openApp={openApp} />;
       case "resume":
@@ -1173,11 +1230,6 @@ function App() {
 
       <StartMenu open={startOpen} openApp={openApp} onClose={closeStartMenu} onLogOff={logOff} />
 
-      <TrayBalloon title="Welcome to MaxXP" visible={showWelcome} onClose={() => setShowWelcome(false)}>
-        Take the tour — open Demo Reel for the new reels feed, or browse the projects and resume. Every window is
-        wired to real portfolio content.
-      </TrayBalloon>
-
       <footer className="taskbar">
         <button
           className={cn("start-button", startOpen && "is-active")}
@@ -1205,8 +1257,8 @@ function App() {
           </div>
         </ScrollPane>
         <div className="system-tray">
-          <Tooltip label="Show welcome message">
-            <button type="button" aria-label="Show welcome message" onClick={() => setShowWelcome((value) => !value)}>
+          <Tooltip label="Open welcome note">
+            <button type="button" aria-label="Open welcome note" onClick={() => openApp("signature")}>
               <img src={`${xp}/gui/taskbar/welcome.webp`} alt="" />
             </button>
           </Tooltip>
