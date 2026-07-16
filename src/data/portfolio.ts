@@ -180,7 +180,7 @@ export const portfolio = {
     },
     {
       company: "Sydereal",
-      title: "Software Engineer",
+      title: "Software Engineering Intern (Part-Time, during school year)",
       period: "December 2020 — October 2021",
       impact:
         "Migrated satellite telemetry from SQLite to InfluxDB and implemented spacecraft anomaly detection, saving about $150K.",
@@ -193,7 +193,7 @@ export const portfolio = {
     },
     {
       company: "Proximai.com",
-      title: "AI Research",
+      title: "AI Research Intern (Part-Time, during school year)",
       period: "May 2020 — June 2021",
       impact: "Contributed to RaDAR, a spatial-temporal framework for military aircraft GO/NO-GO decisions.",
     },
