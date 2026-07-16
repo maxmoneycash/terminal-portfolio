@@ -363,6 +363,20 @@ function ResumeApp() {
               <p>{role.impact}</p>
             </article>
           ))}
+          <h2>Education</h2>
+          <article className="resume-role">
+            <div>
+              <strong>{portfolio.education.school}</strong>
+              <span>{portfolio.education.period}</span>
+            </div>
+            <h3>{portfolio.education.degree}</h3>
+            <p>{portfolio.education.detail}</p>
+          </article>
+          <h2>Honors & Organizations</h2>
+          <article className="resume-role">
+            <p>{portfolio.honors.join(" · ")}</p>
+            <p>{portfolio.organizations.join(" · ")}</p>
+          </article>
         </section>
       </div>
     </ScrollPane>

@@ -160,11 +160,95 @@ export const portfolio = {
         "Shipping LLM MCP servers, onchain trading bots, high-throughput Move contracts, and product demos for Decibel Trade, Shelby Protocol, Whop, and Polymarket-style prediction markets.",
     },
     {
-      company: "EY Blockchain",
-      title: "Blockchain security consultant",
-      period: "August 2022 — September 2025",
+      company: "EY",
+      title: "Blockchain Consulting",
+      period: "September 2024 — September 2025",
       impact:
-        "Audited enterprise crypto custody infrastructure, led onchain incident response, and built cross-chain expertise across EVM, Aptos Move, Sui, Hyperliquid, and stablecoin systems.",
+        "Full-time blockchain consulting in the Bay Area practice — enterprise custody infrastructure, incident response, and cross-chain work across EVM and Move ecosystems.",
+    },
+    {
+      company: "Blockchain Acceleration Foundation",
+      title: "Board Member",
+      period: "September 2022 — September 2023",
+      impact: "Part-time board seat supporting university blockchain education and ecosystem programs.",
+    },
+    {
+      company: "Blockchain at Cal Poly",
+      title: "President",
+      period: "June 2021 — September 2022",
+      impact: "Led the university blockchain organization — education, industry partnerships, and the developer community.",
+    },
+    {
+      company: "Sydereal",
+      title: "Software Engineer",
+      period: "December 2020 — October 2021",
+      impact: "Eleven-month software engineering internship in the San Francisco Bay Area.",
+    },
+    {
+      company: "EY",
+      title: "Forensic Data Analysis",
+      period: "June 2021 — September 2021",
+      impact: "Summer analytics engagement inside EY's forensics practice.",
+    },
+    {
+      company: "Proximai.com",
+      title: "AI Research",
+      period: "May 2020 — June 2021",
+      impact: "Part-time AI research alongside coursework.",
+    },
+    {
+      company: "EY",
+      title: "Forensics & Integrity Services",
+      period: "July 2020 — August 2020",
+      impact:
+        "Intern cohort placed top 3 in the capstone; analyzed client data for sentiment and fraudulent financial reporting; built a COVID-19 back-to-work strategy and employee app concept for Ford; trained on Power BI, Alteryx, and Relativity.",
+    },
+    {
+      company: "CSAI Cal Poly",
+      title: "Data Science",
+      period: "April 2019 — July 2020",
+      impact:
+        "Built parts of the CSAI voice assistant that answers Cal Poly CS department questions — office hours, prerequisites, and campus info.",
+    },
+    {
+      company: "Camp PolyHacks",
+      title: "Sponsorship Coordinator",
+      period: "May 2019 — February 2020",
+      impact:
+        "Organized corporate sponsorships for the 2020 hackathon — 100+ students at the SLO HotHouse and $25,000+ raised.",
+    },
+    {
+      company: "Valence Law Group, PC",
+      title: "Administrative Intern",
+      period: "July 2018 — September 2018",
+      impact:
+        "Helped design a data and workflow automation system for a commercial real-estate law firm; assisted on lease documents and attorney invoicing.",
+    },
+    {
+      company: "Draco Clothing Company",
+      title: "President",
+      period: "November 2017 — July 2018",
+      impact: "Led a Junior Achievement-sponsored student company teaching high schoolers how to run a business.",
+    },
+    {
+      company: "Northgate Business Club",
+      title: "President",
+      period: "September 2017 — June 2018",
+      impact: "Co-founded the high-school business club — career education and professional networking for students.",
+    },
+    {
+      company: "Junior Achievement of Northern California",
+      title: "Director of Sales, Fleece Bay",
+      period: "December 2016 — November 2017",
+      impact: "Ran sales strategy for the student company that won the JA Best Business Plan Award.",
     },
   ] satisfies Role[],
+  education: {
+    school: "California Polytechnic State University, San Luis Obispo",
+    degree: "B.S. Computer Science",
+    period: "2018 — 2023",
+    detail: "President, Blockchain at Cal Poly",
+  },
+  honors: ["Junior Achievement Best Business Plan Award — Fleece Bay"],
+  organizations: ["Accounting Career Awareness Program (UC Berkeley)", "CalCPA", "National Association of Black Accountants"],
 };
