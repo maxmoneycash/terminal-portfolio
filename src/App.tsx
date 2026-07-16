@@ -328,6 +328,9 @@ function ResumeApp() {
           <a className="xp-control" href={portfolio.links.resume} download>
             Save a Copy
           </a>
+          <a className="xp-control" href="/Max_Mohammadi_Resume_ATS.pdf" download>
+            ATS Version
+          </a>
         </div>
         <iframe
           className="resume-pdf-frame"
