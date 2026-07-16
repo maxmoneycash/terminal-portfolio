@@ -182,19 +182,20 @@ export const portfolio = {
       company: "Sydereal",
       title: "Software Engineer",
       period: "December 2020 — October 2021",
-      impact: "Eleven-month software engineering internship in the San Francisco Bay Area.",
+      impact:
+        "Migrated satellite telemetry from SQLite to InfluxDB and implemented spacecraft anomaly detection, saving about $150K.",
     },
     {
       company: "EY",
       title: "Forensic Data Analysis",
       period: "June 2021 — September 2021",
-      impact: "Summer analytics engagement inside EY's forensics practice.",
+      impact: "Worked with Solidity, EVM, and DeFi protocols to create product research for clients.",
     },
     {
       company: "Proximai.com",
       title: "AI Research",
       period: "May 2020 — June 2021",
-      impact: "Part-time AI research alongside coursework.",
+      impact: "Contributed to RaDAR, a spatial-temporal framework for military aircraft GO/NO-GO decisions.",
     },
     {
       company: "EY",
