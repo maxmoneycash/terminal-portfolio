@@ -304,7 +304,40 @@ function AboutApp({ openApp }: { openApp: (id: AppId) => void }) {
   );
 }
 
+export function openResumePdf() {
+  window.dispatchEvent(new CustomEvent("maxxp:open-resume-pdf"));
+}
+
 function ResumeApp() {
+  const [view, setView] = useState<"overview" | "pdf">("overview");
+
+  useEffect(() => {
+    const showPdf = () => setView("pdf");
+    window.addEventListener("maxxp:open-resume-pdf", showPdf);
+    return () => window.removeEventListener("maxxp:open-resume-pdf", showPdf);
+  }, []);
+
+  if (view === "pdf") {
+    return (
+      <div className="resume-pdf">
+        <div className="resume-pdf-toolbar">
+          <button className="xp-control" type="button" onClick={() => setView("overview")}>
+            ← Overview
+          </button>
+          <span className="resume-pdf-title">Max_Mohammadi_Resume.pdf</span>
+          <a className="xp-control" href={portfolio.links.resume} download>
+            Save a Copy
+          </a>
+        </div>
+        <iframe
+          className="resume-pdf-frame"
+          src={`${portfolio.links.resume}#toolbar=0&navpanes=0&view=FitH`}
+          title="Max Mohammadi resume PDF"
+        />
+      </div>
+    );
+  }
+
   return (
     <ScrollPane>
       <div className="resume-app">
@@ -312,9 +345,9 @@ function ResumeApp() {
           <img src={`${xp}/gui/desktop/resume.webp`} alt="" />
           <strong>{portfolio.name}</strong>
           <span>{portfolio.title}</span>
-          <a className="xp-control primary" href={portfolio.links.resume} target="_blank" rel="noreferrer">
+          <button className="xp-control primary" type="button" onClick={() => setView("pdf")}>
             Open PDF
-          </a>
+          </button>
         </aside>
         <section className="resume-sheet">
           <h1>{portfolio.name}</h1>
@@ -885,7 +918,13 @@ function WindowChrome({
       label: "File",
       items: [
         { label: "New Window", disabled: true },
-        { label: "Open Resume PDF", href: portfolio.links.resume },
+        {
+          label: "Open Resume PDF",
+          onSelect: () => {
+            openApp("resume");
+            window.setTimeout(openResumePdf, 80);
+          },
+        },
         "separator",
         { label: "Close", onSelect: handleClose },
       ],

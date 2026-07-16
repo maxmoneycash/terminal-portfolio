@@ -1123,6 +1123,40 @@ p {
   font-size: 19px;
 }
 
+.resume-pdf {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 3px;
+  height: 100%;
+  min-height: 0;
+}
+
+.resume-pdf-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid #9aa6bd;
+  background: var(--xp-panel);
+  padding: 4px 6px;
+}
+
+.resume-pdf-title {
+  flex: 1;
+  overflow: hidden;
+  color: var(--xp-muted);
+  font-size: 11px;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.resume-pdf-frame {
+  width: 100%;
+  height: 100%;
+  border: 1px solid #9aa6bd;
+  background: #7a7a72;
+}
+
 .resume-app {
   display: grid;
   grid-template-columns: 190px minmax(0, 1fr);
