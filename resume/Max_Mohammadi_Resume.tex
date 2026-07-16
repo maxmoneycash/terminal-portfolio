@@ -1,0 +1,105 @@
+% Maxwell Mohammadi — one-page resume (application / ATS version)
+% Build: npm run resume:build  (pdflatex, then copied to public/)
+\documentclass[letterpaper,10pt]{article}
+
+\usepackage[margin=0.33in,top=0.28in,bottom=0.26in]{geometry}
+\usepackage{titlesec}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+\usepackage{xcolor}
+\usepackage{tabularx}
+\usepackage{setspace}
+
+\pagestyle{empty}
+\setlength{\parindent}{0pt}
+\raggedright
+\setstretch{0.95}
+\input{glyphtounicode}\pdfgentounicode=1 % ATS-safe text extraction
+
+\titleformat{\section}{\vspace{-5pt}\scshape\large}{}{0em}{}[\color{black}\titlerule\vspace{-3pt}]
+\titlespacing*{\section}{0pt}{4pt}{4pt}
+
+\newcommand{\job}[4]{%
+  \vspace{1pt}%
+  \textbf{#1} \hfill {\small #2}\\
+  {\small\itshape #3}\vspace{-4pt}
+  \begin{itemize}[leftmargin=14pt,itemsep=0pt,parsep=0pt,topsep=1.5pt]\small #4\end{itemize}\vspace{-3.5pt}}
+
+\newcommand{\project}[3]{%
+  \vspace{1pt}%
+  \textbf{#1}\ifx&#2&\else{ \small\ --- \href{#2}{\nolinkurl{#2}}}\fi\vspace{-4pt}
+  \begin{itemize}[leftmargin=14pt,itemsep=0pt,parsep=0pt,topsep=1.5pt]\small #3\end{itemize}\vspace{-3.5pt}}
+
+\begin{document}
+
+\begin{center}
+  {\LARGE\scshape Maxwell Mohammadi}\\[1pt]
+  {\small Smart Contract Engineer \textbar\ Palo Alto / San Francisco Bay Area}\\[1pt]
+  {\small (925) 876 1159 \textbar\ \href{mailto:maxwell.mohammadi@gmail.com}{maxwell.mohammadi@gmail.com} \textbar\
+  \href{https://maxmohammadi.com}{maxmohammadi.com} \textbar\
+  \href{https://github.com/maxmoneycash}{github.com/maxmoneycash} \textbar\
+  \href{https://linkedin.com/in/maxwellmohammadi}{linkedin.com/in/maxwellmohammadi}}
+\end{center}
+\vspace{-6pt}
+
+\section{Summary}
+{\small Smart contract engineer building Aptos Move systems, LLM MCP servers, and onchain trading products. At Aptos Labs, ships agent tooling and throughput focused demos for Decibel Trade, Shelby Protocol, Polymarket style prediction markets, and Whop style fintech workflows. Previously audited enterprise crypto custody infrastructure at EY Blockchain.}
+
+\section{Work Experience}
+
+\job{Aptos Labs}{September 2025 --- Present}{Software Engineer, Palo Alto, CA}{
+  \item Shipped LLM MCP servers for \textbf{Decibel Trade} and \textbf{Shelby Protocol}, exposing protocol workflows to agent driven tooling.
+  \item Built automated Decibel trading bots that convert \textbf{TradingView PineScript} indicators into onchain smart contract trading strategies.
+  \item Built a prediction market Move contract from scratch and partnered with Aptos founding engineers to profile transaction paths, storage access, and execution bottlenecks until benchmark throughput reached \textbf{10k TPS}.
+  \item Built Polymarket and Whop demos to pitch Aptos rails for prediction markets, trading, payments, and investing; turned pitch feedback into working product flows rather than static mockups.}
+
+\job{Ernst \& Young, EY Blockchain}{September 2024 --- September 2025}{Blockchain Security Consultant}{
+  \item Audited enterprise cryptocurrency custody infrastructure \textbf{alongside Trail of Bits}, reviewing transaction orchestration codebases, cold storage signing workflows, and HSM integrations across distributed data centers to identify attack vectors and security vulnerabilities.
+  \item Led crypto incident response investigations in partnership with \textbf{TRM Labs}, tracing onchain fund flows and performing forensic analysis of transaction anomalies.
+  \item Authored stablecoin research on mechanism design, peg stability, regulatory frameworks, and protocol risk for EY Blockchain clients.
+  \item Presented weekly technical research on \textbf{Aptos, Sui, Hyperliquid}, stablecoins, cross chain bridge risk, and emerging L1/L2 ecosystems.
+  \item \textbf{Key Achievement:} Developed cross chain expertise spanning EVM, Move, Aptos, Sui, and emerging platforms, directly informing audit methodology and client advisory.}
+
+\job{Ernst \& Young}{June 2021 --- September 2021}{Forensic Data Analyst (Intern)}{
+  \item Implemented anomaly detection for forensic data analysis, identifying cases of fraudulent financial activity.
+  \item Researched and presented Ethereum and Celo protocols to EY Blockchain colleagues.
+  \item \textbf{Key Achievement:} Worked with Solidity, EVM, and DeFi protocols to create product research for clients.}
+
+\job{Sydereal}{December 2020 --- October 2021}{Software Engineering Intern (Part-Time, during school year)}{
+  \item Migrated satellite telemetry from SQLite to InfluxDB, increasing data processing speeds by 20\%.
+  \item \textbf{Key Achievement:} Implemented neural network anomaly detection for spacecraft telemetry, saving about \$150K.}
+
+\job{Proximai AI}{May 2020 --- June 2021}{AI Research Intern (Part-Time, during school year)}{
+  \item Prepared three advanced technology proposals to NASA Innovative Advanced Concepts.
+  \item \textbf{Key Achievement:} Contributed to RaDAR, a spatial temporal framework for military aircraft GO/NO GO decisions.}
+
+\section{Projects}
+
+\project{Decibel / Shelby Agent Infrastructure}{}{
+  \item Built Decibrrr, a Decibel Trade automation app with custom onchain SDK paths, TWAP and market maker strategies, delegation based trading, live bot state, and wallet integration.
+  \item Built Shelby content rewards and MCP server workflows so agents could interact with Aptos protocol actions, content rewards, and trading tools through structured commands.}
+
+\project{Aptos Prediction Market: Polymarket Demo}{https://aptos-polymarket.vercel.app/}{
+  \item Built a Polymarket style prediction market demo with Move contracts, market UI, real time trade streams, TPS dashboard, and HFT bot visualization.
+  \item Partnered with Aptos engineers to optimize market creation, order resolution, and settlement flows to \textbf{10k TPS} for pitch demos.}
+
+\project{Whop Finance: Aptos Fintech Demo}{https://whop.finance/}{
+  \item Built a Whop style Aptos finance demo with Tether WDK flows for creator payments, yield, cross chain transfers, and investing.
+  \item Implemented agent banking flows across checking, savings, credit, exchange, and x402a payments using Aptos, Aave V3, Panora, and Whop integrations.}
+
+\project{Sol2Move: Solidity to Aptos Move Transpiler}{https://github.com/SeamMoney/aptos-move-transpiler}{
+  \item Built a Solidity to Aptos Move v2 transpiler with Solidity analysis, inheritance flattening, OpenZeppelin pattern support, Move parsing, and validation.
+  \item Transpiled \textbf{Veda BoringVault}, Uniswap V2/V3, Pendle, Trader Joe DLMM, and Compound v2; added differential fuzzing and a Sol2Move web app.}
+
+\project{tx-composer: Aptos DeFi Transaction Composer}{https://github.com/SeamMoney/tx-composer}{
+  \item Built simulate first Aptos DeFi transaction composition tooling with declarative Move call steps, return value wiring, balance tracking, and VM error diagnosis.
+  \item Added JSON plan support so AI agents can generate, simulate, report, and execute atomic Aptos transactions before committing real funds.}
+
+\section{Education}
+\textbf{California Polytechnic State University, San Luis Obispo} \hfill {\small September 2018 --- June 2023}\\
+{\small B.S. Computer Science \textbar\ 3.6 GPA \textbar\ President, Cal Poly Blockchain}
+
+\section{Skills}
+{\small Solidity, Move, Aptos Move, MCP Servers, EVM Security, DeFi Audits, Foundry, Fuzzing, PineScript, Trading Bots, TypeScript, Rust, Aptos SDK, LayerZero, React / Next.js, Tailwind CSS, Three.js, Vite, GraphQL, Tree sitter, Playwright, Postgres}
+
+\end{document}
