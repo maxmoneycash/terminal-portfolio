@@ -444,6 +444,126 @@ p {
   mix-blend-mode: multiply;
 }
 
+/* Living sky. Three cumulus layers cross the frame at parallax speeds (the
+   nearest is largest and fastest), each with an independent slow vertical
+   bob on its pseudo-element so the drift never reads as a straight rail.
+   A matching cloud shadow sweeps the grass below. Transform-only. */
+.wallpaper-cloud {
+  position: absolute;
+  left: 0;
+  aspect-ratio: 3 / 1;
+  animation: cloud-drift linear infinite;
+  will-change: transform;
+  pointer-events: none;
+}
+
+.wallpaper-cloud::before {
+  position: absolute;
+  inset: 0;
+  content: "";
+  background:
+    radial-gradient(closest-side at 30% 62%, rgb(255 255 255 / 0.95) 72%, transparent),
+    radial-gradient(closest-side at 47% 38%, rgb(255 255 255 / 0.9) 66%, transparent),
+    radial-gradient(closest-side at 63% 56%, #fff 74%, transparent),
+    radial-gradient(closest-side at 78% 68%, rgb(255 255 255 / 0.82) 62%, transparent),
+    radial-gradient(60% 42% at 52% 84%, rgb(203 222 240 / 0.7), transparent);
+  animation: cloud-bob ease-in-out infinite alternate;
+}
+
+.cloud-near {
+  top: 2.5%;
+  width: 36vw;
+  animation-duration: 150s;
+  animation-delay: -46s;
+}
+
+.cloud-near::before {
+  filter: blur(13px);
+  opacity: 0.5;
+  animation-duration: 19s;
+}
+
+.cloud-mid {
+  top: 12%;
+  width: 23vw;
+  animation-duration: 235s;
+  animation-delay: -148s;
+}
+
+.cloud-mid::before {
+  filter: blur(10px);
+  opacity: 0.6;
+  animation-duration: 23s;
+  animation-delay: -9s;
+}
+
+.cloud-far {
+  top: 21%;
+  width: 14vw;
+  animation-duration: 330s;
+  animation-delay: -252s;
+}
+
+.cloud-far::before {
+  filter: blur(7px);
+  opacity: 0.66;
+  animation-duration: 27s;
+  animation-delay: -17s;
+}
+
+.wallpaper-shade {
+  position: absolute;
+  top: 60%;
+  left: 0;
+  width: 64vw;
+  height: 30vh;
+  background: radial-gradient(50% 50% at 50% 50%, rgb(7 36 9 / 0.5), transparent 72%);
+  filter: blur(28px);
+  mix-blend-mode: multiply;
+  opacity: 0.24;
+  animation: shade-drift 150s linear infinite;
+  animation-delay: -46s;
+  will-change: transform;
+  pointer-events: none;
+}
+
+@keyframes cloud-drift {
+  from {
+    transform: translate3d(-48vw, 0, 0);
+  }
+
+  to {
+    transform: translate3d(112vw, 0, 0);
+  }
+}
+
+@keyframes cloud-bob {
+  from {
+    transform: translate3d(0, -0.5vh, 0);
+  }
+
+  to {
+    transform: translate3d(0, 0.6vh, 0);
+  }
+}
+
+@keyframes shade-drift {
+  from {
+    transform: translate3d(-70vw, 0, 0) scaleY(0.55);
+  }
+
+  to {
+    transform: translate3d(115vw, 4vh, 0) scaleY(0.62);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wallpaper-cloud,
+  .wallpaper-shade {
+    display: none;
+  }
+}
+
 .desktop-icons {
   position: relative;
   z-index: var(--z-desktop);

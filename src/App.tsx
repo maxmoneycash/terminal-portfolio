@@ -1316,7 +1316,12 @@ function App() {
 
   return (
     <main className={cn("maxxp-desktop", crtEnabled && "crt-on")}>
-      <div className="maxxp-wallpaper" aria-hidden="true" />
+      <div className="maxxp-wallpaper" aria-hidden="true">
+        <div className="wallpaper-cloud cloud-near" />
+        <div className="wallpaper-cloud cloud-mid" />
+        <div className="wallpaper-cloud cloud-far" />
+        <div className="wallpaper-shade" />
+      </div>
 
       <section className="desktop-icons" id="desktop-icons" aria-label="Desktop applications">
         {desktopApps.map((id) => (
