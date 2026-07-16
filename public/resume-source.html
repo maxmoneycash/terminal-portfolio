@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Maxwell Mohammadi, Smart Contract Engineer</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Lato:wght@300;400;600;700;900&display=swap');
+
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; }
+
+  body {
+    font-family: 'Lato', 'Helvetica Neue', Arial, sans-serif;
+    font-size: 9.05pt;
+    line-height: 1.31;
+    color: #333;
+    background: #c0c0c0;
+    -webkit-font-smoothing: antialiased;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  /* PAGE exact US Letter */
+  .page {
+    width: 8.5in;
+    height: 11in;
+    margin: 0.25in auto;
+    background: #fff;
+    display: flex;
+    overflow: hidden;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.2);
+  }
+
+  /* ══════════════════════════════════════
+     LEFT SIDEBAR
+     ══════════════════════════════════════ */
+  .sidebar {
+    width: 2.65in;
+    background: #2196F3;
+    color: #fff;
+    padding: 0.3in 0.22in 0.22in 0.22in;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .sidebar h1 {
+    font-size: 24pt;
+    font-weight: 900;
+    line-height: 1.05;
+    letter-spacing: -0.3px;
+    margin-bottom: 1px;
+  }
+
+  .sidebar .subtitle {
+    font-size: 10pt;
+    font-weight: 400;
+    opacity: 0.92;
+    margin-bottom: 10px;
+    letter-spacing: 0.2px;
+  }
+
+  /* Section headers in sidebar */
+  .sidebar .sec {
+    background: rgba(0,0,0,0.14);
+    margin: 11px -0.22in 0 -0.22in;
+    padding: 4px 0.22in;
+    font-size: 8pt;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+  }
+
+  /* Contact info rows */
+  .sidebar .info {
+    margin: 6px 0 0 0;
+  }
+  .sidebar .info-label {
+    font-size: 7.5pt;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    opacity: 0.72;
+    margin-bottom: 0px;
+  }
+  .sidebar .info-value {
+    font-size: 8.1pt;
+    font-weight: 400;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    line-height: 1.22;
+  }
+  .sidebar .info-value a {
+    color: #fff;
+    text-decoration: none;
+  }
+
+  /* Education */
+  .sidebar .edu {
+    margin-top: 6px;
+  }
+  .sidebar .edu-school {
+    font-size: 8.5pt;
+    font-weight: 700;
+    line-height: 1.25;
+  }
+  .sidebar .edu-meta {
+    font-size: 8pt;
+    opacity: 0.88;
+    line-height: 1.35;
+  }
+
+  /* Summary */
+  .sidebar .summary-text {
+    margin-top: 6px;
+    font-size: 7.75pt;
+    line-height: 1.42;
+    opacity: 0.94;
+  }
+
+  /* Skills grid */
+  .sidebar .skills-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2px 10px;
+    margin-top: 6px;
+    font-size: 7.45pt;
+  }
+  .sidebar .skill-item {
+    padding: 1.5px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.12);
+  }
+
+  /* ══════════════════════════════════════
+     MAIN CONTENT
+     ══════════════════════════════════════ */
+  .main {
+    flex: 1;
+    padding: 0.18in 0.26in 0.07in 0.24in;
+    overflow: hidden;
+  }
+
+  .main .sec {
+    background: #2196F3;
+    color: #fff;
+    padding: 3px 10px;
+    margin: 5px -0.26in 3px -0.24in;
+    padding-left: 0.24in;
+    font-size: 8pt;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+  }
+  .main .sec:first-child { margin-top: 0; }
+
+  /* Job entries */
+  .job { margin-bottom: 3px; }
+
+  .job-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+  .job-company {
+    font-size: 9.65pt;
+    font-weight: 700;
+    color: #1a1a1a;
+  }
+  .job-dates {
+    font-size: 7.75pt;
+    color: #777;
+    white-space: nowrap;
+    flex-shrink: 0;
+    margin-left: 8px;
+  }
+  .job-title {
+    font-size: 7.95pt;
+    color: #666;
+    font-style: italic;
+    margin-bottom: 2px;
+  }
+  .job ul {
+    padding-left: 14px;
+    margin: 0;
+  }
+  .job li {
+    font-size: 7.7pt;
+    line-height: 1.2;
+    margin-bottom: 1px;
+    color: #444;
+  }
+  .job li strong { color: #1a1a1a; }
+
+  /* Project entries */
+  .project { margin-bottom: 5px; }
+
+  .project-name {
+    font-size: 9.2pt;
+    font-weight: 700;
+    color: #1a1a1a;
+  }
+  .project-link {
+    font-size: 7.2pt;
+    color: #2196F3;
+    text-decoration: none;
+    font-weight: 400;
+  }
+  .project ul {
+    padding-left: 14px;
+    margin: 2px 0 0 0;
+  }
+  .project li {
+    font-size: 7.72pt;
+    line-height: 1.22;
+    margin-bottom: 1px;
+    color: #444;
+  }
+  .project li strong { color: #1a1a1a; }
+
+  /* ── PRINT ── */
+  @media print {
+    body { background: white; margin: 0; }
+    .page {
+      box-shadow: none;
+      margin: 0;
+      width: 8.5in;
+      height: 11in;
+    }
+    @page {
+      size: 8.5in 11in;
+      margin: 0;
+    }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- ════════════════ SIDEBAR ════════════════ -->
+  <div class="sidebar">
+
+    <h1>Maxwell<br>Mohammadi</h1>
+    <div class="subtitle">Smart Contract Engineer</div>
+
+    <!-- EDUCATION first -->
+    <div class="sec">Education</div>
+
+    <div class="edu">
+      <div class="edu-school">California Polytechnic State University, San Luis Obispo</div>
+      <div class="edu-meta">B.S. Computer Science</div>
+      <div class="edu-meta">September 2018 &mdash; June 2022 &nbsp;|&nbsp; 3.6 GPA</div>
+      <div class="edu-meta" style="margin-top:3px; font-weight:600; opacity:1;">President, Cal Poly Blockchain</div>
+    </div>
+
+    <!-- PROFILE second -->
+    <div class="sec">Profile</div>
+
+    <div class="info">
+      <div class="info-label">Phone</div>
+      <div class="info-value">(925) 876 1159</div>
+    </div>
+    <div class="info">
+      <div class="info-label">Website</div>
+      <div class="info-value"><a href="https://maxmohammadi.com">https://maxmohammadi.com</a></div>
+    </div>
+    <div class="info">
+      <div class="info-label">Email</div>
+      <div class="info-value"><a href="mailto:maxwell.mohammadi@gmail.com">maxwell.mohammadi@gmail.com</a></div>
+    </div>
+    <div class="info">
+      <div class="info-label">GitHub</div>
+      <div class="info-value"><a href="https://github.com/maxmoneycash">https://github.com/maxmoneycash</a></div>
+    </div>
+    <div class="info">
+      <div class="info-label">LinkedIn</div>
+      <div class="info-value"><a href="https://linkedin.com/in/maxwellmohammadi">https://linkedin.com/in/maxwellmohammadi</a></div>
+    </div>
+
+    <div class="sec">Summary</div>
+    <div class="summary-text">
+      Smart contract engineer building Aptos Move systems, LLM MCP servers, and onchain trading products. At Aptos Labs, ships agent tooling and throughput focused demos for Decibel Trade, Shelby Protocol, Polymarket style prediction markets, and Whop style fintech workflows. Previously audited enterprise crypto custody infrastructure at EY Blockchain.
+    </div>
+
+    <div class="sec">Skills</div>
+    <div class="skills-grid">
+      <span class="skill-item">Solidity</span>
+      <span class="skill-item">Move</span>
+      <span class="skill-item">Aptos Move</span>
+      <span class="skill-item">MCP Servers</span>
+      <span class="skill-item">EVM Security</span>
+      <span class="skill-item">DeFi Audits</span>
+      <span class="skill-item">Foundry</span>
+      <span class="skill-item">Fuzzing</span>
+      <span class="skill-item">PineScript</span>
+      <span class="skill-item">Trading Bots</span>
+      <span class="skill-item">TypeScript</span>
+      <span class="skill-item">Rust</span>
+      <span class="skill-item">Aptos SDK</span>
+      <span class="skill-item">LayerZero</span>
+      <span class="skill-item">React / Next.js</span>
+      <span class="skill-item">Tailwind CSS</span>
+      <span class="skill-item">Three.js</span>
+      <span class="skill-item">Vite</span>
+      <span class="skill-item">GraphQL</span>
+      <span class="skill-item">Tree sitter</span>
+      <span class="skill-item">Playwright</span>
+      <span class="skill-item">Postgres</span>
+    </div>
+
+  </div>
+
+  <!-- ════════════════ MAIN ════════════════ -->
+  <div class="main">
+
+    <div class="sec" style="margin-top:0">Work Experience</div>
+
+    <div class="job">
+      <div class="job-row">
+        <span class="job-company">Aptos Labs</span>
+        <span class="job-dates">(September 2025 &mdash; Present)</span>
+      </div>
+      <div class="job-title">Software Engineer, Palo Alto, CA</div>
+      <ul>
+        <li>Shipped LLM MCP servers for <strong>Decibel Trade</strong> and <strong>Shelby Protocol</strong>, exposing protocol workflows to agent driven tooling.</li>
+        <li>Built automated Decibel trading bots that convert <strong>TradingView PineScript</strong> indicators into onchain smart contract trading strategies.</li>
+        <li>Built a prediction market Move contract from scratch and partnered with Aptos founding engineers to profile transaction paths, storage access, and execution bottlenecks until benchmark throughput reached <strong>10k TPS</strong>.</li>
+        <li>Built Polymarket and Whop demos to pitch Aptos rails for prediction markets, trading, payments, and investing; turned pitch feedback into working product flows rather than static mockups.</li>
+      </ul>
+    </div>
+
+    <div class="job">
+      <div class="job-row">
+        <span class="job-company">Ernst &amp; Young, EY Blockchain</span>
+        <span class="job-dates">(September 2024 &mdash; September 2025)</span>
+      </div>
+      <div class="job-title">Blockchain Security Consultant</div>
+      <ul>
+        <li>Audited enterprise cryptocurrency custody infrastructure <strong>alongside Trail of Bits</strong>, reviewing transaction orchestration codebases, cold storage signing workflows, and HSM integrations across distributed data centers to identify attack vectors and security vulnerabilities.</li>
+        <li>Led crypto incident response investigations in partnership with <strong>TRM Labs</strong>, tracing onchain fund flows and performing forensic analysis of transaction anomalies.</li>
+        <li>Authored stablecoin research on mechanism design, peg stability, regulatory frameworks, and protocol risk for EY Blockchain clients.</li>
+        <li>Presented weekly technical research on <strong>Aptos, Sui, Hyperliquid</strong>, stablecoins, cross chain bridge risk, and emerging L1/L2 ecosystems.</li>
+        <li><strong>Key Achievement:</strong> Developed cross chain expertise spanning EVM, Move, Aptos, Sui, and emerging platforms, directly informing audit methodology and client advisory.</li>
+      </ul>
+    </div>
+
+    <div class="job">
+      <div class="job-row">
+        <span class="job-company">Ernst &amp; Young</span>
+        <span class="job-dates">(June 2021 &mdash; September 2021)</span>
+      </div>
+      <div class="job-title">Forensic Data Analyst (Intern)</div>
+      <ul>
+        <li>Implemented anomaly detection for forensic data analysis, identifying cases of fraudulent financial activity.</li>
+        <li>Researched and presented Ethereum and Celo protocols to EY Blockchain colleagues.</li>
+        <li><strong>Key Achievement:</strong> Worked with Solidity, EVM, and DeFi protocols to create product research for clients.</li>
+      </ul>
+    </div>
+
+    <div class="job">
+      <div class="job-row">
+        <span class="job-company">Sydereal</span>
+        <span class="job-dates">(2020 &mdash; 2021)</span>
+      </div>
+      <div class="job-title">Software Engineering Intern</div>
+      <ul>
+        <li>Migrated satellite telemetry from SQLite to InfluxDB, increasing data processing speeds by 20%.</li>
+        <li><strong>Key Achievement:</strong> Implemented neural network anomaly detection for spacecraft telemetry, saving about $150K.</li>
+      </ul>
+    </div>
+
+    <div class="job">
+      <div class="job-row">
+        <span class="job-company">Proximai AI</span>
+        <span class="job-dates">(2020 &mdash; 2021)</span>
+      </div>
+      <div class="job-title">AI Research Intern</div>
+      <ul>
+        <li>Prepared three advanced technology proposals to NASA Innovative Advanced Concepts.</li>
+        <li><strong>Key Achievement:</strong> Contributed to RaDAR, a spatial temporal framework for military aircraft GO/NO GO decisions.</li>
+      </ul>
+    </div>
+
+    <div class="sec">Projects</div>
+
+    <div class="project">
+      <div class="project-name">Decibel / Shelby Agent Infrastructure</div>
+      <ul>
+        <li>Built Decibrrr, a Decibel Trade automation app with custom onchain SDK paths, TWAP and market maker strategies, delegation based trading, live bot state, and wallet integration.</li>
+        <li>Built Shelby content rewards and MCP server workflows so agents could interact with Aptos protocol actions, content rewards, and trading tools through structured commands.</li>
+      </ul>
+    </div>
+
+    <div class="project">
+      <div class="project-name">Aptos Prediction Market: Polymarket Demo</div>
+      <div><a class="project-link" href="https://aptos-polymarket.vercel.app/">https://aptos-polymarket.vercel.app/</a></div>
+      <ul>
+        <li>Built a Polymarket style prediction market demo with Move contracts, market UI, real time trade streams, TPS dashboard, and HFT bot visualization.</li>
+        <li>Partnered with Aptos engineers to optimize market creation, order resolution, and settlement flows to <strong>10k TPS</strong> for pitch demos.</li>
+      </ul>
+    </div>
+
+    <div class="project">
+      <div class="project-name">Whop Finance: Aptos Fintech Demo</div>
+      <div><a class="project-link" href="https://whop.finance/">https://whop.finance/</a></div>
+      <ul>
+        <li>Built a Whop style Aptos finance demo with Tether WDK flows for creator payments, yield, cross chain transfers, and investing.</li>
+        <li>Implemented agent banking flows across checking, savings, credit, exchange, and x402a payments using Aptos, Aave V3, Panora, and Whop integrations.</li>
+      </ul>
+    </div>
+
+    <div class="project">
+      <div class="project-name">Sol2Move: Solidity to Aptos Move Transpiler</div>
+      <div><a class="project-link" href="https://github.com/SeamMoney/aptos-move-transpiler">https://github.com/SeamMoney/aptos-move-transpiler</a></div>
+      <ul>
+        <li>Built a Solidity to Aptos Move v2 transpiler with Solidity analysis, inheritance flattening, OpenZeppelin pattern support, Move parsing, and validation.</li>
+        <li>Transpiled <strong>Veda BoringVault</strong>, Uniswap V2/V3, Pendle, Trader Joe DLMM, and Compound v2; added differential fuzzing and a Sol2Move web app.</li>
+      </ul>
+    </div>
+
+    <div class="project">
+      <div class="project-name">tx-composer: Aptos DeFi Transaction Composer</div>
+      <div><a class="project-link" href="https://github.com/SeamMoney/tx-composer">https://github.com/SeamMoney/tx-composer</a></div>
+      <ul>
+        <li>Built simulate first Aptos DeFi transaction composition tooling with declarative Move call steps, return value wiring, balance tracking, and VM error diagnosis.</li>
+        <li>Added JSON plan support so AI agents can generate, simulate, report, and execute atomic Aptos transactions before committing real funds.</li>
+      </ul>
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /page -->
+</body>
+</html>
