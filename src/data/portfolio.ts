@@ -261,9 +261,9 @@ export const portfolio = {
   volunteering: [
     {
       org: "Junior Achievement of Northern California",
-      role: "Classroom Volunteer — JA Crypto Curriculum (sponsored by Circle)",
+      role: "Classroom Volunteer (2016 — Present)",
       detail:
-        "Taught the JA crypto curriculum across a dozen classroom sessions at SF East Bay and South Bay high schools, in Circle's scholarship partnership with Junior Achievement.",
+        "Volunteering with JA since high school; for the past three years taught the JA crypto curriculum across a dozen classroom sessions at SF East Bay and South Bay high schools, in Circle's scholarship partnership with Junior Achievement.",
     },
   ],
   organizations: ["Accounting Career Awareness Program (UC Berkeley)", "CalCPA", "National Association of Black Accountants"],
