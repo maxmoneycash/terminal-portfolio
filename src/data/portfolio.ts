@@ -162,7 +162,7 @@ export const portfolio = {
     {
       company: "Aptos Labs",
       title: "Software engineer",
-      period: "September 2025 — Present",
+      period: "January 2026 — May 2026",
       impact:
         "Shipping LLM MCP servers, onchain trading bots, high-throughput Move contracts, and product demos for Decibel Trade, Shelby Protocol, Whop, and Polymarket-style prediction markets.",
     },
