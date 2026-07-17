@@ -375,6 +375,16 @@ function ResumeApp() {
             <h3>{portfolio.education.degree}</h3>
             <p>{portfolio.education.detail}</p>
           </article>
+          <h2>Volunteering</h2>
+          {portfolio.volunteering.map((entry) => (
+            <article className="resume-role" key={entry.org}>
+              <div>
+                <strong>{entry.org}</strong>
+              </div>
+              <h3>{entry.role}</h3>
+              <p>{entry.detail}</p>
+            </article>
+          ))}
           <h2>Honors & Organizations</h2>
           <article className="resume-role">
             <p>{portfolio.honors.join(" · ")}</p>

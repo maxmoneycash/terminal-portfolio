@@ -17,6 +17,8 @@
 \usepackage{fancyhdr}
 \usepackage[english]{babel}
 \usepackage{tabularx}
+\usepackage[T1]{fontenc}
+\usepackage[default]{lato}
 \input{glyphtounicode}
 
 \pagestyle{fancy}
@@ -142,10 +144,10 @@
     \resumeSubHeadingListStart
 
       \resumeProjectHeading
-          {\textbf{Decibel / Shelby Agent Infrastructure} $|$ \emph{MCP servers, Decibel SDK, Shelby}}{}
+          {\textbf{commits.sh: Live Developer \& AI-Usage Telemetry} $|$ \emph{\href{https://commits.sh}{commits.sh}}}{}
           \resumeItemListStart
-            \resumeItem{Built Decibrrr, a Decibel Trade automation app with custom onchain SDK paths, TWAP and market maker strategies, delegation based trading, live bot state, and wallet integration.}
-            \resumeItem{Built Shelby content rewards and MCP server workflows so agents could interact with Aptos protocol actions, content rewards, and trading tools through structured commands.}
+            \resumeItem{Built a product that turns GitHub activity into a calibrated dev rank and live velocity index, with a public REST API, \textbf{MCP server}, CLI, and embeddable live SVG badges.}
+            \resumeItem{Streams real time token telemetry from \textbf{8 coding agents} (Claude Code, Codex, Cursor, and others) — \textbf{67B+ tokens tracked} with per-model cost, cache hit rate, and burn dashboards.}
           \resumeItemListEnd
 
       \resumeProjectHeading
@@ -186,13 +188,24 @@
       {B.S. Computer Science $|$ 3.6 GPA $|$ President, Cal Poly Blockchain}{}
   \resumeSubHeadingListEnd
 
+%-----------VOLUNTEERING-----------
+\section{Volunteering}
+  \resumeSubHeadingListStart
+    \resumeSubheading
+      {Junior Achievement of Northern California}{SF East Bay \& South Bay}
+      {Classroom Volunteer — JA Crypto Curriculum (sponsored by Circle)}{}
+      \resumeItemListStart
+        \resumeItem{Taught the JA crypto curriculum across a dozen classroom sessions at Bay Area high schools, in Circle's scholarship partnership with Junior Achievement.}
+      \resumeItemListEnd
+  \resumeSubHeadingListEnd
+
 %-----------SKILLS-----------
 \section{Technical Skills}
  \begin{itemize}[leftmargin=0.15in, label={}]
     \small{\item{
+     \textbf{AI \& Agents}{: MCP Servers, LLM Agent Infrastructure, Agent Telemetry, Trading Bots, PineScript} \\
      \textbf{Blockchain}{: Solidity, Move, Aptos Move, EVM Security, DeFi Audits, Foundry, Fuzzing, Aptos SDK, LayerZero} \\
-     \textbf{AI \& Trading}{: MCP Servers, Trading Bots, PineScript} \\
-     \textbf{Languages \& Tools}{: TypeScript, Rust, React / Next.js, Tailwind CSS, Three.js, Vite, GraphQL, Tree sitter, Playwright, Postgres}
+     \textbf{Languages \& Tools}{: TypeScript, Rust, React / Next.js, Three.js, GraphQL, Tree sitter, Playwright, Postgres}
     }}
  \end{itemize}
 

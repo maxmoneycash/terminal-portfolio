@@ -42,6 +42,13 @@ export const portfolio = {
   },
   projects: [
     {
+      name: "commits.sh",
+      stack: "Live dev-rank + AI-usage telemetry, REST API, MCP server, CLI",
+      summary:
+        "Built a product that turns GitHub activity into a live velocity index and dev rank, streaming real-time token telemetry from 8 coding agents — 67B+ tokens tracked with per-model cost and burn dashboards.",
+      link: "https://commits.sh",
+    },
+    {
       name: "Aptos Prediction Market",
       stack: "Move, Aptos, React, HFT demo infrastructure",
       summary:
@@ -251,5 +258,13 @@ export const portfolio = {
     detail: "President, Blockchain at Cal Poly",
   },
   honors: ["Junior Achievement Best Business Plan Award — Fleece Bay"],
+  volunteering: [
+    {
+      org: "Junior Achievement of Northern California",
+      role: "Classroom Volunteer — JA Crypto Curriculum (sponsored by Circle)",
+      detail:
+        "Taught the JA crypto curriculum across a dozen classroom sessions at SF East Bay and South Bay high schools, in Circle's scholarship partnership with Junior Achievement.",
+    },
+  ],
   organizations: ["Accounting Career Awareness Program (UC Berkeley)", "CalCPA", "National Association of Black Accountants"],
 };
