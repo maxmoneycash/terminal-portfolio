@@ -63,6 +63,8 @@
   --z-start: 1000;
   --z-taskbar: 1200;
   --font-ui: "Tahoma XP", Tahoma, Verdana, sans-serif;
+  --xp-cursor-arrow: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2232%22%20height%3D%2232%22%20viewBox%3D%220%200%2032%2032%22%20shape-rendering%3D%22crispEdges%22%3E%3Cpath%20d%3D%22M0%2C0%20L0%2C22%20L6%2C16%20L10%2C24%20L14%2C22%20L10%2C14%20L18%2C14%20Z%22%20fill%3D%22white%22%20stroke%3D%22black%22%20stroke-width%3D%221%22%2F%3E%3C%2Fsvg%3E") 2 2;
+  --xp-cursor-hand: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2232%22%20height%3D%2232%22%20viewBox%3D%220%200%2032%2032%22%20shape-rendering%3D%22crispEdges%22%3E%3Cpath%20d%3D%22M10%2C0%20L10%2C8%20L4%2C8%20L4%2C12%20L6%2C12%20L6%2C10%20L8%2C10%20L8%2C8%20L12%2C8%20L12%2C6%20L14%2C6%20L14%2C10%20L16%2C10%20L16%2C6%20L18%2C6%20L18%2C10%20L20%2C10%20L20%2C8%20L22%2C8%20L22%2C14%20L24%2C14%20L24%2C12%20L26%2C12%20L26%2C20%20L24%2C24%20L18%2C28%20L8%2C28%20L4%2C22%20L4%2C16%20L6%2C16%20L6%2C14%20L10%2C14%20Z%22%20fill%3D%22white%22%20stroke%3D%22black%22%20stroke-width%3D%220.5%22%2F%3E%3C%2Fsvg%3E") 10 1;
   font-family: var(--font-ui);
 }
 
@@ -103,6 +105,12 @@ a {
   color: inherit;
 }
 
+::selection {
+  background: #316ac5;
+  color: #fff;
+  text-shadow: none;
+}
+
 img,
 video {
   max-width: 100%;
@@ -123,6 +131,18 @@ p {
   width: 100vw;
   height: 100dvh;
   overflow: hidden;
+  cursor: var(--xp-cursor-arrow), auto;
+}
+
+/* Authentic XP pixel-art cursors: hand on interactive elements, I-beam in
+   text fields; window chrome keeps native move/resize feedback cursors. */
+.xp-login-screen :is(button, a),
+.maxxp-desktop :is(button, a, [role="button"], summary, label) {
+  cursor: var(--xp-cursor-hand), pointer;
+}
+
+.maxxp-desktop :is(input, textarea, [contenteditable="true"]) {
+  cursor: text;
 }
 
 .xp-boot-screen {
@@ -373,6 +393,19 @@ p {
   gap: 10px;
 }
 
+button.login-footer-left {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+}
+
+button.login-footer-left:hover,
+button.login-footer-left:focus-visible {
+  text-decoration: underline;
+  outline: none;
+}
+
 .login-footer-right {
   right: 48px;
   flex-direction: column;
@@ -418,11 +451,8 @@ p {
 
 .maxxp-wallpaper {
   position: fixed;
-  inset: -2.5%;
+  inset: 0;
   background: #1688cf url("/xp/gui/bgs/maxxp-bliss.webp") center center / cover no-repeat;
-  overflow: hidden;
-  transform: scale(1.025);
-  will-change: transform;
 }
 
 .maxxp-wallpaper::before,
@@ -433,135 +463,13 @@ p {
 }
 
 .maxxp-wallpaper::before {
-  background:
-    radial-gradient(circle at 72% 15%, rgb(255 255 255 / 0.22), transparent 15%),
-    linear-gradient(180deg, rgb(14 94 173 / 0.05), transparent 44%, rgb(4 38 7 / 0.08));
+  background: linear-gradient(180deg, rgb(14 94 173 / 0.05), transparent 44%, rgb(4 38 7 / 0.08));
   mix-blend-mode: screen;
 }
 
 .maxxp-wallpaper::after {
   background: linear-gradient(90deg, rgb(0 24 69 / 0.08), transparent 22%, transparent 78%, rgb(0 24 69 / 0.08));
   mix-blend-mode: multiply;
-}
-
-/* Living sky. Three cumulus layers cross the frame at parallax speeds (the
-   nearest is largest and fastest), each with an independent slow vertical
-   bob on its pseudo-element so the drift never reads as a straight rail.
-   A matching cloud shadow sweeps the grass below. Transform-only. */
-.wallpaper-cloud {
-  position: absolute;
-  left: 0;
-  aspect-ratio: 3 / 1;
-  animation: cloud-drift linear infinite;
-  will-change: transform;
-  pointer-events: none;
-}
-
-.wallpaper-cloud::before {
-  position: absolute;
-  inset: 0;
-  content: "";
-  background:
-    radial-gradient(closest-side at 30% 62%, rgb(255 255 255 / 0.95) 72%, transparent),
-    radial-gradient(closest-side at 47% 38%, rgb(255 255 255 / 0.9) 66%, transparent),
-    radial-gradient(closest-side at 63% 56%, #fff 74%, transparent),
-    radial-gradient(closest-side at 78% 68%, rgb(255 255 255 / 0.82) 62%, transparent),
-    radial-gradient(60% 42% at 52% 84%, rgb(203 222 240 / 0.7), transparent);
-  animation: cloud-bob ease-in-out infinite alternate;
-}
-
-.cloud-near {
-  top: 2.5%;
-  width: 36vw;
-  animation-duration: 150s;
-  animation-delay: -46s;
-}
-
-.cloud-near::before {
-  filter: blur(13px);
-  opacity: 0.5;
-  animation-duration: 19s;
-}
-
-.cloud-mid {
-  top: 12%;
-  width: 23vw;
-  animation-duration: 235s;
-  animation-delay: -148s;
-}
-
-.cloud-mid::before {
-  filter: blur(10px);
-  opacity: 0.6;
-  animation-duration: 23s;
-  animation-delay: -9s;
-}
-
-.cloud-far {
-  top: 21%;
-  width: 14vw;
-  animation-duration: 330s;
-  animation-delay: -252s;
-}
-
-.cloud-far::before {
-  filter: blur(7px);
-  opacity: 0.66;
-  animation-duration: 27s;
-  animation-delay: -17s;
-}
-
-.wallpaper-shade {
-  position: absolute;
-  top: 60%;
-  left: 0;
-  width: 64vw;
-  height: 30vh;
-  background: radial-gradient(50% 50% at 50% 50%, rgb(7 36 9 / 0.5), transparent 72%);
-  filter: blur(28px);
-  mix-blend-mode: multiply;
-  opacity: 0.24;
-  animation: shade-drift 150s linear infinite;
-  animation-delay: -46s;
-  will-change: transform;
-  pointer-events: none;
-}
-
-@keyframes cloud-drift {
-  from {
-    transform: translate3d(-48vw, 0, 0);
-  }
-
-  to {
-    transform: translate3d(112vw, 0, 0);
-  }
-}
-
-@keyframes cloud-bob {
-  from {
-    transform: translate3d(0, -0.5vh, 0);
-  }
-
-  to {
-    transform: translate3d(0, 0.6vh, 0);
-  }
-}
-
-@keyframes shade-drift {
-  from {
-    transform: translate3d(-70vw, 0, 0) scaleY(0.55);
-  }
-
-  to {
-    transform: translate3d(115vw, 4vh, 0) scaleY(0.62);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .wallpaper-cloud,
-  .wallpaper-shade {
-    display: none;
-  }
 }
 
 .desktop-icons {
@@ -596,6 +504,26 @@ p {
   outline: none;
 }
 
+.desktop-icon.is-selected {
+  border-color: transparent;
+  background: transparent;
+}
+
+.desktop-icon.is-selected img {
+  filter: grayscale(1) brightness(1.04) sepia(1) hue-rotate(196deg) saturate(4.6) opacity(0.84);
+}
+
+.desktop-icon.is-selected span {
+  background: #316ac5;
+  color: #fff;
+  text-shadow: none;
+}
+
+.desktop-icon.is-selected:focus-visible span,
+.desktop-icon.is-selected:hover span {
+  outline: 1px dotted rgb(255 255 255 / 0.9);
+}
+
 .desktop-icon img {
   width: 54px;
   height: 54px;
@@ -604,6 +532,7 @@ p {
 
 .desktop-icon span {
   max-width: 96px;
+  padding: 1px 2px;
   line-height: 1.25;
 }
 
@@ -698,6 +627,7 @@ p {
   overflow: hidden;
   font-size: 13px;
   text-overflow: ellipsis;
+  text-shadow: 1px 1px 1px rgb(0 20 60 / 0.45);
   white-space: nowrap;
 }
 
@@ -2117,20 +2047,28 @@ span.github-repo-name {
   min-width: 104px;
   max-width: 170px;
   height: 25px;
-  border: 1px solid rgb(255 255 255 / 0.35);
-  border-radius: 2px;
-  background: linear-gradient(180deg, rgb(55 128 238 / 0.94), rgb(20 78 184 / 0.9));
+  border: 0;
+  border-right: 1px solid rgb(16 50 140 / 0.45);
+  border-left: 1px solid rgb(16 50 140 / 0.45);
+  border-radius: 3px;
+  background: linear-gradient(180deg, #3c82e4 0, #3478da 40%, #2c6ed0 70%, #2868cc 100%);
   color: #fff;
   padding: 0 8px;
   text-align: left;
   text-shadow: 1px 1px 1px #001f69;
-  box-shadow: inset 1px 1px 0 rgb(255 255 255 / 0.22), inset -1px -1px 0 rgb(0 37 139 / 0.5);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.18), inset 0 -1px 0 rgb(0 0 40 / 0.08);
   cursor: pointer;
 }
 
+@media (hover: hover) and (pointer: fine) {
+  .taskbar-programs button:hover {
+    filter: brightness(1.08);
+  }
+}
+
 .taskbar-programs button.is-active {
-  background: linear-gradient(180deg, #174ea8, #0d3f98);
-  box-shadow: inset 1px 1px 2px rgb(0 0 0 / 0.42), inset -1px -1px 0 rgb(87 147 245 / 0.25);
+  background: linear-gradient(180deg, #1c54b2 0, #1a4ea8 50%, #1648a0 100%);
+  box-shadow: inset 1px 1px 2px rgb(0 0 0 / 0.25), inset 0 0 4px rgb(0 0 0 / 0.1);
 }
 
 .taskbar-programs img {
@@ -2179,11 +2117,11 @@ span.github-repo-name {
   z-index: var(--z-start);
   left: 0;
   bottom: calc(var(--taskbar-height) + env(safe-area-inset-bottom));
-  width: 320px;
+  width: 340px;
   overflow: hidden;
-  border: 2px solid #0754d6;
+  border: 2px solid #1842a0;
   border-bottom-width: 0;
-  border-radius: 7px 7px 0 0;
+  border-radius: 6px 6px 0 0;
   background: #fff;
   box-shadow:
     0 0 0 1px rgb(0 34 145 / 0.72),
@@ -2207,49 +2145,57 @@ span.github-repo-name {
   position: relative;
   display: flex;
   align-items: center;
-  gap: 9px;
-  min-height: 50px;
+  gap: 10px;
+  min-height: 52px;
   background: linear-gradient(180deg, #5ca6ff 0, #1769e8 14%, #0754d6 58%, #003eb6 100%);
   color: #fff;
-  padding: 7px;
+  padding: 5px 8px;
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.62), inset 0 -1px 0 #00349d;
+  text-shadow: 0 1px 3px rgb(0 0 0 / 0.4);
 }
 
 .start-avatar {
-  width: 36px;
+  width: 40px;
   aspect-ratio: 1;
-  border-radius: 4px;
+  border-radius: 5px;
+  box-shadow: 1px 2px 6px rgb(0 0 0 / 0.35);
+}
+
+.start-menu-divider {
+  height: 2px;
+  background: linear-gradient(90deg, rgb(197 113 47 / 0.53) 0%, #c5712f 20%, #c5712f 80%, rgb(197 113 47 / 0.53) 100%);
 }
 
 .start-menu-body {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  min-height: 294px;
+  min-height: 300px;
 }
 
 .start-menu-left,
 .start-menu-right {
-  display: grid;
-  align-content: start;
-  padding: 7px 5px;
+  display: flex;
+  flex-direction: column;
+  padding: 5px 0;
 }
 
 .start-menu-left {
-  border-right: 1px solid #9bbde9;
+  border-right: 1px solid #b4c8dc;
 }
 
 .start-menu-right {
-  background: #d3e5fa;
+  background: #d8ecfc;
 }
 
 .start-menu button,
 .start-menu a {
   display: flex;
   align-items: center;
-  gap: 8px;
-  min-height: 35px;
+  gap: 6px;
+  margin: 0 2px;
+  border-radius: 3px;
   background: transparent;
-  color: #111;
+  color: #000;
   padding: 4px;
   text-align: left;
   text-decoration: none;
@@ -2266,35 +2212,130 @@ span.github-repo-name {
 }
 
 .start-menu img {
-  width: 28px;
-  height: 28px;
   object-fit: contain;
   flex: 0 0 auto;
 }
 
+.start-menu .start-pinned {
+  min-height: 38px;
+}
+
+.start-menu .start-pinned img {
+  width: 28px;
+  height: 28px;
+}
+
+.start-menu .start-recent img {
+  width: 22px;
+  height: 22px;
+}
+
 .start-menu small {
   display: block;
-  color: #6e6e6e;
+  overflow: hidden;
+  color: #555;
   font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .start-menu button:hover small,
 .start-menu button:focus-visible small {
-  color: #e7f1ff;
+  color: rgb(255 255 255 / 0.85);
+}
+
+.start-menu-right button,
+.start-menu-right a {
+  font-weight: 700;
+  color: #003399;
+}
+
+.start-menu-right button:hover,
+.start-menu-right button:focus-visible,
+.start-menu-right a:hover,
+.start-menu-right a:focus-visible {
+  color: #fff;
+}
+
+.start-menu-right img {
+  width: 22px;
+  height: 22px;
+}
+
+.start-submenu-arrow {
+  margin-left: auto;
+}
+
+.start-sep {
+  height: 1px;
+  margin: 5px 0;
+  background: linear-gradient(90deg, transparent 8px, #d0d0d0 8px, #d0d0d0 calc(100% - 8px), transparent calc(100% - 8px));
+}
+
+.start-menu-right .start-sep {
+  background: linear-gradient(90deg, transparent 8px, #97b4d2 8px, #97b4d2 calc(100% - 8px), transparent calc(100% - 8px));
+}
+
+.start-all-programs {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: auto;
+  border-top: 1px solid #b4c8dc;
+  color: #000;
+  padding: 7px 12px 6px;
+  font-size: 11px;
+  cursor: default;
+}
+
+.start-all-programs:hover {
+  background: #316ac5;
+  color: #fff;
+}
+
+.start-all-programs:hover polygon:first-child {
+  fill: #fff;
+  stroke: #fff;
+}
+
+.start-menu .start-pinned span {
+  min-width: 0;
+}
+
+.start-menu .start-pinned strong {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .start-menu-footer {
   display: flex;
+  align-items: center;
   justify-content: flex-end;
-  gap: 8px;
+  gap: 14px;
+  border-top: 1px solid rgb(0 0 0 / 0.15);
   background: linear-gradient(180deg, #3c8df8, #0754d6 48%, #003eb6);
-  padding: 7px;
+  padding: 5px 8px;
 }
 
 .start-menu-footer button {
+  gap: 5px;
   min-height: 26px;
   color: #fff;
-  font-weight: 700;
+  text-shadow: 0 1px 2px rgb(0 0 0 / 0.3);
+}
+
+.start-menu-footer button img {
+  width: 22px;
+  height: 22px;
+}
+
+.start-menu-footer button:hover,
+.start-menu-footer button:focus-visible {
+  background: transparent;
+  filter: brightness(1.15);
 }
 
 .xp-balloon {
@@ -3043,10 +3084,6 @@ span.github-repo-name {
     transition: opacity 280ms ease-out;
   }
 
-  .maxxp-wallpaper {
-    animation: wallpaper-drift 24s var(--ease-in-out-strong) infinite alternate;
-  }
-
   .desktop-icon {
     animation: desktop-icon-in 280ms var(--ease-out-strong) backwards;
   }
@@ -3104,16 +3141,6 @@ span.github-repo-name {
   }
 }
 
-@keyframes wallpaper-drift {
-  from {
-    transform: translate3d(-0.35%, -0.2%, 0) scale(1.025);
-  }
-
-  to {
-    transform: translate3d(0.45%, 0.3%, 0) scale(1.045);
-  }
-}
-
 @keyframes desktop-icon-in {
   from {
     opacity: 0;
@@ -3150,12 +3177,6 @@ span.github-repo-name {
   .xp-balloon[data-state="hidden"],
   .xp-balloon[data-state="visible"] {
     transform: none;
-  }
-
-  .maxxp-wallpaper {
-    animation: none;
-    transform: scale(1.025);
-    will-change: auto;
   }
 
   @starting-style {
@@ -3206,11 +3227,6 @@ span.github-repo-name {
 }
 
 @media (max-width: 900px) {
-  .maxxp-wallpaper span {
-    left: 20%;
-    bottom: 32%;
-  }
-
   .desktop-icons {
     display: grid;
     grid-template-columns: repeat(6, minmax(0, 1fr));
@@ -3257,7 +3273,8 @@ span.github-repo-name {
     display: none;
   }
 
-  .xp-window {
+  .xp-window,
+  .xp-window.is-notepad {
     grid-template-rows: 29px 21px minmax(0, 1fr);
   }
 

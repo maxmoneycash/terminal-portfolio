@@ -18,6 +18,7 @@ import { ReelsApp } from "./components/ReelsApp";
 import { SignatureNoteApp } from "./components/SignatureNoteApp";
 import { StatsApp } from "./components/StatsApp";
 import { Tooltip } from "./components/Tooltip";
+import { TrayBalloon } from "./components/TrayBalloon";
 
 type BootPhase = "boot" | "login" | "welcome" | "desktop";
 type AppId = "signature" | "about" | "resume" | "projects" | "demos" | "contact" | "stats";
@@ -123,7 +124,7 @@ function externalLabel(url?: string) {
   }
 }
 
-function playSound(name: "login" | "logoff") {
+function playSound(name: "login" | "logoff" | "balloon") {
   const audio = new Audio(`${xp}/sounds/${name}.wav`);
   audio.volume = 0.42;
   void audio.play().catch(() => {});
@@ -216,7 +217,7 @@ function BootScreen() {
   );
 }
 
-function LoginScreen({ onLogin }: { onLogin: () => void }) {
+function LoginScreen({ onLogin, onRestart }: { onLogin: () => void; onRestart: () => void }) {
   return (
     <section className="xp-login-screen" aria-label="Log in">
       <div className="login-panel">
@@ -244,10 +245,10 @@ function LoginScreen({ onLogin }: { onLogin: () => void }) {
           </span>
         </button>
       </div>
-      <div className="login-footer-left">
+      <button className="login-footer-left" type="button" onClick={onRestart}>
         <span className="restart-dot" aria-hidden="true" />
         Restart MaxXP
-      </div>
+      </button>
       <div className="login-footer-right">
         <span>After you log on, the system is yours to explore.</span>
         <span>Every window is wired to real portfolio content.</span>
@@ -1127,17 +1128,32 @@ function StartMenu({
         <span className="start-avatar">M</span>
         <strong>{portfolio.name}</strong>
       </header>
+      <div className="start-menu-divider" aria-hidden="true" />
       <div className="start-menu-body">
         <div className="start-menu-left">
-          {(["signature", "projects", "stats", "contact", "about", "resume", "demos"] as AppId[]).map((id) => (
-            <button key={id} type="button" onClick={() => openApp(id)}>
+          {(["projects", "demos"] as AppId[]).map((id) => (
+            <button key={id} type="button" className="start-pinned" onClick={() => openApp(id)}>
               <img src={appCatalog[id].icon} alt="" />
               <span>
                 <strong>{appCatalog[id].title}</strong>
-                <small>{appCatalog[id].status}</small>
+                <small>{id === "projects" ? "Portfolio explorer" : "Video showcase"}</small>
               </span>
             </button>
           ))}
+          <div className="start-sep" aria-hidden="true" />
+          {(["signature", "about", "resume", "stats", "contact"] as AppId[]).map((id) => (
+            <button key={id} type="button" className="start-recent" onClick={() => openApp(id)}>
+              <img src={appCatalog[id].icon} alt="" />
+              {appCatalog[id].desktopLabel}
+            </button>
+          ))}
+          <div className="start-all-programs" aria-hidden="true">
+            <strong>All Programs</strong>
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+              <polygon points="3,1 15,9 3,17" fill="#38aa38" stroke="#228822" strokeWidth="0.5" />
+              <polygon points="5,4 12,9 5,14" fill="none" stroke="rgba(255,255,255,0.35)" strokeWidth="0.8" />
+            </svg>
+          </div>
         </div>
         <div className="start-menu-right">
           <a href={portfolio.links.github} target="_blank" rel="noreferrer">
@@ -1148,9 +1164,13 @@ function StartMenu({
             <img src={`${xp}/gui/start-menu/linkedin.webp`} alt="" />
             LinkedIn
           </a>
+          <div className="start-sep" aria-hidden="true" />
           <button type="button" onClick={() => openApp("resume")}>
             <img src={`${xp}/gui/start-menu/recently-used.webp`} alt="" />
             Recently Used
+            <svg className="start-submenu-arrow" width="5" height="7" viewBox="0 0 5 7" aria-hidden="true">
+              <polygon points="0,0 5,3.5 0,7" fill="currentColor" />
+            </svg>
           </button>
           <button type="button" onClick={() => openApp("demos")}>
             <img src={`${xp}/gui/start-menu/mediaPlayer.webp`} alt="" />
@@ -1161,11 +1181,15 @@ function StartMenu({
       <footer className="start-menu-footer">
         <button type="button" onClick={onLogOff}>
           <img src={`${xp}/gui/start-menu/logoff.webp`} alt="" />
-          Log Off
+          <span>
+            <u>L</u>og Off
+          </span>
         </button>
         <button type="button" onClick={onLogOff}>
           <img src={`${xp}/gui/start-menu/shutdown.webp`} alt="" />
-          Shut Down
+          <span>
+            <u>S</u>hut Down
+          </span>
         </button>
       </footer>
     </aside>
@@ -1195,6 +1219,8 @@ function App() {
   const [now, setNow] = useState(() => new Date());
   const [windows, setWindows] = useState<WindowRecord[]>(() => [createSignatureWindow()]);
   const [activeWindow, setActiveWindow] = useState<AppId | null>("signature");
+  const [selectedIcon, setSelectedIcon] = useState<AppId | null>(null);
+  const [balloonVisible, setBalloonVisible] = useState(false);
   const [drag, setDrag] = useState<DragState | null>(null);
   const zRef = useRef(3);
 
@@ -1210,9 +1236,34 @@ function App() {
   }, [phase]);
 
   useEffect(() => {
-    const interval = window.setInterval(() => setNow(new Date()), 30_000);
+    const interval = window.setInterval(() => setNow(new Date()), 10_000);
     return () => window.clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    if (phase !== "desktop") return;
+    let seen = false;
+    try {
+      seen = window.sessionStorage.getItem("maxxp:balloon") === "1";
+    } catch {
+      // Storage is optional; the balloon still shows for this visit.
+    }
+    if (seen) return;
+    const showTimer = window.setTimeout(() => {
+      setBalloonVisible(true);
+      playSound("balloon");
+      try {
+        window.sessionStorage.setItem("maxxp:balloon", "1");
+      } catch {
+        // Storage is optional.
+      }
+    }, 1400);
+    const hideTimer = window.setTimeout(() => setBalloonVisible(false), 1400 + 9000);
+    return () => {
+      window.clearTimeout(showTimer);
+      window.clearTimeout(hideTimer);
+    };
+  }, [phase]);
 
   useEffect(() => {
     try {
@@ -1310,6 +1361,18 @@ function App() {
     [],
   );
 
+  const handleDesktopIconClick = useCallback(
+    (id: AppId) => {
+      if (selectedIcon === id) {
+        setSelectedIcon(null);
+        openApp(id);
+        return;
+      }
+      setSelectedIcon(id);
+    },
+    [selectedIcon, openApp],
+  );
+
   const login = () => {
     setPhase("welcome");
     playSound("login");
@@ -1377,21 +1440,35 @@ function App() {
   };
 
   if (phase === "boot") return <BootScreen />;
-  if (phase === "login") return <LoginScreen onLogin={login} />;
+  if (phase === "login") return <LoginScreen onLogin={login} onRestart={() => setPhase("boot")} />;
   if (phase === "welcome") return <WelcomeScreen />;
 
   return (
-    <main className={cn("maxxp-desktop", crtEnabled && "crt-on")}>
-      <div className="maxxp-wallpaper" aria-hidden="true">
-        <div className="wallpaper-cloud cloud-near" />
-        <div className="wallpaper-cloud cloud-mid" />
-        <div className="wallpaper-cloud cloud-far" />
-        <div className="wallpaper-shade" />
-      </div>
+    <main
+      className={cn("maxxp-desktop", crtEnabled && "crt-on")}
+      onPointerDown={(event) => {
+        if (!(event.target as Element).closest(".desktop-icon")) setSelectedIcon(null);
+      }}
+    >
+      <div className="maxxp-wallpaper" aria-hidden="true" />
 
       <section className="desktop-icons" id="desktop-icons" aria-label="Desktop applications">
         {desktopApps.map((id) => (
-          <button key={id} className="desktop-icon" type="button" onClick={() => openApp(id)}>
+          <button
+            key={id}
+            className={cn("desktop-icon", selectedIcon === id && "is-selected")}
+            type="button"
+            aria-pressed={selectedIcon === id}
+            onClick={() => handleDesktopIconClick(id)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" && selectedIcon === id) {
+                event.preventDefault();
+                setSelectedIcon(null);
+                openApp(id);
+              }
+              if (event.key === "Escape") setSelectedIcon(null);
+            }}
+          >
             <img src={appCatalog[id].icon} alt="" draggable={false} />
             <span>{appCatalog[id].desktopLabel}</span>
           </button>
@@ -1423,6 +1500,10 @@ function App() {
       </div>
 
       <StartMenu open={startOpen} openApp={openApp} onClose={closeStartMenu} onLogOff={logOff} />
+
+      <TrayBalloon title="Welcome to MaxXP" visible={balloonVisible} onClose={() => setBalloonVisible(false)}>
+        Every window is wired to real portfolio content. Click <strong>start</strong> to begin.
+      </TrayBalloon>
 
       <footer className="taskbar">
         <button
