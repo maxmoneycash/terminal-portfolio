@@ -1,0 +1,183 @@
+%-------------------------
+% Maxwell Mohammadi — one-page resume (Whop)
+% Template: Jake's Resume (Jake Gutierrez, MIT) — https://github.com/jakegut/resume
+% Build: npm run resume:build
+%------------------------
+
+\documentclass[letterpaper,9pt]{extarticle}
+
+\usepackage{latexsym}
+\usepackage[empty]{fullpage}
+\usepackage{titlesec}
+\usepackage{marvosym}
+\usepackage[usenames,dvipsnames]{color}
+\usepackage{verbatim}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+\usepackage{fancyhdr}
+\usepackage[english]{babel}
+\usepackage{tabularx}
+\usepackage[T1]{fontenc}
+\usepackage[default]{lato}
+\input{glyphtounicode}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyfoot{}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+
+% Adjust margins (slightly wider than stock Jake's to hold full history)
+\addtolength{\oddsidemargin}{-0.65in}
+\addtolength{\evensidemargin}{-0.65in}
+\addtolength{\textwidth}{1.3in}
+\addtolength{\topmargin}{-.7in}
+\addtolength{\textheight}{1.55in}
+
+\urlstyle{same}
+
+\raggedbottom
+\raggedright
+\setlength{\tabcolsep}{0in}
+
+% Sections formatting
+\titleformat{\section}{
+  \vspace{-4pt}\scshape\raggedright\large
+}{}{0em}{}[\color{black}\titlerule \vspace{-5pt}]
+
+% Ensure that generated pdf is machine readable/ATS parsable
+\pdfgentounicode=1
+
+%-------------------------
+% Custom commands
+\newcommand{\resumeItem}[1]{
+  \item\small{
+    {#1\vspace{-2pt}}
+  }
+}
+
+\newcommand{\resumeSubheading}[4]{
+  \vspace{-2pt}\item
+    \begin{tabular*}{0.97\textwidth}[t]{l@{\extracolsep{\fill}}r}
+      \textbf{#1} & #2 \\
+      \textit{\small#3} & \textit{\small #4} \\
+    \end{tabular*}\vspace{-7pt}
+}
+
+\newcommand{\resumeProjectHeading}[2]{
+    \item
+    \begin{tabular*}{0.97\textwidth}{l@{\extracolsep{\fill}}r}
+      \small#1 & #2 \\
+    \end{tabular*}\vspace{-7pt}
+}
+
+\renewcommand\labelitemii{$\vcenter{\hbox{\tiny$\bullet$}}$}
+
+\newcommand{\resumeSubHeadingListStart}{\begin{itemize}[leftmargin=0.15in, label={}]}
+\newcommand{\resumeSubHeadingListEnd}{\end{itemize}}
+\newcommand{\resumeItemListStart}{\begin{itemize}}
+\newcommand{\resumeItemListEnd}{\end{itemize}\vspace{-5pt}}
+
+%-------------------------------------------
+\begin{document}
+
+%----------HEADING----------
+\begin{center}
+    \textbf{\LARGE \scshape Maxwell Mohammadi} \\ \vspace{1pt}
+    \footnotesize (925) 876 1159 $|$ \href{mailto:maxwell.mohammadi@gmail.com}{\underline{maxwell.mohammadi@gmail.com}} $|$ \href{https://maxmohammadi.com}{\underline{maxmohammadi.com}} $|$ \href{https://github.com/maxmoneycash}{\underline{github.com/maxmoneycash}} $|$ \href{https://linkedin.com/in/maxwellmohammadi}{\underline{linkedin.com/in/maxwellmohammadi}}
+\end{center}
+
+%-----------PROJECTS-----------
+\section{Projects}
+    \resumeSubHeadingListStart
+
+      \resumeProjectHeading
+          {\textbf{MaxXP: Windows XP Desktop Portfolio} $|$ \emph{\href{https://maxmohammadi.com}{maxmohammadi.com}}}{}
+          \resumeItemListStart
+            \resumeItem{Pixel-faithful Windows XP desktop in React — animated Bliss wallpaper with parallax cloud layers, draggable Luna windows, a reels-style demo feed, and a live Task Manager streaming real dev telemetry.}
+            \resumeItem{Period-correct detail throughout: Luna scrollbars with working arrow buttons, tray balloons with system sounds, working menu bars and tooltips — transform/opacity-only motion with reduced-motion support.}
+          \resumeItemListEnd
+
+      \resumeProjectHeading
+          {\textbf{Content Rewards, Onchain} $|$ \emph{\href{https://contentrewards.xyz}{contentrewards.xyz}}}{}
+          \resumeItemListStart
+            \resumeItem{Built \textbf{contentrewards.xyz} — live automated pay-per-view creator payouts, \textbf{payments powered by Whop}: brands fund campaigns at \$0.15--\$2.00 CPM, clippers submit YouTube/TikTok/Instagram clips, and \textbf{USDT streams to their Aptos wallets as views accumulate}, no manual approval.}
+            \resumeItem{Move payment-streaming contracts, a Next.js oracle verifying views via the \textbf{YouTube Data API}, evidence on \textbf{Shelby}, and trust scoring for bot protection; authored the \href{https://propwhop.com}{PropWhop whitepaper} behind the streaming design.}
+          \resumeItemListEnd
+
+      \resumeProjectHeading
+          {\textbf{Whop Finance: Agent Banking on Aptos} $|$ \emph{\href{https://whop.finance/}{whop.finance}}}{}
+          \resumeItemListStart
+            \resumeItem{Built an AI agent banking demo with \textbf{Whop integration} — agents open accounts and send, save, swap, and borrow on Aptos through an SDK, CLI, and \textbf{x402 payment} packages.}
+            \resumeItem{Designed and built the account surface in Next.js and Tailwind — balances, transfers, swap and borrow flows across checking, savings, credit, and exchange accounts on \textbf{Aave V3} and \textbf{Panora}.}
+          \resumeItemListEnd
+
+      \resumeProjectHeading
+          {\textbf{commits.sh: Live Developer \& AI-Usage Telemetry} $|$ \emph{\href{https://commits.sh}{commits.sh}}}{}
+          \resumeItemListStart
+            \resumeItem{Turns any GitHub account's activity into a calibrated dev rank and live velocity index — public REST API, \textbf{MCP server}, CLI, and embeddable live SVG badges.}
+            \resumeItem{Streams real time token telemetry from \textbf{8 coding agents} — \textbf{67B+ tokens tracked} with per-model cost and burn dashboards.}
+          \resumeItemListEnd
+
+    \resumeSubHeadingListEnd
+
+%-----------EXPERIENCE-----------
+\section{Experience}
+  \resumeSubHeadingListStart
+
+    \resumeSubheading
+      {Aptos Labs}{January 2026 -- May 2026}
+      {Independent Engineer, In Residence (unpaid)}{Palo Alto, CA}
+      \resumeItemListStart
+        \resumeItem{Built Polymarket and Whop demos to pitch Aptos rails for prediction markets, trading, payments, and investing.}
+        \resumeItem{Shipped LLM MCP servers for \textbf{Decibel Trade} and \textbf{Shelby Protocol}, exposing protocol workflows to agent driven tooling.}
+      \resumeItemListEnd
+
+    \resumeSubheading
+      {Ernst \& Young, EY Blockchain}{September 2024 -- September 2025}
+      {Blockchain Security Consultant}{San Francisco Bay Area}
+      \resumeItemListStart
+        \resumeItem{Audited enterprise crypto custody infrastructure alongside \textbf{Trail of Bits} — transaction orchestration codebases, cold storage signing workflows, and HSM integrations.}
+        \resumeItem{Led crypto incident response with \textbf{TRM Labs}, tracing onchain fund flows and performing forensic analysis of transaction anomalies.}
+      \resumeItemListEnd
+
+    \resumeSubheading
+      {Sydereal}{December 2020 -- October 2021}
+      {Software Engineering Intern (Part-Time, during school year)}{San Francisco Bay Area}
+      \resumeItemListStart
+        \resumeItem{Migrated satellite telemetry from SQLite to InfluxDB (20\% faster processing); implemented neural network anomaly detection for spacecraft telemetry, saving about \$150K.}
+      \resumeItemListEnd
+
+  \resumeSubHeadingListEnd
+
+%-----------EDUCATION-----------
+\section{Education}
+  \resumeSubHeadingListStart
+    \resumeSubheading
+      {California Polytechnic State University, San Luis Obispo}{September 2018 -- June 2023}
+      {B.S. Computer Science $|$ 3.6 GPA $|$ President, Cal Poly Blockchain}{}
+  \resumeSubHeadingListEnd
+
+%-----------VOLUNTEERING-----------
+\section{Volunteering}
+  \resumeSubHeadingListStart
+    \resumeSubheading
+      {Junior Achievement of Northern California}{2016 -- Present}
+      {Classroom Volunteer}{SF East Bay \& South Bay}
+      \resumeItemListStart
+        \resumeItem{Volunteering with JA since high school; for the past three years taught the \textbf{JA crypto curriculum} across a dozen classroom sessions at Bay Area high schools, in \textbf{Circle}'s scholarship partnership with JA.}
+      \resumeItemListEnd
+  \resumeSubHeadingListEnd
+
+%-----------SKILLS-----------
+\section{Technical Skills}
+ \begin{itemize}[leftmargin=0.15in, label={}]
+    \small{\item{
+     \textbf{Front-End}{: React, Next.js, Framer Motion, Three.js, Tailwind CSS, React Native, canvas \& SVG animation} \\
+     \textbf{Languages}{: TypeScript, Move, Rust, Solidity, Python} \\
+     \textbf{Payments \& Fintech}{: Tether WDK, x402 payments, Aave V3, Panora, creator payouts, Aptos TypeScript SDK, Move smart contracts} \\
+     \textbf{AI \& LLMs}{: OpenAI \& Anthropic (Claude) APIs, LangChain, RAG, MCP, AI Agents \& Function Calling, Structured Outputs (Zod)}
+    }}
+ \end{itemize}
+
+\end{document}
