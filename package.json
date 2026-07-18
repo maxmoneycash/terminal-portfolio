@@ -9,7 +9,7 @@
     "preview": "vite preview --host 0.0.0.0",
     "videos:optimize": "node scripts/optimize-portfolio-videos.mjs",
     "projects:refresh": "node scripts/fetch-github-projects.mjs",
-    "resume:build": "cd resume && pdflatex -interaction=nonstopmode Max_Mohammadi_Resume.tex && cp Max_Mohammadi_Resume.pdf ../public/Max_Mohammadi_Resume_ATS.pdf"
+    "resume:build": "cd resume && pdflatex -interaction=nonstopmode Max_Mohammadi_Resume.tex && pdflatex -interaction=nonstopmode Max_Mohammadi_Resume_Engineering.tex && cp Max_Mohammadi_Resume.pdf ../public/Max_Mohammadi_Resume_ATS.pdf && cp Max_Mohammadi_Resume_Engineering.pdf ../public/Max_Mohammadi_Resume_Engineering.pdf"
   },
   "dependencies": {
     "@chenglou/pretext": "^0.0.6",

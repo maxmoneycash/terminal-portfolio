@@ -1,0 +1,212 @@
+%-------------------------
+% Maxwell Mohammadi — one-page resume (software engineering roles)
+% Template: Jake's Resume (Jake Gutierrez, MIT) — https://github.com/jakegut/resume
+% Build: npm run resume:build
+%------------------------
+
+\documentclass[letterpaper,9pt]{extarticle}
+
+\usepackage{latexsym}
+\usepackage[empty]{fullpage}
+\usepackage{titlesec}
+\usepackage{marvosym}
+\usepackage[usenames,dvipsnames]{color}
+\usepackage{verbatim}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+\usepackage{fancyhdr}
+\usepackage[english]{babel}
+\usepackage{tabularx}
+\usepackage[T1]{fontenc}
+\usepackage[default]{lato}
+\input{glyphtounicode}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyfoot{}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+
+% Adjust margins (slightly wider than stock Jake's to hold full history)
+\addtolength{\oddsidemargin}{-0.65in}
+\addtolength{\evensidemargin}{-0.65in}
+\addtolength{\textwidth}{1.3in}
+\addtolength{\topmargin}{-.7in}
+\addtolength{\textheight}{1.55in}
+
+\urlstyle{same}
+
+\raggedbottom
+\raggedright
+\setlength{\tabcolsep}{0in}
+
+% Sections formatting
+\titleformat{\section}{
+  \vspace{-4pt}\scshape\raggedright\large
+}{}{0em}{}[\color{black}\titlerule \vspace{-5pt}]
+
+% Ensure that generated pdf is machine readable/ATS parsable
+\pdfgentounicode=1
+
+%-------------------------
+% Custom commands
+\newcommand{\resumeItem}[1]{
+  \item\small{
+    {#1\vspace{-2pt}}
+  }
+}
+
+\newcommand{\resumeSubheading}[4]{
+  \vspace{-2pt}\item
+    \begin{tabular*}{0.97\textwidth}[t]{l@{\extracolsep{\fill}}r}
+      \textbf{#1} & #2 \\
+      \textit{\small#3} & \textit{\small #4} \\
+    \end{tabular*}\vspace{-7pt}
+}
+
+\newcommand{\resumeProjectHeading}[2]{
+    \item
+    \begin{tabular*}{0.97\textwidth}{l@{\extracolsep{\fill}}r}
+      \small#1 & #2 \\
+    \end{tabular*}\vspace{-7pt}
+}
+
+\renewcommand\labelitemii{$\vcenter{\hbox{\tiny$\bullet$}}$}
+
+\newcommand{\resumeSubHeadingListStart}{\begin{itemize}[leftmargin=0.15in, label={}]}
+\newcommand{\resumeSubHeadingListEnd}{\end{itemize}}
+\newcommand{\resumeItemListStart}{\begin{itemize}}
+\newcommand{\resumeItemListEnd}{\end{itemize}\vspace{-5pt}}
+
+%-------------------------------------------
+\begin{document}
+
+%----------HEADING----------
+\begin{center}
+    \textbf{\LARGE \scshape Maxwell Mohammadi} \\ \vspace{1pt}
+    \footnotesize (925) 876 1159 $|$ \href{mailto:maxwell.mohammadi@gmail.com}{\underline{maxwell.mohammadi@gmail.com}} $|$ \href{https://maxmohammadi.com}{\underline{maxmohammadi.com}} $|$ \href{https://github.com/maxmoneycash}{\underline{github.com/maxmoneycash}} $|$ \href{https://linkedin.com/in/maxwellmohammadi}{\underline{linkedin.com/in/maxwellmohammadi}}
+\end{center}
+
+%-----------EXPERIENCE-----------
+\section{Experience}
+  \resumeSubHeadingListStart
+
+    \resumeSubheading
+      {Aptos Labs}{January 2026 -- May 2026}
+      {Independent Engineer, In Residence (unpaid)}{Palo Alto, CA}
+      \resumeItemListStart
+        \resumeItem{Shipped LLM MCP servers for \textbf{Decibel Trade} and \textbf{Shelby Protocol}, exposing protocol workflows to agent driven tooling.}
+        \resumeItem{Built automated Decibel trading bots that convert \textbf{TradingView PineScript} indicators into onchain smart contract trading strategies.}
+        \resumeItem{Wrote a prediction market Move contract from scratch, then partnered with Aptos founding engineers to profile transaction paths, storage access, and execution bottlenecks until benchmark throughput reached \textbf{10k TPS}.}
+        \resumeItem{Built Polymarket and Whop demos to pitch Aptos rails for prediction markets, trading, payments, and investing.}
+      \resumeItemListEnd
+
+    \resumeSubheading
+      {Ernst \& Young, EY Blockchain}{September 2024 -- September 2025}
+      {Blockchain Security Consultant}{San Francisco Bay Area}
+      \resumeItemListStart
+        \resumeItem{Audited enterprise cryptocurrency custody infrastructure \textbf{alongside Trail of Bits}, reviewing transaction orchestration codebases, cold storage signing workflows, and HSM integrations.}
+        \resumeItem{Led crypto incident response investigations in partnership with \textbf{TRM Labs}, tracing onchain fund flows and performing forensic analysis of transaction anomalies.}
+        \resumeItem{Authored stablecoin research on mechanism design, peg stability, regulatory frameworks, and protocol risk for EY Blockchain clients.}
+        \resumeItem{Presented weekly technical research on \textbf{Aptos, Sui, Hyperliquid}, stablecoins, cross chain bridge risk, and emerging L1/L2 ecosystems.}
+        \resumeItem{Developed cross chain expertise spanning EVM, Move, Aptos, Sui, and emerging platforms, directly informing audit methodology and client advisory.}
+      \resumeItemListEnd
+
+    \resumeSubheading
+      {Ernst \& Young}{June 2021 -- September 2021}
+      {Forensic Data Analyst (Intern)}{San Francisco Bay Area}
+      \resumeItemListStart
+        \resumeItem{Implemented anomaly detection for forensic data analysis, identifying cases of fraudulent financial activity.}
+        \resumeItem{Researched and presented Ethereum and Celo protocols to EY Blockchain colleagues.}
+        \resumeItem{Worked with Solidity, EVM, and DeFi protocols to create product research for clients.}
+      \resumeItemListEnd
+
+    \resumeSubheading
+      {Sydereal}{December 2020 -- October 2021}
+      {Software Engineering Intern (Part-Time, during school year)}{San Francisco Bay Area}
+      \resumeItemListStart
+        \resumeItem{Migrated satellite telemetry from SQLite to InfluxDB, increasing data processing speeds by 20\%.}
+        \resumeItem{Implemented neural network anomaly detection for spacecraft telemetry, saving about \$150K.}
+      \resumeItemListEnd
+
+    \resumeSubheading
+      {Proximai AI}{May 2020 -- June 2021}
+      {AI Research Intern (Part-Time, during school year)}{San Francisco Bay Area}
+      \resumeItemListStart
+        \resumeItem{Prepared three advanced technology proposals to NASA Innovative Advanced Concepts.}
+        \resumeItem{Contributed to RaDAR, a spatial temporal framework for military aircraft GO/NO GO decisions.}
+      \resumeItemListEnd
+
+  \resumeSubHeadingListEnd
+
+%-----------PROJECTS-----------
+\section{Projects}
+    \resumeSubHeadingListStart
+
+      \resumeProjectHeading
+          {\textbf{Aptos Prediction Market} $|$ \emph{\href{https://aptos-polymarket.vercel.app/}{aptos-polymarket.vercel.app}}}{}
+          \resumeItemListStart
+            \resumeItem{Built a Polymarket style prediction market demo with Move contracts, market UI, real time trade streams, TPS dashboard, and HFT bot visualization.}
+            \resumeItem{Partnered with Aptos engineers to optimize market creation, order resolution, and settlement flows to \textbf{10k TPS} for pitch demos.}
+          \resumeItemListEnd
+
+      \resumeProjectHeading
+          {\textbf{Sol2Move: Solidity to Aptos Move Transpiler} $|$ \emph{\href{https://github.com/SeamMoney/aptos-move-transpiler}{github.com/SeamMoney/aptos-move-transpiler}}}{}
+          \resumeItemListStart
+            \resumeItem{Built a Solidity to Aptos Move v2 transpiler with Solidity analysis, inheritance flattening, OpenZeppelin pattern support, Move parsing, and validation.}
+            \resumeItem{Transpiled \textbf{Veda BoringVault}, Uniswap V2/V3, Pendle, Trader Joe DLMM, and Compound v2; added differential fuzzing and a Sol2Move web app.}
+          \resumeItemListEnd
+
+      \resumeProjectHeading
+          {\textbf{tx-composer: Aptos DeFi Transaction Composer} $|$ \emph{\href{https://github.com/SeamMoney/tx-composer}{github.com/SeamMoney/tx-composer}}}{}
+          \resumeItemListStart
+            \resumeItem{Designed simulate-first Aptos DeFi transaction composition tooling with declarative Move call steps, return value wiring, balance tracking, and VM error diagnosis.}
+            \resumeItem{Added JSON plan support so AI agents can generate, simulate, report, and execute atomic Aptos transactions before committing real funds.}
+          \resumeItemListEnd
+
+      \resumeProjectHeading
+          {\textbf{Whop Finance: Aptos Fintech Demo} $|$ \emph{\href{https://whop.finance/}{whop.finance}}}{}
+          \resumeItemListStart
+            \resumeItem{Prototyped a Whop style Aptos finance demo with Tether WDK flows for creator payments, yield, cross chain transfers, and investing.}
+            \resumeItem{Implemented agent banking flows across checking, savings, credit, exchange, and x402a payments using Aptos, Aave V3, Panora, and Whop integrations.}
+          \resumeItemListEnd
+
+      \resumeProjectHeading
+          {\textbf{commits.sh: Live Developer \& AI-Usage Telemetry} $|$ \emph{\href{https://commits.sh}{commits.sh}}}{}
+          \resumeItemListStart
+            \resumeItem{Turns any GitHub account's activity into a calibrated dev rank and live velocity index, with a public REST API, \textbf{MCP server}, CLI, and embeddable live SVG badges.}
+            \resumeItem{Streams real time token telemetry from \textbf{8 coding agents} (Claude Code, Codex, Cursor, and others) — \textbf{67B+ tokens tracked} with per-model cost, cache hit rate, and burn dashboards.}
+          \resumeItemListEnd
+
+    \resumeSubHeadingListEnd
+
+%-----------EDUCATION-----------
+\section{Education}
+  \resumeSubHeadingListStart
+    \resumeSubheading
+      {California Polytechnic State University, San Luis Obispo}{September 2018 -- June 2023}
+      {B.S. Computer Science $|$ 3.6 GPA $|$ President, Cal Poly Blockchain}{}
+  \resumeSubHeadingListEnd
+
+%-----------VOLUNTEERING-----------
+\section{Volunteering}
+  \resumeSubHeadingListStart
+    \resumeSubheading
+      {Junior Achievement of Northern California}{2016 -- Present}
+      {Classroom Volunteer}{SF East Bay \& South Bay}
+      \resumeItemListStart
+        \resumeItem{Volunteering with JA since high school; for the past three years taught the \textbf{JA crypto curriculum} across a dozen classroom sessions at Bay Area high schools, in \textbf{Circle}'s scholarship partnership with JA.}
+      \resumeItemListEnd
+  \resumeSubHeadingListEnd
+
+%-----------SKILLS-----------
+\section{Technical Skills}
+ \begin{itemize}[leftmargin=0.15in, label={}]
+    \small{\item{
+     \textbf{Blockchain}{: Solidity, Move, Aptos Move, EVM Security, DeFi Audits, Foundry, Fuzzing, Aptos SDK, Trading Bots} \\
+     \textbf{Languages \& Tools}{: TypeScript, Rust, Python, React / Next.js, Three.js, GraphQL, Tree-sitter, Playwright, Postgres} \\
+     \textbf{AI \& Agents}{: MCP Servers (@modelcontextprotocol), Multi-Agent Orchestration, Claude Code Workflows, LLM Token Telemetry, LangChain, OpenAI API, AI Codegen Pipelines}
+    }}
+ \end{itemize}
+
+\end{document}
