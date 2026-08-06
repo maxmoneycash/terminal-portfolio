@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { cn } from "../lib/cn";
+import { playSfx } from "../xp/audio";
 
 export type WindowMenuItem =
   | {
@@ -74,8 +75,16 @@ export function MenuBar({ menus, ariaLabel }: { menus: WindowMenu[]; ariaLabel: 
                     key={item.label}
                     type="button"
                     role="menuitem"
-                    disabled={item.disabled}
+                    aria-disabled={item.disabled || undefined}
+                    onPointerDown={(event) => {
+                      // Keep unavailable commands focusable so the reason is
+                      // discoverable; XP dings instead of silently ignoring.
+                      if (!item.disabled) return;
+                      event.preventDefault();
+                      playSfx("exclamation");
+                    }}
                     onClick={() => {
+                      if (item.disabled) return;
                       setOpenIndex(null);
                       item.onSelect?.();
                     }}

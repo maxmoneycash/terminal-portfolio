@@ -56,6 +56,11 @@ function App() {
   const [crtEnabled, setCrtEnabled] = useState(true);
   const [balloonVisible, setBalloonVisible] = useState(false);
   const [drag, setDrag] = useState<DragState | null>(null);
+  // Focus history powers the toolbar's Back/Forward, like a browser's session
+  // history but over the apps visited in this session.
+  const [history, setHistory] = useState<AppId[]>(["signature"]);
+  const [historyIndex, setHistoryIndex] = useState(0);
+  const suppressHistoryRef = useRef(false);
   const zRef = useRef(3);
 
   useEffect(() => {
@@ -103,14 +108,29 @@ function App() {
   /* Window manager                                                      */
   /* ------------------------------------------------------------------ */
 
+  const pushHistory = useCallback((id: AppId) => {
+    if (suppressHistoryRef.current) {
+      suppressHistoryRef.current = false;
+      return;
+    }
+    setHistory((current) => {
+      const trimmed = current.slice(0, historyIndex + 1);
+      if (trimmed[trimmed.length - 1] === id) return current;
+      const next = [...trimmed, id].slice(-24);
+      setHistoryIndex(next.length - 1);
+      return next;
+    });
+  }, [historyIndex]);
+
   const focusWindow = useCallback((id: AppId) => {
+    pushHistory(id);
     setActiveWindow(id);
     setWindows((current) =>
       current.map((record) =>
         record.id === id ? { ...record, z: ++zRef.current, minimized: false } : record,
       ),
     );
-  }, []);
+  }, [pushHistory]);
 
   const openApp = useCallback((id: AppId) => {
     setStartOpen(false);
@@ -140,7 +160,8 @@ function App() {
       ];
     });
     setActiveWindow(id);
-  }, []);
+    pushHistory(id);
+  }, [pushHistory]);
 
   const closeWindow = useCallback((id: AppId) => {
     setWindows((current) => current.filter((record) => record.id !== id));
@@ -161,6 +182,19 @@ function App() {
     );
     setActiveWindow(id);
   }, []);
+
+  /** Step through the visited-app history without re-recording the jump. */
+  const navigateHistory = useCallback(
+    (delta: -1 | 1) => {
+      const target = historyIndex + delta;
+      const id = history[target];
+      if (!id) return;
+      setHistoryIndex(target);
+      suppressHistoryRef.current = true;
+      openApp(id);
+    },
+    [history, historyIndex, openApp],
+  );
 
   const showDesktop = useCallback(() => {
     setWindows((current) => current.map((record) => ({ ...record, minimized: true })));
@@ -347,6 +381,9 @@ function App() {
                   onResizeStart={startResize}
                   onSnapRequest={handleSnapRequest}
                   openApp={openApp}
+                  onNavigate={navigateHistory}
+                  canGoBack={historyIndex > 0}
+                  canGoForward={historyIndex < history.length - 1}
                 >
                   <WindowContent record={record} openApp={openApp} />
                 </WindowChrome>

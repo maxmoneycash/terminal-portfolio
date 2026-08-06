@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { cn } from "../lib/cn";
+import { playSfx } from "../xp/audio";
 
 const handle = "maxmoneycash";
 const api = (path: string) => `/cm/${path}`;
@@ -404,6 +405,13 @@ export function StatsApp() {
   const animatedRate = useAnimatedNumber(ratePerSec, 500);
 
   const live = connected === true;
+
+  // XP announces a failed service with the critical chime, once per drop.
+  const wasConnectedRef = useRef<boolean | null>(null);
+  useEffect(() => {
+    if (connected === false && wasConnectedRef.current !== false) playSfx("critical");
+    wasConnectedRef.current = connected;
+  }, [connected]);
   const models = useMemo(
     () => (tokens ? [...tokens.by_model].sort((a, b) => b.cost - a.cost) : []),
     [tokens],
@@ -411,7 +419,7 @@ export function StatsApp() {
   const maxModelCost = models[0]?.cost ?? 1;
 
   return (
-    <div className="stats-app">
+    <div className={cn("stats-app", connected === null && "is-busy")}>
       <div className="tm-tabs" role="tablist">
         {tabs.map((name) => (
           <button
@@ -509,7 +517,22 @@ export function StatsApp() {
               })}
               {models.length === 0 ? (
                 <tr>
-                  <td colSpan={4}>{connected === null ? "Loading telemetry…" : "Telemetry offline."}</td>
+                  <td colSpan={4}>
+                    {connected === null ? (
+                      "Loading telemetry…"
+                    ) : (
+                      <div className="xp-error-state">
+                        <img src="/xp/gui/system/error.webp" alt="" />
+                        <div>
+                          <strong>Telemetry unavailable</strong>
+                          <p>
+                            commits.sh did not respond. The charts show the last values received;
+                            live token counts resume automatically once the stream is back.
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </td>
                 </tr>
               ) : null}
             </tbody>

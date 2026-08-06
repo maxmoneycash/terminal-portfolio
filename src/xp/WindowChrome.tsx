@@ -17,7 +17,7 @@ import { portfolio } from "../data/portfolio";
 import { cn } from "../lib/cn";
 import { MenuBar, type WindowMenu } from "../components/MenuBar";
 import { Tooltip } from "../components/Tooltip";
-import { appCatalog, type AppId, type WindowRecord } from "./types";
+import { appCatalog, xp, type AppId, type WindowRecord } from "./types";
 import { openResumePdf } from "./content";
 
 /** Compass points of the resize frame; the shell maps these onto geometry. */
@@ -56,6 +56,9 @@ export function WindowChrome({
   onResizeStart,
   onSnapRequest,
   openApp,
+  onNavigate,
+  canGoBack,
+  canGoForward,
   crtEnabled,
   onToggleCrt,
 }: {
@@ -70,6 +73,9 @@ export function WindowChrome({
   onResizeStart: (event: ReactPointerEvent, record: WindowRecord, edge: ResizeEdge) => void;
   onSnapRequest: (id: AppId, half: "left" | "right" | "maximize") => void;
   openApp: (id: AppId) => void;
+  onNavigate: (delta: -1 | 1) => void;
+  canGoBack: boolean;
+  canGoForward: boolean;
   crtEnabled: boolean;
   onToggleCrt: () => void;
 }) {
@@ -359,12 +365,55 @@ export function WindowChrome({
       {!isNotepad ? (
         <>
           <div className="window-toolbar">
-            {(["projects", "demos", "stats", "contact"] as AppId[]).map((id) => (
-              <button key={id} type="button" onClick={() => openApp(id)}>
-                <img src={appCatalog[id].icon} alt="" />
-                {appCatalog[id].shortTitle}
-              </button>
-            ))}
+            <button
+              type="button"
+              className="toolbar-nav"
+              disabled={!canGoBack}
+              onClick={() => onNavigate(-1)}
+              title="Back"
+            >
+              <img src={`${xp}/gui/toolbar/back.webp`} alt="" />
+              <span>Back</span>
+            </button>
+            <button
+              type="button"
+              className="toolbar-nav toolbar-icon-only"
+              disabled={!canGoForward}
+              onClick={() => onNavigate(1)}
+              title="Forward"
+              aria-label="Forward"
+            >
+              <img src={`${xp}/gui/toolbar/forward.webp`} alt="" />
+            </button>
+            <span className="toolbar-divider" aria-hidden="true" />
+            <button
+              type="button"
+              className="toolbar-icon-only"
+              onClick={() => openApp("signature")}
+              title="Home"
+              aria-label="Home"
+            >
+              <img src={`${xp}/gui/toolbar/home.webp`} alt="" />
+            </button>
+            <button
+              type="button"
+              className="toolbar-icon-only"
+              onClick={() => openApp("projects")}
+              title="Projects"
+              aria-label="Projects"
+            >
+              <img src={`${xp}/gui/toolbar/folder.webp`} alt="" />
+            </button>
+            <button
+              type="button"
+              className="toolbar-icon-only"
+              onClick={onToggleCrt}
+              title={crtEnabled ? "Turn off CRT effects" : "Turn on CRT effects"}
+              aria-label="Toggle CRT effects"
+              aria-pressed={crtEnabled}
+            >
+              <img src={`${xp}/gui/toolbar/lightdark.webp`} alt="" />
+            </button>
           </div>
           <div className="address-bar">
             <span>Address</span>
@@ -372,6 +421,15 @@ export function WindowChrome({
               <img src={app.icon} alt="" />
               maxxp://{record.id}
             </div>
+            <button
+              type="button"
+              className="address-go"
+              onClick={() => openApp(record.id)}
+              title={`Go to maxxp://${record.id}`}
+            >
+              <img src={`${xp}/gui/toolbar/go.webp`} alt="" />
+              <span>Go</span>
+            </button>
           </div>
         </>
       ) : null}

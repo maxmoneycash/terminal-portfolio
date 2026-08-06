@@ -126,7 +126,6 @@ p {
 .xp-boot-screen,
 .xp-login-screen,
 .xp-welcome-screen,
-.maxxp-desktop,
 .xp-desktop {
   position: relative;
   width: 100vw;
@@ -138,12 +137,11 @@ p {
 /* Authentic XP pixel-art cursors: hand on interactive elements, I-beam in
    text fields; window chrome keeps native move/resize feedback cursors. */
 .xp-login-screen :is(button, a),
-.maxxp-desktop :is(button, a, [role="button"], summary, label),
 .xp-desktop :is(button, a, [role="button"], summary, label) {
   cursor: var(--xp-cursor-hand), pointer;
 }
 
-.maxxp-desktop :is(input, textarea, [contenteditable="true"]) {
+.xp-desktop :is(input, textarea, [contenteditable="true"]) {
   cursor: text;
 }
 
@@ -446,7 +444,6 @@ button.login-footer-left:focus-visible {
   letter-spacing: 0.02em;
 }
 
-.maxxp-desktop,
 .xp-desktop {
   background: #117fd0;
   isolation: isolate;
@@ -515,28 +512,6 @@ button.login-footer-left:focus-visible {
   pointer-events: auto;
 }
 
-.maxxp-wallpaper {
-  position: fixed;
-  inset: 0;
-  background: #1688cf url("/xp/gui/bgs/maxxp-bliss.webp") center center / cover no-repeat;
-}
-
-.maxxp-wallpaper::before,
-.maxxp-wallpaper::after {
-  position: absolute;
-  inset: 0;
-  content: "";
-}
-
-.maxxp-wallpaper::before {
-  background: linear-gradient(180deg, rgb(14 94 173 / 0.05), transparent 44%, rgb(4 38 7 / 0.08));
-  mix-blend-mode: screen;
-}
-
-.maxxp-wallpaper::after {
-  background: linear-gradient(90deg, rgb(0 24 69 / 0.08), transparent 22%, transparent 78%, rgb(0 24 69 / 0.08));
-  mix-blend-mode: multiply;
-}
 
 .desktop-icons {
   position: relative;
@@ -852,7 +827,9 @@ button.login-footer-left:focus-visible {
 }
 
 .menu-dropdown button:disabled,
-.menu-dropdown button:disabled:hover {
+.menu-dropdown button:disabled:hover,
+.menu-dropdown button[aria-disabled="true"],
+.menu-dropdown button[aria-disabled="true"]:hover {
   background: transparent;
   color: #a5a294;
   cursor: default;
@@ -3153,7 +3130,7 @@ span.github-repo-name {
   }
 
   .xp-login-screen,
-  .maxxp-desktop,
+  .xp-desktop,
   .xp-boot-screen {
     transition: opacity 280ms ease-out;
   }
@@ -3208,7 +3185,7 @@ span.github-repo-name {
     }
 
     .xp-login-screen,
-    .maxxp-desktop,
+    .xp-desktop,
     .xp-boot-screen {
       opacity: 0;
     }
@@ -3970,5 +3947,113 @@ span.github-repo-name {
 
   .taskbar-programs button {
     max-width: 96px;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Explorer toolbar + address bar Go button                            */
+/* ------------------------------------------------------------------ */
+
+.window-toolbar .toolbar-nav {
+  gap: 5px;
+  font-size: 11px;
+}
+
+.window-toolbar button img {
+  width: 22px;
+  height: 22px;
+}
+
+.window-toolbar .toolbar-icon-only {
+  padding: 2px 5px;
+}
+
+.window-toolbar button:disabled {
+  cursor: default;
+  opacity: 0.42;
+}
+
+.window-toolbar button:disabled:hover {
+  border-color: transparent;
+  background: transparent;
+}
+
+.toolbar-divider {
+  width: 1px;
+  height: 20px;
+  margin: 0 3px;
+  background: #b9b7a6;
+}
+
+.address-bar .address-go {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex: 0 0 auto;
+  border: 1px solid transparent;
+  background: transparent;
+  padding: 1px 6px 1px 4px;
+  font-size: 11px;
+  cursor: var(--xp-cursor-hand), pointer;
+}
+
+.address-bar .address-go img {
+  width: 18px;
+  height: 18px;
+}
+
+.address-bar .address-go:hover,
+.address-bar .address-go:focus-visible {
+  border-color: #7f9db9;
+  background: #fff;
+  outline: none;
+}
+
+/* Busy cursor while a pane is loading its data. */
+.is-busy,
+.is-busy * {
+  cursor: url("/xp/gui/cursors/hourglass.cur"), progress !important;
+}
+
+/* Inline XP error state (used when live telemetry cannot be reached). */
+.xp-error-state {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  border: 1px solid #c6c3b0;
+  border-radius: 3px;
+  background: #fffef8;
+  padding: 12px 14px;
+}
+
+.xp-error-state img {
+  width: 32px;
+  height: 32px;
+  flex: 0 0 auto;
+}
+
+.xp-error-state strong {
+  display: block;
+  margin-bottom: 3px;
+  font-size: 12px;
+}
+
+.xp-error-state p {
+  color: var(--xp-muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+@media (max-width: 620px) {
+  .window-toolbar .toolbar-nav span {
+    display: none;
+  }
+
+  .window-toolbar .toolbar-nav {
+    padding: 2px 5px;
+  }
+
+  .address-bar .address-go span {
+    display: none;
   }
 }
