@@ -15,6 +15,7 @@ import { Taskbar } from "./xp/Taskbar";
 import { StartMenu } from "./xp/StartMenu";
 import { WindowChrome, type ResizeEdge } from "./xp/WindowChrome";
 import { WindowContent } from "./xp/content";
+import { Wallpaper } from "./xp/Wallpaper";
 
 type DragState =
   | { mode: "move"; id: AppId; startX: number; startY: number; originX: number; originY: number }
@@ -317,6 +318,8 @@ function App() {
         aria-hidden={!desktopVisible}
         inert={!desktopVisible}
       >
+        <Wallpaper />
+
         <DesktopIcons
           openApp={openApp}
           crtEnabled={crtEnabled}

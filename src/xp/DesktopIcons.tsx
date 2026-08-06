@@ -8,6 +8,12 @@ import { useCallback, useEffect, useState, type MouseEvent as ReactMouseEvent } 
 import { cn } from "../lib/cn";
 import { appCatalog, desktopApps, type AppId } from "./types";
 import { playSfx } from "./audio";
+import {
+  getWallpaperMotion,
+  setWallpaperMotion,
+  shouldAnimateWallpaper,
+  subscribeWallpaperMotion,
+} from "./Wallpaper";
 
 type ContextMenu = { x: number; y: number };
 
@@ -24,6 +30,14 @@ export function DesktopIcons({
 }) {
   const [selected, setSelected] = useState<AppId | null>(null);
   const [menu, setMenu] = useState<ContextMenu | null>(null);
+  const [wallpaperAnimated, setWallpaperAnimated] = useState(() =>
+    shouldAnimateWallpaper(getWallpaperMotion()),
+  );
+
+  useEffect(
+    () => subscribeWallpaperMotion((pref) => setWallpaperAnimated(shouldAnimateWallpaper(pref))),
+    [],
+  );
 
   const open = useCallback(
     (id: AppId) => {
@@ -59,7 +73,7 @@ export function DesktopIcons({
     event.preventDefault();
     // Keep the menu on screen; XP flips it against the viewport edges.
     const x = Math.min(event.clientX, window.innerWidth - 190);
-    const y = Math.min(event.clientY, window.innerHeight - 170);
+    const y = Math.min(event.clientY, window.innerHeight - 196);
     setMenu({ x, y });
   };
 
@@ -103,6 +117,16 @@ export function DesktopIcons({
             }}
           >
             Show the Desktop
+          </button>
+          <button
+            type="button"
+            role="menuitem"
+            onClick={() => {
+              setWallpaperMotion(wallpaperAnimated ? "off" : "on");
+              setMenu(null);
+            }}
+          >
+            {wallpaperAnimated ? "✓ " : ""}Animated Wallpaper
           </button>
           <button
             type="button"

@@ -452,21 +452,47 @@ button.login-footer-left:focus-visible {
   isolation: isolate;
 }
 
-/* The refactored shell paints Bliss on the desktop itself rather than a
-   separate wallpaper node, with XP's subtle sky/grass grade and edge vignette. */
-.xp-desktop {
-  background: #1688cf url("/xp/gui/bgs/maxxp-bliss.webp") center center / cover no-repeat;
-}
-
-.xp-desktop::before {
+/* Wallpaper: still image underneath, animated loop fading in over it once it
+   plays, and a shared grade + vignette on top so both read identically. */
+.xp-wallpaper {
   position: absolute;
   inset: 0;
   z-index: 0;
+  overflow: hidden;
+  background: #1688cf;
+  pointer-events: none;
+}
+
+.xp-wallpaper-still,
+.xp-wallpaper-loop {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.xp-wallpaper-loop {
+  opacity: 0;
+  transition: opacity 700ms ease;
+}
+
+.xp-wallpaper-loop.is-ready {
+  opacity: 1;
+}
+
+.xp-wallpaper-grade {
+  position: absolute;
+  inset: 0;
   background:
     linear-gradient(180deg, rgb(14 94 173 / 0.05), transparent 44%, rgb(4 38 7 / 0.08)),
     radial-gradient(120% 100% at 50% 50%, transparent 62%, rgb(0 20 48 / 0.22) 100%);
-  content: "";
-  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .xp-wallpaper-loop {
+    display: none;
+  }
 }
 
 /* The shell keeps the desktop mounted through boot/login so window state and
