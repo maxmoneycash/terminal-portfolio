@@ -126,7 +126,8 @@ p {
 .xp-boot-screen,
 .xp-login-screen,
 .xp-welcome-screen,
-.maxxp-desktop {
+.maxxp-desktop,
+.xp-desktop {
   position: relative;
   width: 100vw;
   height: 100dvh;
@@ -137,7 +138,8 @@ p {
 /* Authentic XP pixel-art cursors: hand on interactive elements, I-beam in
    text fields; window chrome keeps native move/resize feedback cursors. */
 .xp-login-screen :is(button, a),
-.maxxp-desktop :is(button, a, [role="button"], summary, label) {
+.maxxp-desktop :is(button, a, [role="button"], summary, label),
+.xp-desktop :is(button, a, [role="button"], summary, label) {
   cursor: var(--xp-cursor-hand), pointer;
 }
 
@@ -444,9 +446,47 @@ button.login-footer-left:focus-visible {
   letter-spacing: 0.02em;
 }
 
-.maxxp-desktop {
+.maxxp-desktop,
+.xp-desktop {
   background: #117fd0;
   isolation: isolate;
+}
+
+/* The refactored shell paints Bliss on the desktop itself rather than a
+   separate wallpaper node, with XP's subtle sky/grass grade and edge vignette. */
+.xp-desktop {
+  background: #1688cf url("/xp/gui/bgs/maxxp-bliss.webp") center center / cover no-repeat;
+}
+
+.xp-desktop::before {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background:
+    linear-gradient(180deg, rgb(14 94 173 / 0.05), transparent 44%, rgb(4 38 7 / 0.08)),
+    radial-gradient(120% 100% at 50% 50%, transparent 62%, rgb(0 20 48 / 0.22) 100%);
+  content: "";
+  pointer-events: none;
+}
+
+/* The shell keeps the desktop mounted through boot/login so window state and
+   media survive the transition; it is inert and invisible until "desktop". */
+.xp-desktop.is-hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* The desktop surface hosts the icon grid and the right-click menu. It must
+   not intercept pointer events meant for windows below it. */
+.desktop-surface {
+  position: absolute;
+  inset: 0;
+  z-index: var(--z-desktop);
+  pointer-events: none;
+}
+
+.desktop-surface > * {
+  pointer-events: auto;
 }
 
 .maxxp-wallpaper {
@@ -536,7 +576,8 @@ button.login-footer-left:focus-visible {
   line-height: 1.25;
 }
 
-.windows-layer {
+.windows-layer,
+.xp-windows-container {
   position: fixed;
   inset: 0 0 var(--taskbar-height);
   pointer-events: none;
@@ -2035,9 +2076,16 @@ span.github-repo-name {
   display: flex;
   align-items: center;
   gap: 3px;
-  width: max-content;
+  min-width: 0;
   height: 100%;
   padding: 0 6px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+}
+
+.taskbar-programs::-webkit-scrollbar {
+  display: none;
 }
 
 .taskbar-programs button {
@@ -3522,4 +3570,177 @@ span.github-repo-name {
   .start-menu-right {
     display: none;
   }
+}
+
+/* ------------------------------------------------------------------ */
+/* Window resize frame                                                 */
+/* ------------------------------------------------------------------ */
+
+/* Eight invisible grips around the window edge. XP uses a 4px frame with
+   larger corner targets; the cursors are the real feedback. */
+.resize-edge {
+  position: absolute;
+  z-index: 2;
+}
+
+.resize-n,
+.resize-s {
+  right: 6px;
+  left: 6px;
+  height: 5px;
+  cursor: ns-resize;
+}
+
+.resize-n {
+  top: -2px;
+}
+
+.resize-s {
+  bottom: -2px;
+}
+
+.resize-e,
+.resize-w {
+  top: 6px;
+  bottom: 6px;
+  width: 5px;
+  cursor: ew-resize;
+}
+
+.resize-e {
+  right: -2px;
+}
+
+.resize-w {
+  left: -2px;
+}
+
+.resize-ne,
+.resize-nw,
+.resize-se,
+.resize-sw {
+  width: 12px;
+  height: 12px;
+}
+
+.resize-nw {
+  top: -2px;
+  left: -2px;
+  cursor: nwse-resize;
+}
+
+.resize-ne {
+  top: -2px;
+  right: -2px;
+  cursor: nesw-resize;
+}
+
+.resize-sw {
+  bottom: -2px;
+  left: -2px;
+  cursor: nesw-resize;
+}
+
+/* The south-east corner keeps XP's visible ribbed grip. */
+.resize-se {
+  right: 0;
+  bottom: 0;
+  width: 17px;
+  height: 17px;
+  background:
+    linear-gradient(135deg, transparent 0 55%, #8a867a 56% 62%, transparent 63%),
+    linear-gradient(135deg, transparent 0 70%, #8a867a 71% 77%, transparent 78%);
+  cursor: nwse-resize;
+}
+
+.xp-window.is-maximized .resize-edge {
+  display: none;
+}
+
+/* ------------------------------------------------------------------ */
+/* Desktop context menu                                                */
+/* ------------------------------------------------------------------ */
+
+.desktop-context-menu {
+  position: fixed;
+  z-index: var(--z-start);
+  display: grid;
+  min-width: 178px;
+  border: 1px solid #aca899;
+  background: #fff;
+  padding: 2px;
+  box-shadow: 3px 3px 5px rgb(0 0 0 / 0.3);
+  animation: context-menu-in 90ms ease-out both;
+}
+
+@keyframes context-menu-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.desktop-context-menu button {
+  display: block;
+  width: 100%;
+  background: transparent;
+  color: #111;
+  font: inherit;
+  font-size: 11px;
+  padding: 4px 20px 4px 22px;
+  text-align: left;
+  white-space: nowrap;
+  cursor: var(--xp-cursor-hand), pointer;
+}
+
+.desktop-context-menu button:hover,
+.desktop-context-menu button:focus-visible {
+  background: #316ac5;
+  color: #fff;
+  outline: none;
+}
+
+.desktop-context-menu .menu-separator {
+  height: 1px;
+  margin: 3px 2px;
+  background: #e0ddcf;
+}
+
+/* ------------------------------------------------------------------ */
+/* CRT overlay + tray volume                                           */
+/* ------------------------------------------------------------------ */
+
+.crt-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9800;
+  pointer-events: none;
+}
+
+.crt-overlay .crt-scanline,
+.crt-overlay .crt-vignette {
+  position: absolute;
+  inset: 0;
+}
+
+.crt-overlay .crt-scanline {
+  background: repeating-linear-gradient(
+    0deg,
+    rgb(0 0 0 / 0.08),
+    rgb(0 0 0 / 0.08) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+  mix-blend-mode: multiply;
+}
+
+.crt-overlay .crt-vignette {
+  box-shadow: inset 0 0 110px rgb(0 0 0 / 0.35);
+}
+
+.system-tray .tray-volume img {
+  width: 16px;
+  height: 16px;
 }
