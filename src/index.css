@@ -3770,3 +3770,205 @@ span.github-repo-name {
   width: 16px;
   height: 16px;
 }
+
+/* ================================================================== */
+/* Mobile pass — sizing and spacing for phone-width viewports.         */
+/* Appended last so these win over the earlier breakpoint blocks.      */
+/* ================================================================== */
+
+@media (max-width: 620px) {
+  /* --- Desktop icon strip: one legible row, no wrapped labels ------- */
+  .desktop-icons {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 2px;
+    padding: max(8px, env(safe-area-inset-top)) 6px 0;
+  }
+
+  .desktop-icon {
+    min-height: 76px;
+    gap: 3px;
+    padding: 5px 1px;
+    font-size: 10px;
+    line-height: 1.15;
+  }
+
+  .desktop-icon img {
+    width: 36px;
+    height: 36px;
+  }
+
+  .desktop-icon span {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+    overflow-wrap: break-word;
+    hyphens: auto;
+  }
+
+  /* Windows start below the shorter icon strip. */
+  .xp-window,
+  .xp-window.is-maximized {
+    inset: 92px 6px calc(var(--taskbar-height) + env(safe-area-inset-bottom) + 6px) 6px !important;
+  }
+
+  /* --- Welcome note: the signature must fit, not clip --------------- */
+  .signature-note-page {
+    align-content: start;
+    padding: 34px 12px 14px;
+  }
+
+  .signature-stage {
+    width: 100%;
+    margin-top: 6vh;
+  }
+
+  .signature-note-copy {
+    max-width: none;
+    margin-top: 4px;
+    padding: 0 4px;
+  }
+
+  .signature-quill-anchor img {
+    width: clamp(56px, 18vw, 84px);
+  }
+
+  /* --- Task Manager: stack the panes so gauges stop colliding ------- */
+  .tm-perf-top {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  .tm-led-row {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 2px;
+    min-height: 92px;
+  }
+
+  .tm-led-row .tm-led strong {
+    font-size: 13px;
+  }
+
+  .tm-led-label {
+    font-size: 8px;
+    letter-spacing: 0.04em;
+  }
+
+  .tm-led {
+    padding: 6px 2px;
+  }
+
+  /* Group legends sit in flow on narrow screens: a wrapped absolute
+     legend overlapped the pane it labels. */
+  .tm-group {
+    padding: 8px 8px 9px;
+  }
+
+  .tm-group h3 {
+    position: static;
+    background: transparent;
+    padding: 0 0 2px;
+  }
+
+  .tm-groups {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  .tm-statusbar {
+    flex-wrap: wrap;
+    gap: 3px;
+  }
+
+  .tm-statusbar span {
+    flex: 1 1 44%;
+  }
+
+  .tm-tabs {
+    flex-wrap: wrap;
+    row-gap: 2px;
+  }
+
+  /* --- Tray balloon: full-width above the taskbar, clear of content -- */
+  .xp-balloon {
+    right: 8px;
+    left: 8px;
+    bottom: calc(var(--taskbar-height) + env(safe-area-inset-bottom) + 10px);
+    width: auto;
+  }
+
+  .xp-balloon::before {
+    right: 24px;
+  }
+
+  .xp-balloon::after {
+    right: 26px;
+  }
+
+  /* --- Reels rail: narrower, still tappable ------------------------- */
+  .reels-app {
+    grid-template-columns: minmax(0, 1fr) 40px;
+  }
+
+  .reel-nav {
+    width: 30px;
+    height: 30px;
+  }
+
+  .reel-caption {
+    right: 8px;
+    bottom: 8px;
+    left: 8px;
+    padding: 7px 9px;
+  }
+
+  .reel-caption strong {
+    font-size: 13px;
+  }
+
+  /* --- Window chrome: tighter but still comfortable ----------------- */
+  .window-titlebar {
+    padding: 3px 3px 3px 6px;
+  }
+
+  .window-menu {
+    gap: 2px;
+    padding: 0 4px;
+  }
+
+  .window-status {
+    padding: 0 6px;
+    font-size: 10px;
+  }
+
+  /* --- Taskbar: keep buttons readable when several windows are open -- */
+  .taskbar-programs button {
+    min-width: 0;
+    max-width: 118px;
+    padding: 0 6px;
+  }
+
+  .taskbar-programs button span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+/* Very narrow phones: drop to a scrollable icon strip so labels stay
+   readable instead of squeezing to three characters per line. */
+@media (max-width: 380px) {
+  .desktop-icons {
+    display: flex;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .desktop-icon {
+    flex: 0 0 62px;
+  }
+
+  .taskbar-programs button {
+    max-width: 96px;
+  }
+}
