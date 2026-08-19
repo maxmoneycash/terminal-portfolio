@@ -4157,6 +4157,11 @@ span.github-repo-name {
   text-align: center;
 }
 
+.explorer-tree-pm.is-toggle:hover {
+  border-color: #316ac5;
+  color: #316ac5;
+}
+
 .explorer-content {
   min-height: 0;
   overflow: auto;
@@ -4258,17 +4263,48 @@ span.github-repo-name {
 .explorer-notepad {
   position: absolute;
   display: grid;
-  grid-template-rows: 24px 19px minmax(0, 1fr) 19px;
+  grid-template-rows: 24px auto minmax(0, 1fr) 19px;
   overflow: hidden;
   border: 2px solid #6884ba;
   border-top-width: 0;
   border-radius: 5px 5px 2px 2px;
   background: var(--xp-panel);
   box-shadow: 3px 5px 14px rgb(0 24 73 / 0.3);
+  animation: explorer-notepad-open 150ms var(--ease-out-strong);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .explorer-notepad {
+    animation: none;
+  }
+}
+
+@keyframes explorer-notepad-open {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 .explorer-notepad.is-active {
   border-color: #0754d6;
+}
+
+.explorer-notepad.is-maximized {
+  inset: 3px;
+  width: auto;
+  height: auto;
+  border-radius: 2px;
+}
+
+.explorer-notepad .window-menu {
+  font-size: 11px;
+  padding: 0 4px;
 }
 
 .explorer-notepad-titlebar {
@@ -4317,25 +4353,23 @@ span.github-repo-name {
   flex: 0 0 auto;
   border: 1px solid rgb(255 255 255 / 0.45);
   border-radius: 3px;
-  background: linear-gradient(180deg, #f3a08d 0, #e2593b 42%, #cc3d1e 88%);
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.55);
   color: #fff;
   font-size: 12px;
   line-height: 1;
 }
 
-.explorer-notepad-titlebar button:hover {
-  filter: brightness(1.14);
+.explorer-notepad-titlebar .np-max {
+  background: linear-gradient(180deg, #7ba8f0 0, #2a63d4 42%, #1650bc 88%);
+  font-size: 10px;
 }
 
-.explorer-notepad-menu {
-  display: flex;
-  gap: 11px;
-  border-bottom: 1px solid var(--xp-bevel-dark);
-  background: var(--xp-panel);
-  color: var(--xp-text);
-  font-size: 11px;
-  padding: 2px 7px;
+.explorer-notepad-titlebar .np-close {
+  background: linear-gradient(180deg, #f3a08d 0, #e2593b 42%, #cc3d1e 88%);
+}
+
+.explorer-notepad-titlebar button:hover {
+  filter: brightness(1.14);
 }
 
 .explorer-notepad-body {
@@ -4348,7 +4382,6 @@ span.github-repo-name {
   font-size: 11.5px;
   line-height: 1.55;
   padding: 7px 9px;
-  white-space: pre-wrap;
 }
 
 .explorer-notepad-body:focus {

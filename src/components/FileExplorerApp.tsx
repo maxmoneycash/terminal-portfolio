@@ -3,6 +3,10 @@
  * (src/data/files.ts). Folders pane on the left, icon grid on the right, and
  * double-clicked files open in draggable, resizable Notepad child windows
  * stacked inside the explorer body, cascade-offset like the real thing.
+ *
+ * The Notepads are alive, not decorative: working File/Edit/Format menus,
+ * a real Word Wrap toggle, live Ln/Col caret tracking, and maximize inside
+ * the explorer body via button or titlebar double-click.
  */
 import {
   useCallback,
@@ -13,12 +17,16 @@ import {
 } from "react";
 import { cn } from "../lib/cn";
 import { playSfx } from "../xp/audio";
+import { MenuBar, type WindowMenu } from "./MenuBar";
 import {
   MY_DOCUMENTS_PATH,
   folderSizeLabel,
   myDocuments,
+  nodeSizeBytes,
   resolveFolder,
+  sizeLabel,
   type ExplorerFile,
+  type ExplorerNode,
 } from "../data/files";
 
 const NOTEPAD_MIN_WIDTH = 260;
@@ -35,22 +43,41 @@ type NotepadWindow = {
   width: number;
   height: number;
   z: number;
+  maximized: boolean;
 };
 
 type NotepadDrag =
   | { mode: "move"; id: number; startX: number; startY: number; originX: number; originY: number }
   | { mode: "resize"; id: number; startX: number; startY: number; width: number; height: number };
 
+function prefersReducedMotion() {
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
+function infotip(node: ExplorerNode): string {
+  if (node.kind === "folder") {
+    return `File Folder\nContains: ${node.children.length} objects\nSize: ${sizeLabel(nodeSizeBytes(node))}`;
+  }
+  return `Text Document\nSize: ${sizeLabel(node.content.length)}\nLines: ${node.content.split("\n").length}`;
+}
+
 function FolderGlyph() {
   return (
     <svg viewBox="0 0 20 20" aria-hidden="true">
+      <defs>
+        <linearGradient id="xp-folder-face" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#FFE9A2" />
+          <stop offset="0.55" stopColor="#FCD462" />
+          <stop offset="1" stopColor="#F0B429" />
+        </linearGradient>
+      </defs>
       <path
         d="M1 5.5c0-.8.7-1.5 1.5-1.5H8l1.6 2H17.5c.8 0 1.5.7 1.5 1.5v9c0 .8-.7 1.5-1.5 1.5h-15C1.7 18 1 17.3 1 16.5v-11z"
-        fill="#F6C13A"
+        fill="url(#xp-folder-face)"
         stroke="#B8860B"
         strokeWidth=".5"
       />
-      <path d="M1 8h18v8.5c0 .8-.7 1.5-1.5 1.5h-15C1.7 18 1 17.3 1 16.5V8z" fill="#FFD97A" opacity=".55" />
+      <path d="M1.6 8.2h16.8" stroke="#fff" strokeWidth=".7" opacity=".6" />
     </svg>
   );
 }
@@ -92,59 +119,149 @@ function DriveGlyph() {
 }
 
 function NotepadPane({
-  window: pad,
+  pad,
   active,
   onFocus,
   onClose,
+  onToggleMaximize,
   onDragStart,
   onResizeStart,
 }: {
-  window: NotepadWindow;
+  pad: NotepadWindow;
   active: boolean;
   onFocus: (id: number) => void;
   onClose: (id: number) => void;
+  onToggleMaximize: (id: number) => void;
   onDragStart: (event: ReactPointerEvent, pad: NotepadWindow) => void;
   onResizeStart: (event: ReactPointerEvent, pad: NotepadWindow) => void;
 }) {
-  const lineCount = pad.file.content.split("\n").length;
+  const sectionRef = useRef<HTMLElement | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const closingRef = useRef(false);
+  const [wordWrap, setWordWrap] = useState(true);
+  const [caret, setCaret] = useState({ line: 1, column: 1 });
+
+  const updateCaret = useCallback(() => {
+    const area = textareaRef.current;
+    if (!area) return;
+    const before = area.value.slice(0, area.selectionStart ?? 0).split("\n");
+    setCaret({ line: before.length, column: (before[before.length - 1]?.length ?? 0) + 1 });
+  }, []);
+
+  // Animate out before unmounting, mirroring the shell's window motion.
+  const handleClose = useCallback(() => {
+    if (closingRef.current) return;
+    const element = sectionRef.current;
+    if (!element || prefersReducedMotion() || typeof element.animate !== "function") {
+      onClose(pad.id);
+      return;
+    }
+    closingRef.current = true;
+    const animation = element.animate(
+      [
+        { opacity: 1, transform: "scale(1)" },
+        { opacity: 0, transform: "scale(0.95)" },
+      ],
+      { duration: 130, easing: "cubic-bezier(0.23, 1, 0.32, 1)", fill: "forwards" },
+    );
+    void animation.finished.then(() => onClose(pad.id)).catch(() => onClose(pad.id));
+  }, [onClose, pad.id]);
+
+  const menus: WindowMenu[] = [
+    { label: "File", items: [{ label: "Close", onSelect: handleClose }] },
+    {
+      label: "Edit",
+      items: [
+        {
+          label: "Select All",
+          onSelect: () => {
+            textareaRef.current?.focus();
+            textareaRef.current?.select();
+          },
+        },
+        {
+          label: "Copy All",
+          onSelect: () => {
+            void navigator.clipboard?.writeText(pad.file.content).catch(() => {});
+          },
+        },
+      ],
+    },
+    {
+      label: "Format",
+      items: [{ label: "Word Wrap", checked: wordWrap, onSelect: () => setWordWrap((value) => !value) }],
+    },
+    { label: "View", items: [{ label: "Status Bar", checked: true, disabled: true }] },
+  ];
+
+  const style = pad.maximized
+    ? { zIndex: pad.z }
+    : { left: pad.x, top: pad.y, width: pad.width, height: pad.height, zIndex: pad.z };
+
   return (
     <section
-      className={cn("explorer-notepad", active && "is-active")}
-      style={{ left: pad.x, top: pad.y, width: pad.width, height: pad.height, zIndex: pad.z }}
+      ref={sectionRef}
+      className={cn("explorer-notepad", active && "is-active", pad.maximized && "is-maximized")}
+      style={style}
       aria-label={`${pad.file.name} — Notepad`}
       onPointerDown={() => onFocus(pad.id)}
     >
-      <header className="explorer-notepad-titlebar" onPointerDown={(event) => onDragStart(event, pad)}>
+      <header
+        className="explorer-notepad-titlebar"
+        onPointerDown={(event) => onDragStart(event, pad)}
+        onDoubleClick={(event) => {
+          if ((event.target as Element).closest("button")) return;
+          onToggleMaximize(pad.id);
+        }}
+      >
         <span className="explorer-notepad-icon">
           <TextFileGlyph />
         </span>
         <strong>{pad.file.name} - Notepad</strong>
         <button
           type="button"
+          className="np-max"
+          aria-label={`${pad.maximized ? "Restore" : "Maximize"} ${pad.file.name}`}
+          onPointerDown={(event) => event.stopPropagation()}
+          onClick={() => onToggleMaximize(pad.id)}
+        >
+          □
+        </button>
+        <button
+          type="button"
+          className="np-close"
           aria-label={`Close ${pad.file.name}`}
           onPointerDown={(event) => event.stopPropagation()}
-          onClick={() => onClose(pad.id)}
+          onClick={handleClose}
         >
           ×
         </button>
       </header>
-      <div className="explorer-notepad-menu" aria-hidden="true">
-        <span>File</span>
-        <span>Edit</span>
-        <span>Format</span>
-        <span>View</span>
-        <span>Help</span>
-      </div>
-      <textarea className="explorer-notepad-body" value={pad.file.content} readOnly spellCheck={false} />
-      <footer className="explorer-notepad-status">
-        <span>{lineCount} lines</span>
-        <span>Ln 1, Col 1</span>
-      </footer>
-      <div
-        className="explorer-notepad-resize"
-        aria-hidden="true"
-        onPointerDown={(event) => onResizeStart(event, pad)}
+      <MenuBar menus={menus} ariaLabel={`${pad.file.name} menu`} />
+      <textarea
+        ref={textareaRef}
+        className="explorer-notepad-body"
+        value={pad.file.content}
+        readOnly
+        spellCheck={false}
+        wrap={wordWrap ? "soft" : "off"}
+        onSelect={updateCaret}
+        onKeyUp={updateCaret}
+        onClick={updateCaret}
       />
+      <footer className="explorer-notepad-status">
+        <span>{pad.file.content.split("\n").length} lines</span>
+        <span>
+          Ln {caret.line}, Col {caret.column}
+        </span>
+      </footer>
+      {!pad.maximized ? (
+        <div
+          className="explorer-notepad-resize"
+          aria-hidden="true"
+          onPointerDown={(event) => onResizeStart(event, pad)}
+        />
+      ) : null}
     </section>
   );
 }
@@ -153,6 +270,7 @@ export function FileExplorerApp() {
   // Path of folder names below My Documents; [] is the root.
   const [path, setPath] = useState<string[]>([]);
   const [selected, setSelected] = useState<string | null>(null);
+  const [docsExpanded, setDocsExpanded] = useState(true);
   const [notepads, setNotepads] = useState<NotepadWindow[]>([]);
   const [drag, setDrag] = useState<NotepadDrag | null>(null);
   const bodyRef = useRef<HTMLDivElement | null>(null);
@@ -161,6 +279,7 @@ export function FileExplorerApp() {
   const openedRef = useRef(0);
 
   const folder = resolveFolder(path);
+  const selectedNode = folder.children.find((child) => child.name === selected) ?? null;
   const addressPath = [MY_DOCUMENTS_PATH, ...path].join("\\");
   const topNotepad = notepads.reduce<NotepadWindow | null>(
     (top, pad) => (top && top.z > pad.z ? top : pad),
@@ -180,7 +299,6 @@ export function FileExplorerApp() {
   }, []);
 
   const openFile = useCallback((file: ExplorerFile) => {
-    setSelected(null);
     playSfx("ding");
     setNotepads((current) => {
       const existing = current.find((pad) => pad.file.name === file.name);
@@ -193,12 +311,23 @@ export function FileExplorerApp() {
       const height = Math.min(NOTEPAD_DEFAULT_HEIGHT, Math.max(NOTEPAD_MIN_HEIGHT, (bounds?.height ?? 480) - 24));
       const x = Math.max(4, Math.min(28 + cascade, (bounds?.width ?? 640) - width - 4));
       const y = Math.max(4, Math.min(18 + cascade, (bounds?.height ?? 480) - height - 4));
-      return [...current, { id: ++idRef.current, file, x, y, width, height, z: ++zRef.current }];
+      return [
+        ...current,
+        { id: ++idRef.current, file, x, y, width, height, z: ++zRef.current, maximized: false },
+      ];
     });
   }, []);
 
   const closeNotepad = useCallback((id: number) => {
     setNotepads((current) => current.filter((pad) => pad.id !== id));
+  }, []);
+
+  const toggleMaximize = useCallback((id: number) => {
+    setNotepads((current) =>
+      current.map((pad) =>
+        pad.id === id ? { ...pad, maximized: !pad.maximized, z: ++zRef.current } : pad,
+      ),
+    );
   }, []);
 
   // XP semantics with a touch-friendly twist: first click selects, a second
@@ -211,32 +340,39 @@ export function FileExplorerApp() {
     [selected],
   );
 
-  const startNotepadDrag = useCallback((event: ReactPointerEvent, pad: NotepadWindow) => {
-    event.preventDefault();
-    focusNotepad(pad.id);
-    setDrag({
-      mode: "move",
-      id: pad.id,
-      startX: event.clientX,
-      startY: event.clientY,
-      originX: pad.x,
-      originY: pad.y,
-    });
-  }, [focusNotepad]);
+  const startNotepadDrag = useCallback(
+    (event: ReactPointerEvent, pad: NotepadWindow) => {
+      if (pad.maximized) return;
+      event.preventDefault();
+      focusNotepad(pad.id);
+      setDrag({
+        mode: "move",
+        id: pad.id,
+        startX: event.clientX,
+        startY: event.clientY,
+        originX: pad.x,
+        originY: pad.y,
+      });
+    },
+    [focusNotepad],
+  );
 
-  const startNotepadResize = useCallback((event: ReactPointerEvent, pad: NotepadWindow) => {
-    event.preventDefault();
-    event.stopPropagation();
-    focusNotepad(pad.id);
-    setDrag({
-      mode: "resize",
-      id: pad.id,
-      startX: event.clientX,
-      startY: event.clientY,
-      width: pad.width,
-      height: pad.height,
-    });
-  }, [focusNotepad]);
+  const startNotepadResize = useCallback(
+    (event: ReactPointerEvent, pad: NotepadWindow) => {
+      event.preventDefault();
+      event.stopPropagation();
+      focusNotepad(pad.id);
+      setDrag({
+        mode: "resize",
+        id: pad.id,
+        startX: event.clientX,
+        startY: event.clientY,
+        width: pad.width,
+        height: pad.height,
+      });
+    },
+    [focusNotepad],
+  );
 
   useEffect(() => {
     if (!drag) return;
@@ -276,7 +412,12 @@ export function FileExplorerApp() {
   const subfolders = myDocuments.children.filter((child) => child.kind === "folder");
 
   return (
-    <div className="file-explorer">
+    <div
+      className="file-explorer"
+      onKeyDown={(event) => {
+        if (event.key === "Escape" && topNotepad) closeNotepad(topNotepad.id);
+      }}
+    >
       <div className="explorer-body" ref={bodyRef}>
         <aside className="explorer-sidebar" aria-label="Folders">
           <div className="explorer-sidebar-heading">
@@ -292,29 +433,40 @@ export function FileExplorerApp() {
               type="button"
               role="treeitem"
               aria-selected={path.length === 0}
+              aria-expanded={docsExpanded}
               className={cn("explorer-tree-row is-link", path.length === 0 && "is-selected")}
               style={{ "--depth": 1 } as React.CSSProperties}
               onClick={() => navigate([])}
             >
-              <span className="explorer-tree-pm">-</span>
+              <span
+                className="explorer-tree-pm is-toggle"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  setDocsExpanded((value) => !value);
+                }}
+              >
+                {docsExpanded ? "-" : "+"}
+              </span>
               <FolderGlyph />
               <span>My Documents</span>
             </button>
-            {subfolders.map((child) => (
-              <button
-                key={child.name}
-                type="button"
-                role="treeitem"
-                aria-selected={path[0] === child.name}
-                className={cn("explorer-tree-row is-link", path[0] === child.name && "is-selected")}
-                style={{ "--depth": 2 } as React.CSSProperties}
-                onClick={() => navigate([child.name])}
-              >
-                <span className="explorer-tree-pm">+</span>
-                <FolderGlyph />
-                <span>{child.name}</span>
-              </button>
-            ))}
+            {docsExpanded
+              ? subfolders.map((child) => (
+                  <button
+                    key={child.name}
+                    type="button"
+                    role="treeitem"
+                    aria-selected={path[0] === child.name}
+                    className={cn("explorer-tree-row is-link", path[0] === child.name && "is-selected")}
+                    style={{ "--depth": 2 } as React.CSSProperties}
+                    onClick={() => navigate([child.name])}
+                  >
+                    <span className="explorer-tree-pm">+</span>
+                    <FolderGlyph />
+                    <span>{child.name}</span>
+                  </button>
+                ))
+              : null}
             <div className="explorer-tree-row" style={{ "--depth": 1 } as React.CSSProperties} aria-hidden="true">
               <span className="explorer-tree-pm">+</span>
               <ComputerGlyph />
@@ -346,6 +498,7 @@ export function FileExplorerApp() {
                   key={child.name}
                   type="button"
                   role="listitem"
+                  title={infotip(child)}
                   className={cn("explorer-item", selected === child.name && "is-selected")}
                   onClick={() => handleItemClick(child.name, () => navigate([child.name]))}
                   onDoubleClick={() => navigate([child.name])}
@@ -366,6 +519,7 @@ export function FileExplorerApp() {
                   key={child.name}
                   type="button"
                   role="listitem"
+                  title={infotip(child)}
                   className={cn("explorer-item", selected === child.name && "is-selected")}
                   onClick={() => handleItemClick(child.name, () => openFile(child))}
                   onDoubleClick={() => openFile(child)}
@@ -389,10 +543,11 @@ export function FileExplorerApp() {
         {notepads.map((pad) => (
           <NotepadPane
             key={pad.id}
-            window={pad}
+            pad={pad}
             active={topNotepad?.id === pad.id}
             onFocus={focusNotepad}
             onClose={closeNotepad}
+            onToggleMaximize={toggleMaximize}
             onDragStart={startNotepadDrag}
             onResizeStart={startNotepadResize}
           />
@@ -400,8 +555,8 @@ export function FileExplorerApp() {
       </div>
 
       <footer className="explorer-statusbar">
-        <span>{folder.children.length} objects</span>
-        <span>{folderSizeLabel(folder)}</span>
+        <span>{selectedNode ? "1 object selected" : `${folder.children.length} objects`}</span>
+        <span>{selectedNode ? sizeLabel(nodeSizeBytes(selectedNode)) : folderSizeLabel(folder)}</span>
         <span className="explorer-statusbar-path" title={addressPath}>
           <FolderGlyph />
           {addressPath}

@@ -269,13 +269,17 @@ export function resolveFolder(path: string[]): ExplorerFolder {
   return folder;
 }
 
-/** Rough on-disk size for the status bar, XP-style ("12.4 KB"). */
-export function folderSizeLabel(folder: ExplorerFolder): string {
-  let bytes = 0;
-  const walk = (node: ExplorerNode) => {
-    if (node.kind === "file") bytes += node.content.length;
-    else node.children.forEach(walk);
-  };
-  walk(folder);
+/** XP-style size label ("12.4 KB"). */
+export function sizeLabel(bytes: number): string {
   return `${(bytes / 1024).toFixed(1)} KB`;
+}
+
+/** Rough on-disk size of a node, for the status bar and infotips. */
+export function nodeSizeBytes(node: ExplorerNode): number {
+  if (node.kind === "file") return node.content.length;
+  return node.children.reduce((total, child) => total + nodeSizeBytes(child), 0);
+}
+
+export function folderSizeLabel(folder: ExplorerFolder): string {
+  return sizeLabel(nodeSizeBytes(folder));
 }
