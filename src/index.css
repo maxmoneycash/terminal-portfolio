@@ -3280,7 +3280,7 @@ span.github-repo-name {
 @media (max-width: 900px) {
   .desktop-icons {
     display: grid;
-    grid-template-columns: repeat(6, minmax(0, 1fr));
+    grid-template-columns: repeat(7, minmax(0, 1fr));
     width: 100%;
     max-width: none;
     overflow: visible;
@@ -4239,12 +4239,12 @@ span.github-repo-name {
   white-space: nowrap;
 }
 
-.explorer-statusbar-path {
+.explorer-statusbar > .explorer-statusbar-path {
   overflow: hidden;
   flex: 1 1 auto;
   justify-content: flex-end;
   min-width: 0;
-  border-right: 0 !important;
+  border-right: 0;
 }
 
 .explorer-statusbar-path svg {
@@ -4411,7 +4411,7 @@ span.github-repo-name {
     display: none;
   }
 
-  .explorer-statusbar-path {
+  .explorer-statusbar > .explorer-statusbar-path {
     display: none;
   }
 }
