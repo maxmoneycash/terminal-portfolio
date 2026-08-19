@@ -1,0 +1,281 @@
+/**
+ * Virtual filesystem behind the My Documents explorer window.
+ *
+ * Every document is generated from the same real portfolio data the rest of
+ * the shell uses (src/data/portfolio.ts) — no lorem, no mock files. Folders
+ * nest one level deep, which is all the Folders pane renders.
+ */
+import { portfolio } from "./portfolio";
+
+export type ExplorerFile = {
+  kind: "file";
+  name: string;
+  content: string;
+};
+
+export type ExplorerFolder = {
+  kind: "folder";
+  name: string;
+  children: ExplorerNode[];
+};
+
+export type ExplorerNode = ExplorerFile | ExplorerFolder;
+
+export const MY_DOCUMENTS_PATH = "C:\\Documents and Settings\\Max\\My Documents";
+
+const DIVIDER = "=".repeat(58);
+
+function slugify(value: string) {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "");
+}
+
+function textFile(name: string, lines: Array<string | undefined | null>): ExplorerFile {
+  return {
+    kind: "file",
+    name,
+    content: lines.filter((line) => line !== undefined && line !== null).join("\n"),
+  };
+}
+
+const aboutMe = textFile("about_me.txt", [
+  portfolio.name.toUpperCase(),
+  portfolio.title,
+  portfolio.location,
+  DIVIDER,
+  "",
+  portfolio.summary,
+  "",
+  "Focus areas:",
+  ...portfolio.focus.map((item) => `  * ${item}`),
+  "",
+  "The short version: I work where product, Move contracts, and",
+  "agent tooling meet. The through-line is shipping demos that feel",
+  "real enough for a technical buyer to use, test, and critique.",
+]);
+
+const currentRole = portfolio.roles[0];
+
+const now = textFile("now.txt", [
+  "WHAT I'M WORKING ON RIGHT NOW",
+  DIVIDER,
+  "",
+  `${currentRole.company} — ${currentRole.title}`,
+  currentRole.period,
+  "",
+  currentRole.impact,
+  "",
+  "Also running commits.sh — a live velocity index and dev rank",
+  "built from GitHub activity, streaming real-time token telemetry",
+  "from 8 coding agents. 67B+ tokens tracked so far. You can watch",
+  "the live feed in the Task Manager window on this desktop.",
+]);
+
+const skills = textFile("skills.txt", [
+  "SKILLS & STACK",
+  DIVIDER,
+  "",
+  "Core focus:",
+  ...portfolio.focus.map((item) => `  * ${item}`),
+  "",
+  "Languages & runtimes:",
+  "  * Move (Aptos), TypeScript, Solidity, Python",
+  "",
+  "What that looks like in practice:",
+  "  * Move contracts: markets, transaction composition, rewards",
+  "  * Trading infrastructure: TWAP + market maker strategies,",
+  "    delegation-based trading, HFT demo benchmarks",
+  "  * Agent tooling: MCP servers, simulate-first tx planning,",
+  "    JSON plans that LLM agents can execute onchain",
+  "  * Transpilers & analysis: Solidity AST -> Move v2, parser",
+  "    validation, differential fuzzing",
+]);
+
+const projectFiles: ExplorerFile[] = portfolio.projects.map((project) =>
+  textFile(`${slugify(project.name)}.txt`, [
+    project.name.toUpperCase(),
+    DIVIDER,
+    "",
+    `Stack:   ${project.stack}`,
+    project.link ? `Link:    ${project.link}` : null,
+    "",
+    project.summary,
+  ]),
+);
+
+/** Company files, deduped by appending the start year when names repeat. */
+function roleFileName(company: string, period: string, taken: Set<string>) {
+  const base = slugify(company);
+  const year = period.match(/\d{4}/)?.[0] ?? "";
+  const name = taken.has(`${base}.txt`) ? `${base}_${year}.txt` : `${base}.txt`;
+  taken.add(name);
+  return name;
+}
+
+const roleNames = new Set<string>();
+const roleFiles: ExplorerFile[] = portfolio.roles.map((role) =>
+  textFile(roleFileName(role.company, role.period, roleNames), [
+    role.company.toUpperCase(),
+    role.title,
+    role.period,
+    DIVIDER,
+    "",
+    role.impact,
+  ]),
+);
+
+const education = textFile("education.txt", [
+  "EDUCATION",
+  DIVIDER,
+  "",
+  portfolio.education.school,
+  `${portfolio.education.degree} · ${portfolio.education.period}`,
+  portfolio.education.detail,
+  "",
+  "Honors:",
+  ...portfolio.honors.map((honor) => `  * ${honor}`),
+  "",
+  "Organizations:",
+  ...portfolio.organizations.map((org) => `  * ${org}`),
+]);
+
+const volunteering = textFile("volunteering.txt", [
+  "VOLUNTEERING",
+  DIVIDER,
+  "",
+  ...portfolio.volunteering.flatMap((entry) => [
+    entry.org,
+    entry.role,
+    "",
+    entry.detail,
+  ]),
+]);
+
+const contact = textFile("contact.txt", [
+  "CONTACT",
+  DIVIDER,
+  "",
+  `Email:     ${portfolio.links.email.replace(/^mailto:/, "")}`,
+  `GitHub:    ${portfolio.links.github}`,
+  `LinkedIn:  ${portfolio.links.linkedin}`,
+  "",
+  "Email is the fastest way to reach me. Send context on the",
+  "protocol, product, or workflow you want to ship.",
+  "",
+  "(The Contact Me window on this desktop pre-fills all of this.)",
+]);
+
+const uses = textFile("uses.txt", [
+  "TOOLS I ACTUALLY USE",
+  DIVIDER,
+  "",
+  "Editor & agents:",
+  "  * Cursor + Claude for most day-to-day engineering",
+  "  * 8 coding agents wired into commits.sh token telemetry",
+  "",
+  "Engineering:",
+  "  * TypeScript, React, Vite",
+  "  * Move CLI + Aptos tooling",
+  "  * Git, Docker",
+  "",
+  "Media (for the demo reels on this site):",
+  "  * OBS for screen capture",
+  "  * DaVinci Resolve for cuts",
+  "  * Blender for the 3D scenes",
+]);
+
+const readme = textFile("README.txt", [
+  "MY DOCUMENTS — READ ME FIRST",
+  DIVIDER,
+  "",
+  "This folder is the file cabinet of the portfolio. Everything in",
+  "here is generated from the same real data as the rest of MaxXP:",
+  "the resume, the GitHub catalogue, and the live telemetry.",
+  "",
+  "  * about_me.txt ......... who I am",
+  "  * now.txt .............. what I'm working on right now",
+  "  * skills.txt ........... stack and focus areas",
+  "  * Projects\\ ............ one file per shipped project",
+  "  * Work History\\ ........ one file per role, newest first",
+  "  * contact.txt .......... how to reach me",
+  "",
+  "Double-click any file to open it in Notepad. Windows drag,",
+  "resize, and stack — just like the real thing.",
+]);
+
+const howThisSiteWasMade = textFile("how_this_site_was_made.txt", [
+  "HOW THIS SITE WAS MADE",
+  DIVIDER,
+  "",
+  "MaxXP is a faithful Windows XP desktop built with React 19,",
+  "TypeScript, and Vite. The design IS the product — the visitor's",
+  '"how was this made?" is the deliverable.',
+  "",
+  "Under the hood:",
+  "  * A real window manager: z-order, drag, 8-edge resize,",
+  "    minimize-to-taskbar genie motion via WAAPI",
+  "  * Luna chrome rebuilt from period screenshots — gradients,",
+  "    Tahoma, balloon tips, Task Manager greens",
+  "  * The Bliss wallpaper as an orientation-aware video loop",
+  "  * XP sound scheme decoded into a shared AudioContext",
+  "  * Demo reels served as HLS with poster-first loading",
+  "  * Live commit + AI-token telemetry streamed from commits.sh",
+  "",
+  "Every window is wired to real content. No lorem, no mock stats.",
+]);
+
+const drosteNote = textFile("droste.txt", [
+  "A NOTE ON RECURSION",
+  DIVIDER,
+  "",
+  "You are reading a text file",
+  "  inside a Notepad window",
+  "    inside an Explorer window",
+  "      inside a Windows XP desktop",
+  "        inside a browser tab.",
+  "",
+  "Almost caused a Droste effect :D",
+]);
+
+export const myDocuments: ExplorerFolder = {
+  kind: "folder",
+  name: "My Documents",
+  children: [
+    { kind: "folder", name: "Projects", children: projectFiles },
+    { kind: "folder", name: "Work History", children: [...roleFiles, education, volunteering] },
+    readme,
+    aboutMe,
+    now,
+    skills,
+    uses,
+    howThisSiteWasMade,
+    contact,
+    drosteNote,
+  ],
+};
+
+/** Resolve a path of folder names (relative to My Documents) to its folder. */
+export function resolveFolder(path: string[]): ExplorerFolder {
+  let folder = myDocuments;
+  for (const segment of path) {
+    const next = folder.children.find(
+      (child): child is ExplorerFolder => child.kind === "folder" && child.name === segment,
+    );
+    if (!next) return folder;
+    folder = next;
+  }
+  return folder;
+}
+
+/** Rough on-disk size for the status bar, XP-style ("12.4 KB"). */
+export function folderSizeLabel(folder: ExplorerFolder): string {
+  let bytes = 0;
+  const walk = (node: ExplorerNode) => {
+    if (node.kind === "file") bytes += node.content.length;
+    else node.children.forEach(walk);
+  };
+  walk(folder);
+  return `${(bytes / 1024).toFixed(1)} KB`;
+}

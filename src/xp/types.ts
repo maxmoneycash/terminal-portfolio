@@ -10,6 +10,7 @@ export const xp = "/xp";
 export type AppId =
   | "signature"
   | "about"
+  | "files"
   | "resume"
   | "projects"
   | "demos"
@@ -55,6 +56,14 @@ export const appCatalog: Record<AppId, AppCatalogEntry> = {
     status: "Learn more about Max",
     dimensions: { width: 790, height: 650, minWidth: 440, minHeight: 390 },
   },
+  files: {
+    title: "My Documents",
+    shortTitle: "My Documents",
+    icon: `${xp}/gui/toolbar/folder.webp`,
+    desktopLabel: "My Documents",
+    status: "Every file is real portfolio data — double-click to open in Notepad",
+    dimensions: { width: 840, height: 620, minWidth: 480, minHeight: 380 },
+  },
   resume: {
     title: "My Resume",
     shortTitle: "My Resume",
@@ -98,7 +107,7 @@ export const appCatalog: Record<AppId, AppCatalogEntry> = {
 };
 
 /** Icons shown on the desktop, top-to-bottom. */
-export const desktopApps: AppId[] = ["about", "resume", "projects", "demos", "stats", "contact"];
+export const desktopApps: AppId[] = ["about", "files", "resume", "projects", "demos", "stats", "contact"];
 
 export function externalLabel(url?: string) {
   if (!url) return "";
