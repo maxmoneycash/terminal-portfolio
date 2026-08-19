@@ -29,7 +29,7 @@ export type PortfolioVideo = {
 export const portfolio = {
   name: "Maxwell Mohammadi",
   handle: "max",
-  title: "Smart contract engineer",
+  title: "Product engineer",
   location: "Palo Alto / San Francisco Bay Area",
   summary:
     "I build Aptos Move systems, onchain trading products, LLM agent infrastructure, and high-throughput crypto demos for teams evaluating the Aptos stack.",

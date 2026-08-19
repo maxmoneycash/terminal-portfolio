@@ -61,7 +61,7 @@ export const appCatalog: Record<AppId, AppCatalogEntry> = {
     shortTitle: "My Documents",
     icon: `${xp}/gui/toolbar/folder.webp`,
     desktopLabel: "My Documents",
-    status: "Every file is real portfolio data — double-click to open in Notepad",
+    status: "Every file is real portfolio data — click a file to open it in Notepad",
     dimensions: { width: 840, height: 620, minWidth: 480, minHeight: 380 },
   },
   resume: {

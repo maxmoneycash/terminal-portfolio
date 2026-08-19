@@ -1,7 +1,7 @@
 /**
  * My Documents — an XP Explorer view over the portfolio's virtual filesystem
  * (src/data/files.ts). Folders pane on the left, icon grid on the right, and
- * double-clicked files open in draggable, resizable Notepad child windows
+ * a single click opens files in draggable, resizable Notepad child windows
  * stacked inside the explorer body, cascade-offset like the real thing.
  *
  * The Notepads are alive, not decorative: working File/Edit/Format menus,
@@ -330,15 +330,6 @@ export function FileExplorerApp() {
     );
   }, []);
 
-  // XP semantics with a touch-friendly twist: first click selects, a second
-  // click (or a double click, or Enter) on the selected item opens it.
-  const handleItemClick = useCallback(
-    (name: string, open: () => void) => {
-      if (selected === name) open();
-      else setSelected(name);
-    },
-    [selected],
-  );
 
   const startNotepadDrag = useCallback(
     (event: ReactPointerEvent, pad: NotepadWindow) => {
@@ -491,52 +482,33 @@ export function FileExplorerApp() {
             if (!(event.target as Element).closest(".explorer-item")) setSelected(null);
           }}
         >
+          {/* XP "web view" single-click semantics: point to select, click to open. */}
           <div className="explorer-grid" role="list" aria-label={folder.name}>
-            {folder.children.map((child) =>
-              child.kind === "folder" ? (
+            {folder.children.map((child) => {
+              const open = child.kind === "folder" ? () => navigate([child.name]) : () => openFile(child);
+              return (
                 <button
                   key={child.name}
                   type="button"
                   role="listitem"
                   title={infotip(child)}
                   className={cn("explorer-item", selected === child.name && "is-selected")}
-                  onClick={() => handleItemClick(child.name, () => navigate([child.name]))}
-                  onDoubleClick={() => navigate([child.name])}
+                  onPointerEnter={() => setSelected(child.name)}
+                  onClick={open}
                   onKeyDown={(event) => {
                     if (event.key === "Enter") {
                       event.preventDefault();
-                      navigate([child.name]);
+                      open();
                     }
                   }}
                 >
-                  <span className="explorer-item-icon is-folder">
-                    <FolderGlyph />
+                  <span className={cn("explorer-item-icon", child.kind === "folder" && "is-folder")}>
+                    {child.kind === "folder" ? <FolderGlyph /> : <TextFileGlyph />}
                   </span>
                   <span className="explorer-item-name">{child.name}</span>
                 </button>
-              ) : (
-                <button
-                  key={child.name}
-                  type="button"
-                  role="listitem"
-                  title={infotip(child)}
-                  className={cn("explorer-item", selected === child.name && "is-selected")}
-                  onClick={() => handleItemClick(child.name, () => openFile(child))}
-                  onDoubleClick={() => openFile(child)}
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter") {
-                      event.preventDefault();
-                      openFile(child);
-                    }
-                  }}
-                >
-                  <span className="explorer-item-icon">
-                    <TextFileGlyph />
-                  </span>
-                  <span className="explorer-item-name">{child.name}</span>
-                </button>
-              ),
-            )}
+              );
+            })}
           </div>
         </div>
 

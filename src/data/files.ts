@@ -201,8 +201,8 @@ const readme = textFile("README.txt", [
   "  * Work History\\ ........ one file per role, newest first",
   "  * contact.txt .......... how to reach me",
   "",
-  "Double-click any file to open it in Notepad. Windows drag,",
-  "resize, and stack — just like the real thing.",
+  "Click any file to open it in Notepad. Windows drag, resize,",
+  "and stack — just like the real thing.",
 ]);
 
 const howThisSiteWasMade = textFile("how_this_site_was_made.txt", [

@@ -130,7 +130,7 @@ function buildPages(): BookletPage[] {
     {
       eyebrow: "portfolio booklet",
       title: "Maxwell Mohammadi",
-      body: "Smart contract engineer building Aptos Move systems, LLM agent tooling, and onchain trading products.",
+      body: "Product engineer building Aptos Move systems, LLM agent tooling, and onchain trading products.",
       items: ["Palo Alto / San Francisco Bay Area", "Aptos Labs", "Move, MCP, trading systems"],
       footer: "Click the book to flip.",
       dark: true,
