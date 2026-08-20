@@ -2010,34 +2010,77 @@ span.github-repo-name {
     0 -1px 0 #0032a4;
 }
 
+/* The Luna start button, rebuilt in CSS so it stays crisp at any DPI:
+   green pill flush to the screen edge, glossy sheen, rounded right cap
+   with a shaded rim, and a real pressed state. */
 .start-button {
-  display: grid;
-  place-items: center;
+  display: flex;
+  align-items: center;
+  gap: 6px;
   align-self: stretch;
-  width: 96px;
-  background: transparent;
-  padding: 0;
+  margin-right: 8px;
+  border-radius: 0 15px 15px 0;
+  background:
+    radial-gradient(130% 220% at 20% -70%, rgb(255 255 255 / 0.45), rgb(255 255 255 / 0) 55%),
+    linear-gradient(
+      180deg,
+      #6cbb60 0%,
+      #48a63f 12%,
+      #359a30 45%,
+      #2c9027 55%,
+      #217e1e 88%,
+      #186c16 100%
+    );
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.4),
+    inset 0 -1px 1px rgb(0 40 0 / 0.5),
+    inset -3px 0 4px rgb(0 40 0 / 0.3),
+    2px 0 3px rgb(2 16 55 / 0.45);
+  padding: 0 20px 0 9px;
   cursor: pointer;
   transform-origin: left center;
 }
 
-.start-button img {
-  width: 91px;
-  height: 30px;
-  object-fit: contain;
+.start-button-flag {
+  width: 22px;
+  height: 22px;
+  filter: drop-shadow(1px 1px 1px rgb(0 0 0 / 0.45));
+}
+
+.start-button-label {
+  color: #fff;
+  font-family: "Trebuchet MS", "Tahoma XP", Tahoma, sans-serif;
+  font-size: 17px;
+  font-style: italic;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  line-height: 1;
+  text-shadow: 1px 1px 1px rgb(0 0 0 / 0.55);
+  padding-bottom: 2px;
+}
+
+.start-button:focus-visible {
+  outline: 1px dotted rgb(255 255 255 / 0.85);
+  outline-offset: -4px;
 }
 
 .start-button.is-active {
-  filter: brightness(0.82);
+  background:
+    radial-gradient(130% 220% at 20% -70%, rgb(255 255 255 / 0.18), rgb(255 255 255 / 0) 55%),
+    linear-gradient(180deg, #2f8a2b 0%, #257b21 40%, #1c6b1a 100%);
+  box-shadow:
+    inset 0 2px 4px rgb(0 30 0 / 0.55),
+    inset -2px 0 3px rgb(0 30 0 / 0.4),
+    2px 0 3px rgb(2 16 55 / 0.45);
 }
 
 @media (hover: hover) and (pointer: fine) {
   .start-button:hover {
-    filter: brightness(1.08) saturate(1.06);
+    filter: brightness(1.07) saturate(1.05);
   }
 
   .start-button.is-active:hover {
-    filter: brightness(0.86);
+    filter: brightness(0.95);
   }
 }
 

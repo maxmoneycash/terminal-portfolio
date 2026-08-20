@@ -89,7 +89,13 @@ export function Taskbar({
             onToggleStart();
           }}
         >
-          <img src={`${xp}/gui/taskbar/start-button.webp`} alt="Start" />
+          <img
+            className="start-button-flag"
+            src={`${xp}/gui/system/windows-flag.webp`}
+            alt=""
+            draggable={false}
+          />
+          <span className="start-button-label">start</span>
         </button>
 
         <div className="taskbar-programs">
