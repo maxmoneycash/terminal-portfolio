@@ -63,8 +63,11 @@
   --z-start: 1000;
   --z-taskbar: 1200;
   --font-ui: "Tahoma XP", Tahoma, Verdana, sans-serif;
-  --xp-cursor-arrow: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2232%22%20height%3D%2232%22%20viewBox%3D%220%200%2032%2032%22%20shape-rendering%3D%22crispEdges%22%3E%3Cpath%20d%3D%22M0%2C0%20L0%2C22%20L6%2C16%20L10%2C24%20L14%2C22%20L10%2C14%20L18%2C14%20Z%22%20fill%3D%22white%22%20stroke%3D%22black%22%20stroke-width%3D%221%22%2F%3E%3C%2Fsvg%3E") 2 2;
-  --xp-cursor-hand: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2232%22%20height%3D%2232%22%20viewBox%3D%220%200%2032%2032%22%20shape-rendering%3D%22crispEdges%22%3E%3Cpath%20d%3D%22M10%2C0%20L10%2C8%20L4%2C8%20L4%2C12%20L6%2C12%20L6%2C10%20L8%2C10%20L8%2C8%20L12%2C8%20L12%2C6%20L14%2C6%20L14%2C10%20L16%2C10%20L16%2C6%20L18%2C6%20L18%2C10%20L20%2C10%20L20%2C8%20L22%2C8%20L22%2C14%20L24%2C14%20L24%2C12%20L26%2C12%20L26%2C20%20L24%2C24%20L18%2C28%20L8%2C28%20L4%2C22%20L4%2C16%20L6%2C16%20L6%2C14%20L10%2C14%20Z%22%20fill%3D%22white%22%20stroke%3D%22black%22%20stroke-width%3D%220.5%22%2F%3E%3C%2Fsvg%3E") 10 1;
+  /* Authentic Windows XP classic-scheme cursors (.cur carries its own
+     hotspot); PNG fallback with explicit hotspot for browsers without
+     .cur support (Safari), then the native keyword. */
+  --xp-cursor-arrow: url("/xp/gui/cursors/arrow.cur"), url("/xp/gui/cursors/arrow.png") 0 0;
+  --xp-cursor-hand: url("/xp/gui/cursors/hand.cur"), url("/xp/gui/cursors/hand.png") 12 6;
   font-family: var(--font-ui);
 }
 
