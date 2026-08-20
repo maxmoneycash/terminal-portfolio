@@ -8,6 +8,7 @@ import { useCallback, useEffect, useState, type MouseEvent as ReactMouseEvent } 
 import { cn } from "../lib/cn";
 import { appCatalog, desktopApps, type AppId } from "./types";
 import { playSfx } from "./audio";
+import { isRecycleBinEmpty, recycleBinIcon, subscribeRecycleBin } from "../data/recycle";
 import {
   getWallpaperMotion,
   setWallpaperMotion,
@@ -30,6 +31,9 @@ export function DesktopIcons({
 }) {
   const [selected, setSelected] = useState<AppId | null>(null);
   const [menu, setMenu] = useState<ContextMenu | null>(null);
+  const [binEmpty, setBinEmpty] = useState(isRecycleBinEmpty);
+
+  useEffect(() => subscribeRecycleBin(setBinEmpty), []);
   const [wallpaperAnimated, setWallpaperAnimated] = useState(() =>
     shouldAnimateWallpaper(getWallpaperMotion()),
   );
@@ -95,7 +99,11 @@ export function DesktopIcons({
               }
             }}
           >
-            <img src={appCatalog[id].icon} alt="" draggable={false} />
+            <img
+              src={id === "recycle" ? recycleBinIcon(binEmpty) : appCatalog[id].icon}
+              alt=""
+              draggable={false}
+            />
             <span>{appCatalog[id].desktopLabel}</span>
           </button>
         ))}
@@ -153,7 +161,7 @@ export function DesktopIcons({
             type="button"
             role="menuitem"
             onClick={() => {
-              open("stats");
+              open("display");
               setMenu(null);
             }}
           >

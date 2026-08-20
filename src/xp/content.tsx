@@ -18,6 +18,8 @@ import { xp, type AppId, type WindowRecord } from "./types";
 import { SignatureNoteApp } from "../components/SignatureNoteApp";
 import { FileExplorerApp } from "../components/FileExplorerApp";
 import { MinesweeperApp } from "../components/MinesweeperApp";
+import { RecycleBinApp } from "../components/RecycleBinApp";
+import { DisplayPropertiesApp } from "../components/DisplayPropertiesApp";
 import { ReelsApp } from "../components/ReelsApp";
 import { StatsApp } from "../components/StatsApp";
 
@@ -590,5 +592,9 @@ export function WindowContent({
       return <StatsApp />;
     case "minesweeper":
       return <MinesweeperApp />;
+    case "recycle":
+      return <RecycleBinApp />;
+    case "display":
+      return <DisplayPropertiesApp />;
   }
 }

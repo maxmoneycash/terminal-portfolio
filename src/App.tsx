@@ -8,6 +8,8 @@ import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPoi
 import { cn } from "./lib/cn";
 import { appCatalog, type AppId, type WindowRecord } from "./xp/types";
 import { playSfx, bindAudioUnlockGestures } from "./xp/audio";
+import { getCrtEnabled, subscribeCrt, toggleCrtEnabled } from "./xp/crtStore";
+import { ScreenSaverOverlay } from "./components/ScreenSaver";
 import { BootScreens, useBootFlow } from "./xp/BootScreens";
 import { CrtOverlay } from "./xp/CrtOverlay";
 import { DesktopIcons } from "./xp/DesktopIcons";
@@ -53,7 +55,8 @@ function App() {
   const [windows, setWindows] = useState<WindowRecord[]>(() => [createSignatureWindow()]);
   const [activeWindow, setActiveWindow] = useState<AppId | null>("signature");
   const [startOpen, setStartOpen] = useState(false);
-  const [crtEnabled, setCrtEnabled] = useState(true);
+  // Mirrors the CRT store so Display Properties and the shell stay in sync.
+  const [crtEnabled, setCrtEnabledState] = useState(getCrtEnabled);
   const [balloonVisible, setBalloonVisible] = useState(false);
   const [drag, setDrag] = useState<DragState | null>(null);
   // Focus history powers the toolbar's Back/Forward, like a browser's session
@@ -66,6 +69,8 @@ function App() {
   useEffect(() => {
     bindAudioUnlockGestures();
   }, []);
+
+  useEffect(() => subscribeCrt(setCrtEnabledState), []);
 
   /* ------------------------------------------------------------------ */
   /* Boot flow                                                           */
@@ -167,6 +172,16 @@ function App() {
     setWindows((current) => current.filter((record) => record.id !== id));
     setStartOpen(false);
   }, []);
+
+  // Dialog-style apps (Display Properties' OK button) close themselves.
+  useEffect(() => {
+    const handleClose = (event: Event) => {
+      const id = (event as CustomEvent<{ id: AppId }>).detail?.id;
+      if (id) closeWindow(id);
+    };
+    window.addEventListener("maxxp:close-window", handleClose);
+    return () => window.removeEventListener("maxxp:close-window", handleClose);
+  }, [closeWindow]);
 
   const minimizeWindow = useCallback((id: AppId) => {
     setWindows((current) =>
@@ -357,7 +372,7 @@ function App() {
         <DesktopIcons
           openApp={openApp}
           crtEnabled={crtEnabled}
-          onToggleCrt={() => setCrtEnabled((value) => !value)}
+          onToggleCrt={toggleCrtEnabled}
           onShowDesktop={showDesktop}
         />
 
@@ -372,7 +387,7 @@ function App() {
                   record={record}
                   active={activeWindow === record.id}
                   crtEnabled={crtEnabled}
-                  onToggleCrt={() => setCrtEnabled((value) => !value)}
+                  onToggleCrt={toggleCrtEnabled}
                   onFocus={focusWindow}
                   onClose={closeWindow}
                   onMinimize={minimizeWindow}
@@ -405,7 +420,7 @@ function App() {
           startOpen={startOpen}
           onToggleStart={() => setStartOpen((value) => !value)}
           crtEnabled={crtEnabled}
-          onToggleCrt={() => setCrtEnabled((value) => !value)}
+          onToggleCrt={toggleCrtEnabled}
           openApp={openApp}
           balloonVisible={balloonVisible && desktopVisible}
           onBalloonClose={() => setBalloonVisible(false)}
@@ -414,6 +429,7 @@ function App() {
 
       <BootScreens flow={flow} />
       <CrtOverlay enabled={crtEnabled} />
+      <ScreenSaverOverlay desktopVisible={desktopVisible} />
     </>
   );
 }
