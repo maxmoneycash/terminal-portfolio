@@ -4414,6 +4414,252 @@ span.github-repo-name {
   cursor: nwse-resize;
 }
 
+/* ------------------------------------------------------------------ */
+/* Minesweeper: classic silver bevels inside a Luna window             */
+/* ------------------------------------------------------------------ */
+
+.xp-window.is-game {
+  grid-template-rows: 29px minmax(0, 1fr) 24px;
+}
+
+.minesweeper-app {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  background: #c0c0c0;
+}
+
+.minesweeper-app .window-menu {
+  background: var(--xp-panel);
+}
+
+.mine-scroll {
+  display: grid;
+  place-items: center;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  padding: 12px;
+}
+
+.mine-frame {
+  display: grid;
+  gap: 8px;
+  width: max-content;
+  border: 3px solid;
+  border-color: #fff #7b7b7b #7b7b7b #fff;
+  background: #c0c0c0;
+  padding: 8px;
+}
+
+.mine-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  border: 2px solid;
+  border-color: #7b7b7b #fff #fff #7b7b7b;
+  padding: 4px 5px;
+}
+
+.mine-led {
+  display: inline-flex;
+  border: 1px solid;
+  border-color: #7b7b7b #fff #fff #7b7b7b;
+  background: #000;
+  padding: 1px;
+}
+
+.mine-led svg {
+  display: block;
+  width: 14px;
+  height: 24px;
+}
+
+.mine-face {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 2px solid;
+  border-color: #fff #7b7b7b #7b7b7b #fff;
+  background: #c0c0c0;
+  padding: 0;
+}
+
+.mine-face:active {
+  border-color: #7b7b7b #fff #fff #7b7b7b;
+}
+
+.mine-face svg {
+  width: 24px;
+  height: 24px;
+}
+
+.mine-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--mine-cols, 9), 18px);
+  width: max-content;
+  border: 3px solid;
+  border-color: #7b7b7b #fff #fff #7b7b7b;
+}
+
+.mine-cell {
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  width: 18px;
+  height: 18px;
+  border: 2px solid;
+  border-color: #fff #7b7b7b #7b7b7b #fff;
+  background: #c0c0c0;
+  color: #000;
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  padding: 0;
+}
+
+.mine-cell:not(.is-revealed):active {
+  border-width: 1px;
+  border-color: #a9a9a9;
+}
+
+.mine-cell.is-revealed {
+  border-width: 1px 0 0 1px;
+  border-color: #a9a9a9;
+}
+
+.mine-cell svg {
+  width: 13px;
+  height: 13px;
+}
+
+.mine-cell.is-detonated {
+  background: #ff0000;
+}
+
+.mine-cell.is-wrong-flag,
+.mine-wrong {
+  color: #c00000;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.mine-cell.is-1 { color: #0000ff; }
+.mine-cell.is-2 { color: #008000; }
+.mine-cell.is-3 { color: #ff0000; }
+.mine-cell.is-4 { color: #000080; }
+.mine-cell.is-5 { color: #800000; }
+.mine-cell.is-6 { color: #008080; }
+.mine-cell.is-7 { color: #000000; }
+.mine-cell.is-8 { color: #7b7b7b; }
+
+.mine-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 11px;
+}
+
+.mine-flag-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.mine-flag-toggle svg {
+  width: 12px;
+  height: 12px;
+}
+
+.mine-flag-toggle.is-on {
+  background: #ffe9a2;
+  box-shadow: inset 1px 1px 2px rgb(0 0 0 / 0.25);
+}
+
+.mine-hint {
+  color: #3d3d3d;
+}
+
+.mine-best {
+  position: absolute;
+  z-index: 20;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: grid;
+  gap: 10px;
+  min-width: 210px;
+  border: 2px solid #0754d6;
+  border-radius: 4px;
+  background: var(--xp-panel);
+  box-shadow: 4px 6px 18px rgb(0 24 73 / 0.35);
+  padding: 12px 14px;
+}
+
+.mine-best table {
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.mine-best td {
+  border-bottom: 1px solid var(--xp-divider);
+  padding: 4px 12px 4px 0;
+}
+
+.mine-best .xp-control {
+  justify-self: end;
+}
+
+/* ------------------------------------------------------------------ */
+/* Start menu: All Programs flyout                                     */
+/* ------------------------------------------------------------------ */
+
+.start-all-programs.is-open {
+  background: #316ac5;
+  color: #fff;
+}
+
+.start-all-programs.is-open polygon:first-child {
+  fill: #fff;
+  stroke: #fff;
+}
+
+.start-programs-flyout {
+  position: absolute;
+  z-index: 6;
+  right: 8px;
+  bottom: 48px;
+  display: flex;
+  flex-direction: column;
+  width: 218px;
+  max-height: 320px;
+  overflow: auto;
+  border: 1px solid #7a99df;
+  background: #fff;
+  box-shadow: 4px 6px 16px rgb(0 24 73 / 0.32);
+  padding: 4px 0;
+}
+
+.start-programs-flyout img {
+  width: 22px;
+  height: 22px;
+}
+
+.start-programs-group {
+  color: var(--xp-muted);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  padding: 4px 10px 2px;
+}
+
 /* Narrow windows: the Folders pane folds into a horizontal strip so the
    grid keeps full width and folders stay one tap away. */
 @media (max-width: 620px) {

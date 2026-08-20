@@ -17,6 +17,7 @@ import { cn } from "../lib/cn";
 import { xp, type AppId, type WindowRecord } from "./types";
 import { SignatureNoteApp } from "../components/SignatureNoteApp";
 import { FileExplorerApp } from "../components/FileExplorerApp";
+import { MinesweeperApp } from "../components/MinesweeperApp";
 import { ReelsApp } from "../components/ReelsApp";
 import { StatsApp } from "../components/StatsApp";
 
@@ -587,5 +588,7 @@ export function WindowContent({
       return <ContactApp />;
     case "stats":
       return <StatsApp />;
+    case "minesweeper":
+      return <MinesweeperApp />;
   }
 }

@@ -3,7 +3,8 @@
  * bar, and the Log Off / Shut Down footer. Stays mounted while closed so the
  * open/close transition can run from CSS.
  */
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { cn } from "../lib/cn";
 import { portfolio } from "../data/portfolio";
 import { appCatalog, xp, type AppId } from "./types";
 import { playSfx } from "./audio";
@@ -13,7 +14,18 @@ const PINNED: { id: AppId; caption: string }[] = [
   { id: "demos", caption: "Video showcase" },
 ];
 
-const RECENT: AppId[] = ["signature", "about", "resume", "stats", "contact"];
+const RECENT: AppId[] = ["signature", "about", "resume", "stats", "minesweeper", "contact"];
+
+/** Real tools from uses.txt; icons ship with the XP asset set. */
+const DAILY_TOOLS: { name: string; icon: string; href: string }[] = [
+  { name: "Cursor", icon: "cursor", href: "https://cursor.com" },
+  { name: "Claude", icon: "claude", href: "https://claude.ai" },
+  { name: "Git", icon: "git", href: "https://git-scm.com" },
+  { name: "Docker", icon: "docker", href: "https://www.docker.com" },
+  { name: "Blender", icon: "blender", href: "https://www.blender.org" },
+  { name: "DaVinci Resolve", icon: "davinci", href: "https://www.blackmagicdesign.com/products/davinciresolve" },
+  { name: "OBS Studio", icon: "obs", href: "https://obsproject.com" },
+];
 
 export function StartMenu({
   open,
@@ -29,6 +41,12 @@ export function StartMenu({
   onShutDown: () => void;
 }) {
   const menuRef = useRef<HTMLElement | null>(null);
+  const [programsOpen, setProgramsOpen] = useState(false);
+
+  // The flyout never outlives the menu.
+  useEffect(() => {
+    if (!open) setProgramsOpen(false);
+  }, [open]);
 
   // Dismiss on outside click or Escape, returning focus to the start button.
   useEffect(() => {
@@ -93,13 +111,50 @@ export function StartMenu({
             </button>
           ))}
 
-          <div className="start-all-programs" aria-hidden="true">
+          <button
+            type="button"
+            className={cn("start-all-programs", programsOpen && "is-open")}
+            aria-haspopup="menu"
+            aria-expanded={programsOpen}
+            onClick={() => {
+              playSfx("menu");
+              setProgramsOpen((value) => !value);
+            }}
+          >
             <strong>All Programs</strong>
-            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
               <polygon points="3,1 15,9 3,17" fill="#38aa38" stroke="#228822" strokeWidth="0.5" />
               <polygon points="5,4 12,9 5,14" fill="none" stroke="rgba(255,255,255,0.35)" strokeWidth="0.8" />
             </svg>
-          </div>
+          </button>
+
+          {programsOpen ? (
+            <div className="start-programs-flyout" role="menu" aria-label="All Programs">
+              <div className="start-programs-group" aria-hidden="true">
+                Games
+              </div>
+              <button type="button" role="menuitem" onClick={() => launch("minesweeper")}>
+                <img src={appCatalog.minesweeper.icon} alt="" />
+                Minesweeper
+              </button>
+              <div className="start-sep" aria-hidden="true" />
+              <div className="start-programs-group" aria-hidden="true">
+                Tools I use daily
+              </div>
+              {DAILY_TOOLS.map((tool) => (
+                <a
+                  key={tool.name}
+                  role="menuitem"
+                  href={tool.href}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  <img src={`${xp}/gui/start-menu/vanity-apps/${tool.icon}.webp`} alt="" />
+                  {tool.name}
+                </a>
+              ))}
+            </div>
+          ) : null}
         </div>
 
         <div className="start-menu-right">
