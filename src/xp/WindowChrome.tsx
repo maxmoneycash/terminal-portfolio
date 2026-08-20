@@ -81,6 +81,9 @@ export function WindowChrome({
 }) {
   const app = appCatalog[record.id];
   const isNotepad = record.id === "signature";
+  // Minesweeper renders its own Game menu and, like the real one, has no
+  // browser chrome.
+  const isGame = record.id === "minesweeper";
   const sectionRef = useRef<HTMLElement | null>(null);
   const exitAnimationRef = useRef<Animation | null>(null);
   const layoutAnimationRef = useRef<Animation | null>(null);
@@ -316,6 +319,7 @@ export function WindowChrome({
       className={cn(
         "xp-window",
         isNotepad && "is-notepad",
+        isGame && "is-game",
         active && "is-active",
         record.maximized && "is-maximized",
         record.minimized && "is-minimized",
@@ -360,9 +364,9 @@ export function WindowChrome({
         </div>
       </header>
 
-      <MenuBar menus={menus} ariaLabel={`${app.title} menu`} />
+      {!isGame ? <MenuBar menus={menus} ariaLabel={`${app.title} menu`} /> : null}
 
-      {!isNotepad ? (
+      {!isNotepad && !isGame ? (
         <>
           <div className="window-toolbar">
             <button

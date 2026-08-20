@@ -15,7 +15,8 @@ export type AppId =
   | "projects"
   | "demos"
   | "contact"
-  | "stats";
+  | "stats"
+  | "minesweeper";
 
 export type BootPhase = "boot" | "login" | "welcome" | "desktop";
 
@@ -103,6 +104,14 @@ export const appCatalog: Record<AppId, AppCatalogEntry> = {
     desktopLabel: "Dev Stats",
     status: "Live commit velocity and AI burn via commits.sh",
     dimensions: { width: 680, height: 780, minWidth: 470, minHeight: 430 },
+  },
+  minesweeper: {
+    title: "Minesweeper",
+    shortTitle: "Minesweeper",
+    icon: `${xp}/gui/start-menu/minesweeper.svg`,
+    desktopLabel: "Minesweeper",
+    status: "Left-click reveals · right-click flags · the first click is always safe",
+    dimensions: { width: 330, height: 430, minWidth: 300, minHeight: 360 },
   },
 };
 
