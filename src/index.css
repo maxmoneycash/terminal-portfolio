@@ -4265,6 +4265,50 @@ span.github-repo-name {
   padding: 3px;
 }
 
+.explorer-item-icon {
+  position: relative;
+}
+
+.explorer-item-icon > img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* Real thumbnails for pictures and videos, like XP's My Pictures view. */
+.explorer-item-icon.is-thumb {
+  width: 64px;
+  height: 48px;
+  overflow: hidden;
+  border: 1px solid #b8b6a4;
+  background: #fff;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.18);
+  padding: 2px;
+}
+
+.explorer-item-icon.is-thumb > img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.explorer-thumb-play {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 18px;
+  height: 18px;
+  transform: translate(-50%, -50%);
+}
+
+.explorer-shortcut-arrow {
+  position: absolute;
+  bottom: 1px;
+  left: 1px;
+  width: 12px;
+  height: 12px;
+}
+
 .explorer-item-name {
   font-size: 11px;
   line-height: 1.25;
@@ -4351,6 +4395,70 @@ span.github-repo-name {
 .explorer-notepad .window-menu {
   font-size: 11px;
   padding: 0 4px;
+}
+
+/* Media/PDF viewers have no menu row. */
+.explorer-notepad.is-no-menu {
+  grid-template-rows: 24px minmax(0, 1fr) auto;
+}
+
+.viewer-image-stage,
+.viewer-video-stage {
+  display: grid;
+  place-items: center;
+  min-height: 0;
+  overflow: hidden;
+  background: #1a1a1a;
+}
+
+.viewer-image-stage img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  background: #fff;
+}
+
+.viewer-video-stage video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #000;
+}
+
+.viewer-media-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  border-top: 1px solid var(--xp-bevel-dark);
+  background: var(--xp-panel);
+  font-size: 11px;
+  padding: 4px 8px;
+}
+
+.viewer-media-toolbar .xp-control {
+  min-width: 34px;
+}
+
+.viewer-media-caption {
+  overflow: hidden;
+  min-width: 0;
+  color: #545454;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.viewer-pdf-frame {
+  min-height: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: #7d7d7d;
+}
+
+.explorer-notepad-status a {
+  color: var(--xp-link);
+  text-decoration: underline;
 }
 
 .explorer-notepad-titlebar {
