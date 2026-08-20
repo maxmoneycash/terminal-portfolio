@@ -16,6 +16,7 @@ import githubProjects from "../data/github-projects.json";
 import { cn } from "../lib/cn";
 import { xp, type AppId, type WindowRecord } from "./types";
 import { SignatureNoteApp } from "../components/SignatureNoteApp";
+import { FileExplorerApp } from "../components/FileExplorerApp";
 import { ReelsApp } from "../components/ReelsApp";
 import { StatsApp } from "../components/StatsApp";
 
@@ -574,6 +575,8 @@ export function WindowContent({
       return <SignatureNoteApp onContinue={() => openApp("about")} />;
     case "about":
       return <AboutApp openApp={openApp} />;
+    case "files":
+      return <FileExplorerApp />;
     case "resume":
       return <ResumeApp />;
     case "projects":

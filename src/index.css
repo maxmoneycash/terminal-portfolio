@@ -3280,7 +3280,7 @@ span.github-repo-name {
 @media (max-width: 900px) {
   .desktop-icons {
     display: grid;
-    grid-template-columns: repeat(6, minmax(0, 1fr));
+    grid-template-columns: repeat(7, minmax(0, 1fr));
     width: 100%;
     max-width: none;
     overflow: visible;
@@ -4054,6 +4054,397 @@ span.github-repo-name {
   }
 
   .address-bar .address-go span {
+    display: none;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* My Documents explorer: Folders pane, icon grid, Notepad child       */
+/* windows, and the inner status bar                                   */
+/* ------------------------------------------------------------------ */
+
+.file-explorer {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  height: 100%;
+  min-height: 0;
+  border: 1px solid #9aa6bd;
+  background: var(--xp-window-surface);
+}
+
+.explorer-body {
+  position: relative;
+  display: grid;
+  grid-template-columns: 188px minmax(0, 1fr);
+  min-height: 0;
+  overflow: hidden;
+}
+
+.explorer-sidebar {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: auto;
+  border-right: 1px solid var(--xp-bevel-dark);
+  background: var(--xp-window-surface);
+}
+
+.explorer-sidebar-heading {
+  position: sticky;
+  top: 0;
+  border-bottom: 1px solid var(--xp-divider);
+  background: var(--xp-panel);
+  font-weight: 700;
+  padding: 4px 8px;
+}
+
+.explorer-tree {
+  display: grid;
+  align-content: start;
+  padding: 6px 4px;
+  line-height: 20px;
+}
+
+.explorer-tree-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0 2px 0 calc(var(--depth, 0) * 14px + 2px);
+  border-radius: 2px;
+  background: transparent;
+  color: var(--xp-text);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.explorer-tree-row svg {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+}
+
+.explorer-tree-row span:last-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 1px 3px;
+  border-radius: 2px;
+}
+
+.explorer-tree-row.is-link:hover span:last-child,
+.explorer-tree-row.is-link:focus-visible span:last-child {
+  color: var(--xp-link);
+  text-decoration: underline;
+}
+
+.explorer-tree-row.is-link:focus-visible {
+  outline: 1px dotted #316ac5;
+}
+
+.explorer-tree-row.is-selected span:last-child {
+  background: #316ac5;
+  color: #fff;
+}
+
+.explorer-tree-pm {
+  width: 9px;
+  height: 9px;
+  flex: 0 0 auto;
+  border: 1px solid var(--xp-field-border);
+  background: #fff;
+  color: var(--xp-text);
+  font-size: 8px;
+  line-height: 7px;
+  text-align: center;
+}
+
+.explorer-tree-pm.is-toggle:hover {
+  border-color: #316ac5;
+  color: #316ac5;
+}
+
+.explorer-content {
+  min-height: 0;
+  overflow: auto;
+  padding: 12px;
+}
+
+.explorer-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 92px);
+  gap: 14px 6px;
+  align-content: start;
+}
+
+.explorer-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 92px;
+  padding: 6px 4px;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  background: transparent;
+  color: var(--xp-text);
+  text-align: center;
+}
+
+.explorer-item:hover {
+  border-color: #b5d2f2;
+  background: #e5f1fe;
+}
+
+.explorer-item.is-selected {
+  border-color: #7da2ce;
+  background: #d8e8fc;
+}
+
+.explorer-item:focus-visible {
+  outline: 1px dotted #316ac5;
+  outline-offset: -2px;
+}
+
+.explorer-item-icon {
+  width: 44px;
+  height: 44px;
+  pointer-events: none;
+}
+
+.explorer-item-icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.explorer-item-icon.is-folder {
+  padding: 3px;
+}
+
+.explorer-item-name {
+  font-size: 11px;
+  line-height: 1.25;
+  word-break: break-word;
+}
+
+.explorer-statusbar {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  border-top: 1px solid var(--xp-bevel-dark);
+  background: var(--xp-panel);
+  color: #545454;
+  font-size: 11px;
+}
+
+.explorer-statusbar > span {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  border-right: 1px solid var(--xp-divider);
+  white-space: nowrap;
+}
+
+.explorer-statusbar > .explorer-statusbar-path {
+  overflow: hidden;
+  flex: 1 1 auto;
+  justify-content: flex-end;
+  min-width: 0;
+  border-right: 0;
+}
+
+.explorer-statusbar-path svg {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+}
+
+/* --- Notepad child windows ------------------------------------------ */
+
+.explorer-notepad {
+  position: absolute;
+  display: grid;
+  grid-template-rows: 24px auto minmax(0, 1fr) 19px;
+  overflow: hidden;
+  border: 2px solid #6884ba;
+  border-top-width: 0;
+  border-radius: 5px 5px 2px 2px;
+  background: var(--xp-panel);
+  box-shadow: 3px 5px 14px rgb(0 24 73 / 0.3);
+  animation: explorer-notepad-open 150ms var(--ease-out-strong);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .explorer-notepad {
+    animation: none;
+  }
+}
+
+@keyframes explorer-notepad-open {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.explorer-notepad.is-active {
+  border-color: #0754d6;
+}
+
+.explorer-notepad.is-maximized {
+  inset: 3px;
+  width: auto;
+  height: auto;
+  border-radius: 2px;
+}
+
+.explorer-notepad .window-menu {
+  font-size: 11px;
+  padding: 0 4px;
+}
+
+.explorer-notepad-titlebar {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  overflow: hidden;
+  background: linear-gradient(180deg, #b8c8e6 0, #8ba8d6 18%, #7694c9 60%, #6884ba 100%);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.58), inset 0 -1px 0 #5872a6;
+  color: #fff;
+  padding: 2px 3px 2px 6px;
+  user-select: none;
+  cursor: move;
+}
+
+.explorer-notepad.is-active .explorer-notepad-titlebar {
+  background: linear-gradient(180deg, #5ca6ff 0, #1769e8 12%, #0b57d3 50%, #0748c2 78%, #0a51d0 100%);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.7),
+    inset 0 -1px 0 rgb(0 32 142 / 0.9);
+}
+
+.explorer-notepad-titlebar strong {
+  flex: 1 1 auto;
+  overflow: hidden;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  text-shadow: 1px 1px 1px rgb(0 0 0 / 0.4);
+  white-space: nowrap;
+}
+
+.explorer-notepad-icon {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+}
+
+.explorer-notepad-icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.explorer-notepad-titlebar button {
+  width: 19px;
+  height: 17px;
+  flex: 0 0 auto;
+  border: 1px solid rgb(255 255 255 / 0.45);
+  border-radius: 3px;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.55);
+  color: #fff;
+  font-size: 12px;
+  line-height: 1;
+}
+
+.explorer-notepad-titlebar .np-max {
+  background: linear-gradient(180deg, #7ba8f0 0, #2a63d4 42%, #1650bc 88%);
+  font-size: 10px;
+}
+
+.explorer-notepad-titlebar .np-close {
+  background: linear-gradient(180deg, #f3a08d 0, #e2593b 42%, #cc3d1e 88%);
+}
+
+.explorer-notepad-titlebar button:hover {
+  filter: brightness(1.14);
+}
+
+.explorer-notepad-body {
+  min-height: 0;
+  resize: none;
+  border: 0;
+  background: #fff;
+  color: var(--xp-text);
+  font-family: "Fira Code", Consolas, "Courier New", monospace;
+  font-size: 11.5px;
+  line-height: 1.55;
+  padding: 7px 9px;
+}
+
+.explorer-notepad-body:focus {
+  outline: none;
+}
+
+.explorer-notepad-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid var(--xp-bevel-dark);
+  background: var(--xp-panel);
+  color: #545454;
+  font-size: 10.5px;
+  padding: 0 8px;
+}
+
+.explorer-notepad-resize {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 15px;
+  height: 15px;
+  background:
+    linear-gradient(135deg, transparent 0 55%, #8a867a 56% 62%, transparent 63%),
+    linear-gradient(135deg, transparent 0 70%, #8a867a 71% 77%, transparent 78%);
+  cursor: nwse-resize;
+}
+
+/* Narrow windows: the Folders pane folds into a horizontal strip so the
+   grid keeps full width and folders stay one tap away. */
+@media (max-width: 620px) {
+  .explorer-body {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+
+  .explorer-sidebar {
+    overflow-x: auto;
+    border-right: 0;
+    border-bottom: 1px solid var(--xp-bevel-dark);
+  }
+
+  .explorer-sidebar-heading {
+    display: none;
+  }
+
+  .explorer-tree {
+    display: flex;
+    gap: 4px;
+    padding: 4px 6px;
+  }
+
+  .explorer-tree-row {
+    padding-left: 2px;
+  }
+
+  .explorer-tree-row[aria-hidden="true"],
+  .explorer-tree-pm {
+    display: none;
+  }
+
+  .explorer-statusbar > .explorer-statusbar-path {
     display: none;
   }
 }

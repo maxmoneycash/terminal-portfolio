@@ -103,6 +103,10 @@ export function StartMenu({
         </div>
 
         <div className="start-menu-right">
+          <button type="button" onClick={() => launch("files")}>
+            <img src={`${xp}/gui/toolbar/folder.webp`} alt="" />
+            My Documents
+          </button>
           <a href={portfolio.links.github} target="_blank" rel="noreferrer">
             <img src={`${xp}/gui/start-menu/github.webp`} alt="" />
             GitHub

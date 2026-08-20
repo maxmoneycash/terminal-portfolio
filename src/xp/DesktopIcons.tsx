@@ -1,8 +1,8 @@
 /**
  * Desktop icon grid plus the desktop right-click context menu.
  *
- * XP selection semantics: single click selects, double click (or Enter on a
- * selected icon) opens, Escape or a click on empty desktop clears.
+ * XP "web view" single-click semantics: pointing at an icon selects it, a
+ * single click (or Enter) opens, Escape or a click on empty desktop clears.
  */
 import { useCallback, useEffect, useState, type MouseEvent as ReactMouseEvent } from "react";
 import { cn } from "../lib/cn";
@@ -86,8 +86,8 @@ export function DesktopIcons({
             className={cn("desktop-icon", selected === id && "is-selected")}
             type="button"
             aria-pressed={selected === id}
-            onClick={() => setSelected(id)}
-            onDoubleClick={() => open(id)}
+            onPointerEnter={() => setSelected(id)}
+            onClick={() => open(id)}
             onKeyDown={(event) => {
               if (event.key === "Enter") {
                 event.preventDefault();
