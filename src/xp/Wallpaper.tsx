@@ -19,11 +19,48 @@ const LOOP_LANDSCAPE = "/xp/video/bliss-loop-landscape.mp4";
 const LOOP_PORTRAIT = "/xp/video/bliss-loop-portrait.mp4";
 
 const STORAGE_KEY = "maxxp:wallpaper-motion";
+const PAPER_KEY = "maxxp:wallpaper-paper";
 
 export type WallpaperMotion = "auto" | "on" | "off";
+/** Which paper is on the desktop: Bliss, or none (the XP solid teal). */
+export type WallpaperPaper = "bliss" | "none";
 
 let motionPref: WallpaperMotion = readStoredMotion();
 const motionListeners = new Set<(pref: WallpaperMotion) => void>();
+
+let paperPref: WallpaperPaper = readStoredPaper();
+const paperListeners = new Set<(paper: WallpaperPaper) => void>();
+
+function readStoredPaper(): WallpaperPaper {
+  try {
+    if (window.localStorage.getItem(PAPER_KEY) === "none") return "none";
+  } catch {
+    // Storage optional.
+  }
+  return "bliss";
+}
+
+export function getWallpaperPaper() {
+  return paperPref;
+}
+
+export function setWallpaperPaper(paper: WallpaperPaper) {
+  paperPref = paper;
+  try {
+    if (paper === "bliss") window.localStorage.removeItem(PAPER_KEY);
+    else window.localStorage.setItem(PAPER_KEY, paper);
+  } catch {
+    // Storage optional.
+  }
+  paperListeners.forEach((listener) => listener(paper));
+}
+
+export function subscribeWallpaperPaper(listener: (paper: WallpaperPaper) => void) {
+  paperListeners.add(listener);
+  return () => {
+    paperListeners.delete(listener);
+  };
+}
 
 function readStoredMotion(): WallpaperMotion {
   try {
@@ -71,10 +108,12 @@ export function Wallpaper() {
     () => typeof window !== "undefined" && window.matchMedia("(orientation: portrait)").matches,
   );
   const [pref, setPref] = useState<WallpaperMotion>(getWallpaperMotion);
+  const [paper, setPaper] = useState<WallpaperPaper>(getWallpaperPaper);
   const [animate, setAnimate] = useState(() => shouldAnimateWallpaper(getWallpaperMotion()));
   const [loopReady, setLoopReady] = useState(false);
 
   useEffect(() => subscribeWallpaperMotion(setPref), []);
+  useEffect(() => subscribeWallpaperPaper(setPaper), []);
 
   useEffect(() => {
     const orientation = window.matchMedia("(orientation: portrait)");
@@ -98,6 +137,15 @@ export function Wallpaper() {
 
   const still = portrait ? STILL_PORTRAIT : STILL_LANDSCAPE;
   const loop = portrait ? LOOP_PORTRAIT : LOOP_LANDSCAPE;
+
+  if (paper === "none") {
+    // XP's "(None)" wallpaper: the default Luna desktop teal.
+    return (
+      <div className="xp-wallpaper is-solid" aria-hidden="true">
+        <div className="xp-wallpaper-grade" />
+      </div>
+    );
+  }
 
   return (
     <div className="xp-wallpaper" aria-hidden="true">

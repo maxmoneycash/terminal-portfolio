@@ -16,7 +16,9 @@ export type AppId =
   | "demos"
   | "contact"
   | "stats"
-  | "minesweeper";
+  | "minesweeper"
+  | "recycle"
+  | "display";
 
 export type BootPhase = "boot" | "login" | "welcome" | "desktop";
 
@@ -113,10 +115,26 @@ export const appCatalog: Record<AppId, AppCatalogEntry> = {
     status: "Left-click reveals · right-click flags · the first click is always safe",
     dimensions: { width: 330, height: 430, minWidth: 300, minHeight: 360 },
   },
+  recycle: {
+    title: "Recycle Bin",
+    shortTitle: "Recycle Bin",
+    icon: `${xp}/gui/desktop/recycle-full.png`,
+    desktopLabel: "Recycle Bin",
+    status: "Every deletion in here was a real decision",
+    dimensions: { width: 640, height: 470, minWidth: 460, minHeight: 360 },
+  },
+  display: {
+    title: "Display Properties",
+    shortTitle: "Display",
+    icon: `${xp}/gui/desktop/display.png`,
+    desktopLabel: "Display",
+    status: "Wallpaper, screen saver, and CRT effects — changes apply immediately",
+    dimensions: { width: 430, height: 540, minWidth: 390, minHeight: 480 },
+  },
 };
 
 /** Icons shown on the desktop, top-to-bottom. */
-export const desktopApps: AppId[] = ["about", "files", "resume", "projects", "demos", "stats", "contact"];
+export const desktopApps: AppId[] = ["about", "files", "resume", "projects", "demos", "stats", "contact", "recycle"];
 
 export function externalLabel(url?: string) {
   if (!url) return "";

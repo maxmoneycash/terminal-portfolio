@@ -3283,7 +3283,7 @@ span.github-repo-name {
 @media (max-width: 900px) {
   .desktop-icons {
     display: grid;
-    grid-template-columns: repeat(7, minmax(0, 1fr));
+    grid-template-columns: repeat(8, minmax(0, 1fr));
     width: 100%;
     max-width: none;
     overflow: visible;
@@ -4614,6 +4614,315 @@ span.github-repo-name {
 
 .mine-best .xp-control {
   justify-self: end;
+}
+
+/* ------------------------------------------------------------------ */
+/* Solid wallpaper ("None"), screensaver overlay                       */
+/* ------------------------------------------------------------------ */
+
+.xp-wallpaper.is-solid {
+  background: #3a6ea5;
+}
+
+.screensaver-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 4000;
+  background: #000;
+  cursor: none;
+}
+
+.screensaver-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* ------------------------------------------------------------------ */
+/* Recycle Bin                                                         */
+/* ------------------------------------------------------------------ */
+
+.recycle-app {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  height: 100%;
+  min-height: 0;
+  border: 1px solid #9aa6bd;
+  background: var(--xp-window-surface);
+  padding: 8px;
+}
+
+.recycle-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+
+.recycle-count {
+  margin-left: auto;
+  color: var(--xp-muted);
+  font-size: 11px;
+}
+
+.recycle-list {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  border: 1px solid var(--xp-field-border);
+  background: #fff;
+}
+
+.recycle-row {
+  display: grid;
+  grid-template-columns: minmax(150px, 1.3fr) minmax(140px, 1.4fr) minmax(90px, 0.8fr);
+  gap: 8px;
+  align-items: center;
+  border: 0;
+  border-bottom: 1px solid #f0efe6;
+  background: transparent;
+  color: var(--xp-text);
+  font-size: 12px;
+  text-align: left;
+  padding: 4px 8px;
+}
+
+.recycle-row > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.recycle-head {
+  position: sticky;
+  top: 0;
+  border-bottom: 1px solid var(--xp-bevel-dark);
+  background: var(--xp-panel);
+  font-weight: 700;
+  font-size: 11px;
+}
+
+.recycle-row.is-selected {
+  background: #316ac5;
+  color: #fff;
+}
+
+.recycle-name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.recycle-name svg {
+  width: 15px;
+  height: 15px;
+  flex: 0 0 auto;
+}
+
+.recycle-details {
+  flex: 0 0 auto;
+  min-height: 58px;
+  border: 1px solid var(--xp-divider);
+  background: var(--xp-panel-light);
+  font-size: 12px;
+  line-height: 1.5;
+  padding: 8px 10px;
+}
+
+.recycle-details strong {
+  display: block;
+  margin-bottom: 3px;
+}
+
+.recycle-details p {
+  color: var(--xp-muted);
+}
+
+.recycle-empty-state {
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 8px;
+  flex: 1 1 auto;
+  text-align: center;
+  color: var(--xp-muted);
+  font-size: 12px;
+  padding: 20px;
+}
+
+/* ------------------------------------------------------------------ */
+/* Display Properties dialog                                           */
+/* ------------------------------------------------------------------ */
+
+.display-app {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  background: var(--xp-panel);
+  padding: 8px 10px 10px;
+}
+
+.display-tabs {
+  display: flex;
+  gap: 2px;
+  flex: 0 0 auto;
+  padding: 0 4px;
+}
+
+.display-tab {
+  border: 1px solid var(--xp-bevel-dark);
+  border-bottom: 0;
+  border-radius: 3px 3px 0 0;
+  background: linear-gradient(180deg, #fdfdf8, #e8e5d4);
+  color: var(--xp-text);
+  font-size: 11px;
+  padding: 4px 12px;
+  position: relative;
+  top: 1px;
+}
+
+.display-tab.is-active {
+  background: var(--xp-panel-light);
+  font-weight: 700;
+  padding-top: 5px;
+  z-index: 2;
+}
+
+.display-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  border: 1px solid var(--xp-bevel-dark);
+  border-radius: 0 3px 3px 3px;
+  background: var(--xp-panel-light);
+  padding: 14px 14px 10px;
+}
+
+.display-monitor {
+  display: grid;
+  justify-items: center;
+  flex: 0 0 auto;
+}
+
+.display-monitor-screen {
+  width: 200px;
+  height: 138px;
+  overflow: hidden;
+  border: 6px solid #d9d4c2;
+  border-radius: 8px;
+  background: #000;
+  box-shadow: 0 0 0 1px #8f8a75, inset 0 0 0 2px #35342e;
+}
+
+.display-monitor-screen img,
+.display-monitor-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.display-monitor-solid {
+  width: 100%;
+  height: 100%;
+  background: #3a6ea5;
+}
+
+.display-monitor-stand {
+  width: 58px;
+  height: 12px;
+  border: 1px solid #8f8a75;
+  border-radius: 0 0 4px 4px;
+  background: linear-gradient(180deg, #e8e4d3, #c9c4ae);
+}
+
+.display-fieldset {
+  width: 100%;
+  display: grid;
+  gap: 8px;
+}
+
+.display-paper-list {
+  display: grid;
+  border: 1px solid var(--xp-field-border);
+  background: #fff;
+}
+
+.display-paper-item {
+  border: 0;
+  background: transparent;
+  color: var(--xp-text);
+  font-size: 12px;
+  text-align: left;
+  padding: 4px 8px;
+}
+
+.display-paper-item.is-selected {
+  background: #316ac5;
+  color: #fff;
+}
+
+.display-note {
+  color: var(--xp-muted);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.display-saver-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.display-saver-row select,
+.display-saver-wait input {
+  border: 1px solid var(--xp-field-border);
+  background: #fff;
+  font: inherit;
+  padding: 2px 4px;
+}
+
+.display-saver-wait {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+}
+
+.display-saver-wait input {
+  width: 52px;
+}
+
+.display-check,
+.display-locked {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+}
+
+.display-locked select {
+  flex: 1 1 auto;
+  border: 1px solid var(--xp-field-border);
+  background: #f3f1e4;
+  color: var(--xp-muted);
+  font: inherit;
+  padding: 2px 4px;
+}
+
+.display-footer {
+  display: flex;
+  justify-content: flex-end;
+  flex: 0 0 auto;
+  padding-top: 8px;
 }
 
 /* ------------------------------------------------------------------ */

@@ -81,9 +81,9 @@ export function WindowChrome({
 }) {
   const app = appCatalog[record.id];
   const isNotepad = record.id === "signature";
-  // Minesweeper renders its own Game menu and, like the real one, has no
-  // browser chrome.
-  const isGame = record.id === "minesweeper";
+  // Minesweeper renders its own Game menu; Display Properties is a dialog.
+  // Neither gets browser chrome, like the real things.
+  const isGame = record.id === "minesweeper" || record.id === "display";
   const sectionRef = useRef<HTMLElement | null>(null);
   const exitAnimationRef = useRef<Animation | null>(null);
   const layoutAnimationRef = useRef<Animation | null>(null);
