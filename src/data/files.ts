@@ -189,13 +189,26 @@ const pictureFiles: ImageFile[] = PROJECT_SHOTS.map(({ slug, sizeBytes }) => ({
   sizeBytes,
 }));
 
-const resumePdf: PdfFile = {
-  kind: "file",
-  type: "pdf",
-  name: "Max_Mohammadi_Resume.pdf",
-  src: "/Max_Mohammadi_Resume.pdf",
-  sizeBytes: 70400,
-};
+function pdfFile(name: string, src: string, sizeBytes: number): PdfFile {
+  return { kind: "file", type: "pdf", name, src, sizeBytes };
+}
+
+const resumePdf = pdfFile("Max_Mohammadi_Resume.pdf", "/Max_Mohammadi_Resume.pdf", 70400);
+
+/* ------------------------------------------------------------------ */
+/* PDFs & Papers: documents Max actually wrote — whitepaper, research, */
+/* and the tailored resume variants                                    */
+/* ------------------------------------------------------------------ */
+
+const paperFiles: PdfFile[] = [
+  // Served live from propwhop.com (the Content Rewards whitepaper site).
+  pdfFile("Content_Rewards_Whitepaper.pdf", "https://propwhop.com/whitepaper.pdf", 20616626),
+  pdfFile("MegaETH_vs_Aptos_Research_Report.pdf", "/docs/megaeth-vs-aptos-research.pdf", 435142),
+  pdfFile("UMA_Oracle_One_Pager.pdf", "/docs/uma-one-pager.pdf", 29145),
+  pdfFile("Resume_Engineering.pdf", "/Max_Mohammadi_Resume_Engineering.pdf", 125382),
+  pdfFile("Resume_ATS.pdf", "/Max_Mohammadi_Resume_ATS.pdf", 125387),
+  pdfFile("Resume_Whop.pdf", "/Max_Mohammadi_Resume_Whop.pdf", 125889),
+];
 
 /* ------------------------------------------------------------------ */
 /* GitHub Repos: the full curated catalogue, including private repos   */
@@ -420,6 +433,7 @@ const readme = textFile("README.txt", [
   "  * about_me.txt ......... who I am",
   "  * now.txt .............. what I'm working on right now",
   "  * Projects\\ ............ write-ups + .url shortcuts to live sites",
+  "  * PDFs & Papers\\ ....... whitepaper, research, resume variants",
   `  * My Pictures\\ ......... ${PROJECT_SHOTS.length} real deploy screenshots`,
   "  * My Videos\\ ........... the demo reels, playable in place",
   `  * Since January\\ ....... ${sinceJanuaryRepositories.length} repos pushed in 2026`,
@@ -470,6 +484,7 @@ export const myDocuments: ExplorerFolder = {
   name: "My Documents",
   children: [
     { kind: "folder", name: "Projects", children: [...projectShortcuts, ...projectFiles] },
+    { kind: "folder", name: "PDFs & Papers", children: paperFiles },
     { kind: "folder", name: "My Pictures", children: pictureFiles },
     { kind: "folder", name: "My Videos", children: videoFiles },
     { kind: "folder", name: "Since January", children: [sinceJanuaryReadme, ...sinceJanuaryFiles] },
