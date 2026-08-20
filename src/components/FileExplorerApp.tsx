@@ -1,15 +1,16 @@
 /**
  * My Documents — an XP Explorer view over the portfolio's virtual filesystem
  * (src/data/files.ts). Folders pane on the left, icon grid on the right, and
- * a single click opens files in draggable, resizable Notepad child windows
- * stacked inside the explorer body, cascade-offset like the real thing.
+ * a single click opens files in draggable, resizable child windows, cascade-
+ * offset like the real thing.
  *
- * The Notepads are alive, not decorative: working File/Edit/Format menus,
- * a real Word Wrap toggle, live Ln/Col caret tracking, and maximize inside
- * the explorer body via button or titlebar double-click.
+ * Files have real types with real viewers: .txt opens in Notepad (working
+ * menus, Word Wrap, live Ln/Col), .jpg in a Picture-and-Fax-Viewer with
+ * prev/next, .mp4 in a media player, .pdf in a reader, and .url shortcuts
+ * open the live site in a new tab. Image and video grid icons are actual
+ * thumbnails.
  */
 import {
-  useCallback,
   useEffect,
   useRef,
   useState,
@@ -27,17 +28,32 @@ import {
   sizeLabel,
   type ExplorerFile,
   type ExplorerNode,
+  type ImageFile,
 } from "../data/files";
 
-const NOTEPAD_MIN_WIDTH = 260;
-const NOTEPAD_MIN_HEIGHT = 180;
-const NOTEPAD_DEFAULT_WIDTH = 430;
-const NOTEPAD_DEFAULT_HEIGHT = 330;
 const CASCADE_STEP = 26;
+const VIEWER_MIN_WIDTH = 260;
+const VIEWER_MIN_HEIGHT = 180;
 
-type NotepadWindow = {
+const VIEWER_DEFAULT_SIZE: Record<Exclude<ExplorerFile["type"], "url">, { width: number; height: number }> = {
+  txt: { width: 430, height: 330 },
+  image: { width: 560, height: 440 },
+  video: { width: 560, height: 420 },
+  pdf: { width: 580, height: 540 },
+};
+
+const VIEWER_TITLE_SUFFIX: Record<Exclude<ExplorerFile["type"], "url">, string> = {
+  txt: "Notepad",
+  image: "Windows Picture and Fax Viewer",
+  video: "Windows Media Player",
+  pdf: "PDF Reader",
+};
+
+type ViewerWindow = {
   id: number;
-  file: ExplorerFile;
+  file: Exclude<ExplorerFile, { type: "url" }>;
+  /** Sibling images at open time, for prev/next in the picture viewer. */
+  gallery: ImageFile[];
   x: number;
   y: number;
   width: number;
@@ -46,7 +62,7 @@ type NotepadWindow = {
   maximized: boolean;
 };
 
-type NotepadDrag =
+type ViewerDrag =
   | { mode: "move"; id: number; startX: number; startY: number; originX: number; originY: number }
   | { mode: "resize"; id: number; startX: number; startY: number; width: number; height: number };
 
@@ -58,8 +74,23 @@ function infotip(node: ExplorerNode): string {
   if (node.kind === "folder") {
     return `File Folder\nContains: ${node.children.length} objects\nSize: ${sizeLabel(nodeSizeBytes(node))}`;
   }
-  return `Text Document\nSize: ${sizeLabel(node.content.length)}\nLines: ${node.content.split("\n").length}`;
+  switch (node.type) {
+    case "txt":
+      return `Text Document\nSize: ${sizeLabel(node.content.length)}\nLines: ${node.content.split("\n").length}`;
+    case "url":
+      return `Internet Shortcut\nOpens: ${node.href}`;
+    case "image":
+      return `JPEG Image\n${node.caption}\nSize: ${sizeLabel(node.sizeBytes)}`;
+    case "video":
+      return `Video Clip\n${node.caption}\nSize: ${sizeLabel(node.sizeBytes)}`;
+    case "pdf":
+      return `PDF Document\nSize: ${sizeLabel(node.sizeBytes)}`;
+  }
 }
+
+/* ------------------------------------------------------------------ */
+/* Glyphs                                                              */
+/* ------------------------------------------------------------------ */
 
 function FolderGlyph() {
   return (
@@ -99,6 +130,44 @@ function TextFileGlyph() {
   );
 }
 
+function PdfGlyph() {
+  return (
+    <svg viewBox="0 0 64 64" aria-hidden="true">
+      <path
+        d="M14 2h26l10 10v46a3 3 0 0 1-3 3H14a3 3 0 0 1-3-3V5a3 3 0 0 1 3-3z"
+        fill="#fff"
+        stroke="#8C8C8C"
+        strokeWidth="1.2"
+      />
+      <path d="M40 2v10h10z" fill="#D8D8D8" />
+      <rect x="15" y="26" width="34" height="20" rx="3" fill="#C11E1E" />
+      <text
+        x="32"
+        y="41"
+        fontSize="13"
+        fontFamily="Arial"
+        fontWeight="bold"
+        fill="#fff"
+        textAnchor="middle"
+      >
+        PDF
+      </text>
+    </svg>
+  );
+}
+
+function GlobeGlyph() {
+  return (
+    <svg viewBox="0 0 64 64" aria-hidden="true">
+      <circle cx="32" cy="32" r="26" fill="#3f8fe0" stroke="#1a5fb0" strokeWidth="2" />
+      <ellipse cx="32" cy="32" rx="12" ry="26" fill="none" stroke="#cfe8ff" strokeWidth="2" />
+      <ellipse cx="32" cy="32" rx="26" ry="11" fill="none" stroke="#cfe8ff" strokeWidth="2" />
+      <path d="M8 22h48M8 42h48" stroke="#cfe8ff" strokeWidth="2" fill="none" />
+      <path d="M20 14c6 7 6 29 0 36M44 14c-6 7-6 29 0 36" stroke="#9fd0ff" strokeWidth="1.4" fill="none" />
+    </svg>
+  );
+}
+
 function ComputerGlyph() {
   return (
     <svg viewBox="0 0 20 20" aria-hidden="true">
@@ -118,7 +187,214 @@ function DriveGlyph() {
   );
 }
 
-function NotepadPane({
+function ViewerTitleGlyph({ type }: { type: ViewerWindow["file"]["type"] }) {
+  if (type === "pdf") return <PdfGlyph />;
+  if (type === "image" || type === "video") {
+    return (
+      <svg viewBox="0 0 20 20" aria-hidden="true">
+        <rect x="1.5" y="3.5" width="17" height="13" rx="1.5" fill="#3E6BC4" stroke="#26446e" strokeWidth=".8" />
+        <circle cx="7" cy="8.5" r="2" fill="#ffd76e" />
+        <path d="M3 14.5 8 10l4 3.4 2.6-2 2.4 3.1z" fill="#3fa73f" />
+      </svg>
+    );
+  }
+  return <TextFileGlyph />;
+}
+
+/** Icon (or real thumbnail) for a grid entry. */
+function ItemIcon({ node }: { node: ExplorerNode }) {
+  if (node.kind === "folder") {
+    return (
+      <span className="explorer-item-icon is-folder">
+        <FolderGlyph />
+      </span>
+    );
+  }
+  switch (node.type) {
+    case "image":
+      return (
+        <span className="explorer-item-icon is-thumb">
+          <img src={node.src} alt="" loading="lazy" draggable={false} />
+        </span>
+      );
+    case "video":
+      return (
+        <span className="explorer-item-icon is-thumb">
+          <img src={node.poster} alt="" loading="lazy" draggable={false} />
+          <svg className="explorer-thumb-play" viewBox="0 0 20 20" aria-hidden="true">
+            <circle cx="10" cy="10" r="9" fill="rgb(0 0 0 / 0.55)" stroke="#fff" strokeWidth="1.2" />
+            <polygon points="8,6 15,10 8,14" fill="#fff" />
+          </svg>
+        </span>
+      );
+    case "url":
+      return (
+        <span className="explorer-item-icon">
+          {node.href.includes("github.com") ? (
+            <img src="/xp/gui/start-menu/github.webp" alt="" draggable={false} />
+          ) : (
+            <GlobeGlyph />
+          )}
+          <svg className="explorer-shortcut-arrow" viewBox="0 0 10 10" aria-hidden="true">
+            <rect x="0" y="0" width="10" height="10" fill="#fff" stroke="#7f7f7f" strokeWidth="0.6" />
+            <path d="M2.5 7.5V4.7c0-1.2 1-2.2 2.2-2.2h1.6M4.6 1 6.9 2.5 4.6 4z" fill="none" stroke="#000" strokeWidth="1" />
+            <path d="M4.9 1.1 6.9 2.5 4.9 3.9z" fill="#000" />
+          </svg>
+        </span>
+      );
+    case "pdf":
+      return (
+        <span className="explorer-item-icon">
+          <PdfGlyph />
+        </span>
+      );
+    default:
+      return (
+        <span className="explorer-item-icon">
+          <TextFileGlyph />
+        </span>
+      );
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Child viewer window                                                 */
+/* ------------------------------------------------------------------ */
+
+function TxtViewerBody({ file }: { file: Extract<ExplorerFile, { type: "txt" }> }) {
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const [wordWrap, setWordWrap] = useState(true);
+  const [caret, setCaret] = useState({ line: 1, column: 1 });
+
+  const updateCaret = () => {
+    const area = textareaRef.current;
+    if (!area) return;
+    const before = area.value.slice(0, area.selectionStart ?? 0).split("\n");
+    setCaret({ line: before.length, column: (before[before.length - 1]?.length ?? 0) + 1 });
+  };
+
+  const menus: WindowMenu[] = [
+    {
+      label: "Edit",
+      items: [
+        {
+          label: "Select All",
+          onSelect: () => {
+            textareaRef.current?.focus();
+            textareaRef.current?.select();
+          },
+        },
+        {
+          label: "Copy All",
+          onSelect: () => {
+            void navigator.clipboard?.writeText(file.content).catch(() => {});
+          },
+        },
+      ],
+    },
+    {
+      label: "Format",
+      items: [{ label: "Word Wrap", checked: wordWrap, onSelect: () => setWordWrap((value) => !value) }],
+    },
+    { label: "View", items: [{ label: "Status Bar", checked: true, disabled: true }] },
+  ];
+
+  return (
+    <>
+      <MenuBar menus={menus} ariaLabel={`${file.name} menu`} />
+      <textarea
+        ref={textareaRef}
+        className="explorer-notepad-body"
+        value={file.content}
+        readOnly
+        spellCheck={false}
+        wrap={wordWrap ? "soft" : "off"}
+        onSelect={updateCaret}
+        onKeyUp={updateCaret}
+        onClick={updateCaret}
+      />
+      <footer className="explorer-notepad-status">
+        <span>{file.content.split("\n").length} lines</span>
+        <span>
+          Ln {caret.line}, Col {caret.column}
+        </span>
+      </footer>
+    </>
+  );
+}
+
+function ImageViewerBody({
+  file,
+  gallery,
+}: {
+  file: ImageFile;
+  gallery: ImageFile[];
+}) {
+  const startIndex = Math.max(0, gallery.findIndex((entry) => entry.name === file.name));
+  const [index, setIndex] = useState(startIndex);
+  const current = gallery[index] ?? file;
+
+  return (
+    <>
+      <div className="viewer-image-stage">
+        <img src={current.src} alt={current.caption} draggable={false} />
+      </div>
+      <footer className="viewer-media-toolbar">
+        <button
+          type="button"
+          className="xp-control"
+          aria-label="Previous picture"
+          disabled={index <= 0}
+          onClick={() => setIndex((value) => Math.max(0, value - 1))}
+        >
+          ◀
+        </button>
+        <span className="viewer-media-caption" title={current.caption}>
+          {index + 1} of {gallery.length} · {current.name}
+        </span>
+        <button
+          type="button"
+          className="xp-control"
+          aria-label="Next picture"
+          disabled={index >= gallery.length - 1}
+          onClick={() => setIndex((value) => Math.min(gallery.length - 1, value + 1))}
+        >
+          ▶
+        </button>
+      </footer>
+    </>
+  );
+}
+
+function VideoViewerBody({ file }: { file: Extract<ExplorerFile, { type: "video" }> }) {
+  return (
+    <>
+      <div className="viewer-video-stage">
+        <video src={file.src} poster={file.poster} controls playsInline preload="metadata" />
+      </div>
+      <footer className="explorer-notepad-status">
+        <span className="viewer-media-caption">{file.caption}</span>
+        <span>{sizeLabel(file.sizeBytes)}</span>
+      </footer>
+    </>
+  );
+}
+
+function PdfViewerBody({ file }: { file: Extract<ExplorerFile, { type: "pdf" }> }) {
+  return (
+    <>
+      <iframe className="viewer-pdf-frame" src={`${file.src}#toolbar=0&navpanes=0&view=FitH`} title={file.name} />
+      <footer className="explorer-notepad-status">
+        <a href={file.src} download>
+          Save a Copy
+        </a>
+        <span>{sizeLabel(file.sizeBytes)}</span>
+      </footer>
+    </>
+  );
+}
+
+function ViewerPane({
   pad,
   active,
   onFocus,
@@ -127,29 +403,19 @@ function NotepadPane({
   onDragStart,
   onResizeStart,
 }: {
-  pad: NotepadWindow;
+  pad: ViewerWindow;
   active: boolean;
   onFocus: (id: number) => void;
   onClose: (id: number) => void;
   onToggleMaximize: (id: number) => void;
-  onDragStart: (event: ReactPointerEvent, pad: NotepadWindow) => void;
-  onResizeStart: (event: ReactPointerEvent, pad: NotepadWindow) => void;
+  onDragStart: (event: ReactPointerEvent, pad: ViewerWindow) => void;
+  onResizeStart: (event: ReactPointerEvent, pad: ViewerWindow) => void;
 }) {
   const sectionRef = useRef<HTMLElement | null>(null);
-  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const closingRef = useRef(false);
-  const [wordWrap, setWordWrap] = useState(true);
-  const [caret, setCaret] = useState({ line: 1, column: 1 });
-
-  const updateCaret = useCallback(() => {
-    const area = textareaRef.current;
-    if (!area) return;
-    const before = area.value.slice(0, area.selectionStart ?? 0).split("\n");
-    setCaret({ line: before.length, column: (before[before.length - 1]?.length ?? 0) + 1 });
-  }, []);
 
   // Animate out before unmounting, mirroring the shell's window motion.
-  const handleClose = useCallback(() => {
+  const handleClose = () => {
     if (closingRef.current) return;
     const element = sectionRef.current;
     if (!element || prefersReducedMotion() || typeof element.animate !== "function") {
@@ -165,45 +431,26 @@ function NotepadPane({
       { duration: 130, easing: "cubic-bezier(0.23, 1, 0.32, 1)", fill: "forwards" },
     );
     void animation.finished.then(() => onClose(pad.id)).catch(() => onClose(pad.id));
-  }, [onClose, pad.id]);
-
-  const menus: WindowMenu[] = [
-    { label: "File", items: [{ label: "Close", onSelect: handleClose }] },
-    {
-      label: "Edit",
-      items: [
-        {
-          label: "Select All",
-          onSelect: () => {
-            textareaRef.current?.focus();
-            textareaRef.current?.select();
-          },
-        },
-        {
-          label: "Copy All",
-          onSelect: () => {
-            void navigator.clipboard?.writeText(pad.file.content).catch(() => {});
-          },
-        },
-      ],
-    },
-    {
-      label: "Format",
-      items: [{ label: "Word Wrap", checked: wordWrap, onSelect: () => setWordWrap((value) => !value) }],
-    },
-    { label: "View", items: [{ label: "Status Bar", checked: true, disabled: true }] },
-  ];
+  };
 
   const style = pad.maximized
     ? { zIndex: pad.z }
     : { left: pad.x, top: pad.y, width: pad.width, height: pad.height, zIndex: pad.z };
 
+  const title = `${pad.file.name} - ${VIEWER_TITLE_SUFFIX[pad.file.type]}`;
+
   return (
     <section
       ref={sectionRef}
-      className={cn("explorer-notepad", active && "is-active", pad.maximized && "is-maximized")}
+      className={cn(
+        "explorer-notepad",
+        `is-${pad.file.type}-viewer`,
+        pad.file.type !== "txt" && "is-no-menu",
+        active && "is-active",
+        pad.maximized && "is-maximized",
+      )}
       style={style}
-      aria-label={`${pad.file.name} — Notepad`}
+      aria-label={title}
       onPointerDown={() => onFocus(pad.id)}
     >
       <header
@@ -215,9 +462,9 @@ function NotepadPane({
         }}
       >
         <span className="explorer-notepad-icon">
-          <TextFileGlyph />
+          <ViewerTitleGlyph type={pad.file.type} />
         </span>
-        <strong>{pad.file.name} - Notepad</strong>
+        <strong>{title}</strong>
         <button
           type="button"
           className="np-max"
@@ -237,24 +484,12 @@ function NotepadPane({
           ×
         </button>
       </header>
-      <MenuBar menus={menus} ariaLabel={`${pad.file.name} menu`} />
-      <textarea
-        ref={textareaRef}
-        className="explorer-notepad-body"
-        value={pad.file.content}
-        readOnly
-        spellCheck={false}
-        wrap={wordWrap ? "soft" : "off"}
-        onSelect={updateCaret}
-        onKeyUp={updateCaret}
-        onClick={updateCaret}
-      />
-      <footer className="explorer-notepad-status">
-        <span>{pad.file.content.split("\n").length} lines</span>
-        <span>
-          Ln {caret.line}, Col {caret.column}
-        </span>
-      </footer>
+
+      {pad.file.type === "txt" ? <TxtViewerBody file={pad.file} /> : null}
+      {pad.file.type === "image" ? <ImageViewerBody file={pad.file} gallery={pad.gallery} /> : null}
+      {pad.file.type === "video" ? <VideoViewerBody file={pad.file} /> : null}
+      {pad.file.type === "pdf" ? <PdfViewerBody file={pad.file} /> : null}
+
       {!pad.maximized ? (
         <div
           className="explorer-notepad-resize"
@@ -266,13 +501,17 @@ function NotepadPane({
   );
 }
 
+/* ------------------------------------------------------------------ */
+/* Explorer                                                            */
+/* ------------------------------------------------------------------ */
+
 export function FileExplorerApp() {
   // Path of folder names below My Documents; [] is the root.
   const [path, setPath] = useState<string[]>([]);
   const [selected, setSelected] = useState<string | null>(null);
   const [docsExpanded, setDocsExpanded] = useState(true);
-  const [notepads, setNotepads] = useState<NotepadWindow[]>([]);
-  const [drag, setDrag] = useState<NotepadDrag | null>(null);
+  const [viewers, setViewers] = useState<ViewerWindow[]>([]);
+  const [drag, setDrag] = useState<ViewerDrag | null>(null);
   const bodyRef = useRef<HTMLDivElement | null>(null);
   const idRef = useRef(0);
   const zRef = useRef(10);
@@ -281,96 +520,100 @@ export function FileExplorerApp() {
   const folder = resolveFolder(path);
   const selectedNode = folder.children.find((child) => child.name === selected) ?? null;
   const addressPath = [MY_DOCUMENTS_PATH, ...path].join("\\");
-  const topNotepad = notepads.reduce<NotepadWindow | null>(
+  const topViewer = viewers.reduce<ViewerWindow | null>(
     (top, pad) => (top && top.z > pad.z ? top : pad),
     null,
   );
 
-  const navigate = useCallback((nextPath: string[]) => {
+  const navigate = (nextPath: string[]) => {
     setPath(nextPath);
     setSelected(null);
     playSfx("menu");
-  }, []);
+  };
 
-  const focusNotepad = useCallback((id: number) => {
-    setNotepads((current) =>
+  const focusViewer = (id: number) => {
+    setViewers((current) =>
       current.map((pad) => (pad.id === id ? { ...pad, z: ++zRef.current } : pad)),
     );
-  }, []);
+  };
 
-  const openFile = useCallback((file: ExplorerFile) => {
+  const openFile = (file: ExplorerFile) => {
     playSfx("ding");
-    setNotepads((current) => {
+    if (file.type === "url") {
+      window.open(file.href, "_blank", "noopener,noreferrer");
+      return;
+    }
+    setViewers((current) => {
       const existing = current.find((pad) => pad.file.name === file.name);
       if (existing) {
         return current.map((pad) => (pad.id === existing.id ? { ...pad, z: ++zRef.current } : pad));
       }
       const bounds = bodyRef.current?.getBoundingClientRect();
+      const boundsWidth = bounds?.width ?? 640;
+      const boundsHeight = bounds?.height ?? 480;
+      const defaults = VIEWER_DEFAULT_SIZE[file.type];
       const cascade = (openedRef.current++ % 6) * CASCADE_STEP;
-      const width = Math.min(NOTEPAD_DEFAULT_WIDTH, Math.max(NOTEPAD_MIN_WIDTH, (bounds?.width ?? 640) - 24));
-      const height = Math.min(NOTEPAD_DEFAULT_HEIGHT, Math.max(NOTEPAD_MIN_HEIGHT, (bounds?.height ?? 480) - 24));
-      const x = Math.max(4, Math.min(28 + cascade, (bounds?.width ?? 640) - width - 4));
-      const y = Math.max(4, Math.min(18 + cascade, (bounds?.height ?? 480) - height - 4));
+      const width = Math.min(defaults.width, Math.max(VIEWER_MIN_WIDTH, boundsWidth - 24));
+      const height = Math.min(defaults.height, Math.max(VIEWER_MIN_HEIGHT, boundsHeight - 24));
+      const x = Math.max(4, Math.min(28 + cascade, boundsWidth - width - 4));
+      const y = Math.max(4, Math.min(18 + cascade, boundsHeight - height - 4));
+      const gallery =
+        file.type === "image"
+          ? folder.children.filter((child): child is ImageFile => child.kind === "file" && child.type === "image")
+          : [];
       return [
         ...current,
-        { id: ++idRef.current, file, x, y, width, height, z: ++zRef.current, maximized: false },
+        { id: ++idRef.current, file, gallery, x, y, width, height, z: ++zRef.current, maximized: false },
       ];
     });
-  }, []);
+  };
 
-  const closeNotepad = useCallback((id: number) => {
-    setNotepads((current) => current.filter((pad) => pad.id !== id));
-  }, []);
+  const closeViewer = (id: number) => {
+    setViewers((current) => current.filter((pad) => pad.id !== id));
+  };
 
-  const toggleMaximize = useCallback((id: number) => {
-    setNotepads((current) =>
+  const toggleMaximize = (id: number) => {
+    setViewers((current) =>
       current.map((pad) =>
         pad.id === id ? { ...pad, maximized: !pad.maximized, z: ++zRef.current } : pad,
       ),
     );
-  }, []);
+  };
 
+  const startViewerDrag = (event: ReactPointerEvent, pad: ViewerWindow) => {
+    if (pad.maximized) return;
+    event.preventDefault();
+    focusViewer(pad.id);
+    setDrag({
+      mode: "move",
+      id: pad.id,
+      startX: event.clientX,
+      startY: event.clientY,
+      originX: pad.x,
+      originY: pad.y,
+    });
+  };
 
-  const startNotepadDrag = useCallback(
-    (event: ReactPointerEvent, pad: NotepadWindow) => {
-      if (pad.maximized) return;
-      event.preventDefault();
-      focusNotepad(pad.id);
-      setDrag({
-        mode: "move",
-        id: pad.id,
-        startX: event.clientX,
-        startY: event.clientY,
-        originX: pad.x,
-        originY: pad.y,
-      });
-    },
-    [focusNotepad],
-  );
-
-  const startNotepadResize = useCallback(
-    (event: ReactPointerEvent, pad: NotepadWindow) => {
-      event.preventDefault();
-      event.stopPropagation();
-      focusNotepad(pad.id);
-      setDrag({
-        mode: "resize",
-        id: pad.id,
-        startX: event.clientX,
-        startY: event.clientY,
-        width: pad.width,
-        height: pad.height,
-      });
-    },
-    [focusNotepad],
-  );
+  const startViewerResize = (event: ReactPointerEvent, pad: ViewerWindow) => {
+    event.preventDefault();
+    event.stopPropagation();
+    focusViewer(pad.id);
+    setDrag({
+      mode: "resize",
+      id: pad.id,
+      startX: event.clientX,
+      startY: event.clientY,
+      width: pad.width,
+      height: pad.height,
+    });
+  };
 
   useEffect(() => {
     if (!drag) return;
 
     const handleMove = (event: PointerEvent) => {
       const bounds = bodyRef.current?.getBoundingClientRect();
-      setNotepads((current) =>
+      setViewers((current) =>
         current.map((pad) => {
           if (pad.id !== drag.id) return pad;
           if (drag.mode === "move") {
@@ -384,8 +627,8 @@ export function FileExplorerApp() {
           }
           return {
             ...pad,
-            width: Math.max(NOTEPAD_MIN_WIDTH, drag.width + event.clientX - drag.startX),
-            height: Math.max(NOTEPAD_MIN_HEIGHT, drag.height + event.clientY - drag.startY),
+            width: Math.max(VIEWER_MIN_WIDTH, drag.width + event.clientX - drag.startX),
+            height: Math.max(VIEWER_MIN_HEIGHT, drag.height + event.clientY - drag.startY),
           };
         }),
       );
@@ -406,7 +649,7 @@ export function FileExplorerApp() {
     <div
       className="file-explorer"
       onKeyDown={(event) => {
-        if (event.key === "Escape" && topNotepad) closeNotepad(topNotepad.id);
+        if (event.key === "Escape" && topViewer) closeViewer(topViewer.id);
       }}
     >
       <div className="explorer-body" ref={bodyRef}>
@@ -502,9 +745,7 @@ export function FileExplorerApp() {
                     }
                   }}
                 >
-                  <span className={cn("explorer-item-icon", child.kind === "folder" && "is-folder")}>
-                    {child.kind === "folder" ? <FolderGlyph /> : <TextFileGlyph />}
-                  </span>
+                  <ItemIcon node={child} />
                   <span className="explorer-item-name">{child.name}</span>
                 </button>
               );
@@ -512,16 +753,16 @@ export function FileExplorerApp() {
           </div>
         </div>
 
-        {notepads.map((pad) => (
-          <NotepadPane
+        {viewers.map((pad) => (
+          <ViewerPane
             key={pad.id}
             pad={pad}
-            active={topNotepad?.id === pad.id}
-            onFocus={focusNotepad}
-            onClose={closeNotepad}
+            active={topViewer?.id === pad.id}
+            onFocus={focusViewer}
+            onClose={closeViewer}
             onToggleMaximize={toggleMaximize}
-            onDragStart={startNotepadDrag}
-            onResizeStart={startNotepadResize}
+            onDragStart={startViewerDrag}
+            onResizeStart={startViewerResize}
           />
         ))}
       </div>

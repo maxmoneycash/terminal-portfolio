@@ -9,11 +9,29 @@ import { portfolio } from "./portfolio";
 import githubProjects from "./github-projects.json";
 import publicActivity from "./github-public-activity.json";
 
-export type ExplorerFile = {
+export type TextFile = { kind: "file"; type: "txt"; name: string; content: string };
+/** Internet shortcut — opens its target in a new tab, like a real .url. */
+export type UrlFile = { kind: "file"; type: "url"; name: string; href: string; sizeBytes: number };
+export type ImageFile = {
   kind: "file";
+  type: "image";
   name: string;
-  content: string;
+  src: string;
+  caption: string;
+  sizeBytes: number;
 };
+export type VideoFile = {
+  kind: "file";
+  type: "video";
+  name: string;
+  src: string;
+  poster: string;
+  caption: string;
+  sizeBytes: number;
+};
+export type PdfFile = { kind: "file"; type: "pdf"; name: string; src: string; sizeBytes: number };
+
+export type ExplorerFile = TextFile | UrlFile | ImageFile | VideoFile | PdfFile;
 
 export type ExplorerFolder = {
   kind: "folder";
@@ -34,12 +52,18 @@ function slugify(value: string) {
     .replace(/^_+|_+$/g, "");
 }
 
-function textFile(name: string, lines: Array<string | undefined | null>): ExplorerFile {
+function textFile(name: string, lines: Array<string | undefined | null>): TextFile {
   return {
     kind: "file",
+    type: "txt",
     name,
     content: lines.filter((line) => line !== undefined && line !== null).join("\n"),
   };
+}
+
+/** Real .url files are ~100 bytes of INI. */
+function urlFile(name: string, href: string): UrlFile {
+  return { kind: "file", type: "url", name, href, sizeBytes: 110 };
 }
 
 const aboutMe = textFile("about_me.txt", [
@@ -106,6 +130,72 @@ const projectFiles: ExplorerFile[] = portfolio.projects.map((project) =>
     project.summary,
   ]),
 );
+
+/** Live-site shortcuts for the featured projects, like real .url files. */
+const projectShortcuts: UrlFile[] = portfolio.projects
+  .filter((project) => project.link)
+  .map((project) => urlFile(`${slugify(project.name)}.url`, project.link!));
+
+/* ------------------------------------------------------------------ */
+/* My Videos: the real demo reels, playable in a media-player window   */
+/* ------------------------------------------------------------------ */
+
+const VIDEO_SIZES: Record<string, number> = {
+  "best-1": 7189628,
+  "screen-2025-12-01-213809": 7332206,
+  "screen-2025-12-09-191737": 23724964,
+  "screen-2025-12-22-011301": 5787684,
+  "screen-2026-01-31-011109": 2450511,
+  "screen-2026-02-24-151159": 5485044,
+};
+
+const videoFiles: VideoFile[] = portfolio.videos.map((video) => ({
+  kind: "file",
+  type: "video",
+  name: `${slugify(video.title)}.mp4`,
+  src: video.sources.find((source) => source.type === "video/mp4")?.src ?? video.sources[0].src,
+  poster: video.poster,
+  caption: `${video.title} · ${video.date}`,
+  sizeBytes: VIDEO_SIZES[video.id] ?? 5_000_000,
+}));
+
+/* ------------------------------------------------------------------ */
+/* My Pictures: real deploy screenshots from the profile repo, the     */
+/* same shots the GitHub README renders                                */
+/* ------------------------------------------------------------------ */
+
+const SHOTS_BASE = "https://raw.githubusercontent.com/maxmoneycash/maxmoneycash/main/assets/shots";
+
+const PROJECT_SHOTS: { slug: string; sizeBytes: number }[] = [
+  { slug: "cash.trading", sizeBytes: 65497 },
+  { slug: "commit-markets", sizeBytes: 136789 },
+  { slug: "datacenter-globe", sizeBytes: 34065 },
+  { slug: "decibel-evolution", sizeBytes: 25493 },
+  { slug: "NIPAHSCAN", sizeBytes: 37890 },
+  { slug: "aptos-consensus-visualizer", sizeBytes: 35261 },
+  { slug: "cash-orderbook", sizeBytes: 53597 },
+  { slug: "ohlone-unicode", sizeBytes: 41322 },
+  { slug: "options-payoff-motion", sizeBytes: 12779 },
+  { slug: "peat-ui", sizeBytes: 75321 },
+  { slug: "terminal-portfolio", sizeBytes: 66694 },
+];
+
+const pictureFiles: ImageFile[] = PROJECT_SHOTS.map(({ slug, sizeBytes }) => ({
+  kind: "file",
+  type: "image",
+  name: `${slugify(slug)}.jpg`,
+  src: `${SHOTS_BASE}/${slug}.jpg`,
+  caption: `${slug} — deploy screenshot`,
+  sizeBytes,
+}));
+
+const resumePdf: PdfFile = {
+  kind: "file",
+  type: "pdf",
+  name: "Max_Mohammadi_Resume.pdf",
+  src: "/Max_Mohammadi_Resume.pdf",
+  sizeBytes: 70400,
+};
 
 /* ------------------------------------------------------------------ */
 /* GitHub Repos: the full curated catalogue, including private repos   */
@@ -329,12 +419,13 @@ const readme = textFile("README.txt", [
   "",
   "  * about_me.txt ......... who I am",
   "  * now.txt .............. what I'm working on right now",
-  "  * skills.txt ........... stack and focus areas",
-  "  * Projects\\ ............ write-ups of the featured projects",
+  "  * Projects\\ ............ write-ups + .url shortcuts to live sites",
+  `  * My Pictures\\ ......... ${PROJECT_SHOTS.length} real deploy screenshots`,
+  "  * My Videos\\ ........... the demo reels, playable in place",
   `  * Since January\\ ....... ${sinceJanuaryRepositories.length} repos pushed in 2026`,
   `  * GitHub Repos\\ ........ all ${repoCount} repos, incl. ${privateRepoCount} private ones`,
   "  * Work History\\ ........ one file per role, newest first",
-  "  * contact.txt .......... how to reach me",
+  "  * Max_Mohammadi_Resume.pdf ... the actual PDF",
   "",
   "Click any file to open it in Notepad. Windows drag, resize,",
   "and stack — just like the real thing.",
@@ -378,10 +469,13 @@ export const myDocuments: ExplorerFolder = {
   kind: "folder",
   name: "My Documents",
   children: [
-    { kind: "folder", name: "Projects", children: projectFiles },
+    { kind: "folder", name: "Projects", children: [...projectShortcuts, ...projectFiles] },
+    { kind: "folder", name: "My Pictures", children: pictureFiles },
+    { kind: "folder", name: "My Videos", children: videoFiles },
     { kind: "folder", name: "Since January", children: [sinceJanuaryReadme, ...sinceJanuaryFiles] },
     { kind: "folder", name: "GitHub Repos", children: [repoCatalogReadme, ...repoCatalogFiles] },
     { kind: "folder", name: "Work History", children: [...roleFiles, education, volunteering] },
+    resumePdf,
     readme,
     aboutMe,
     now,
@@ -413,7 +507,7 @@ export function sizeLabel(bytes: number): string {
 
 /** Rough on-disk size of a node, for the status bar and infotips. */
 export function nodeSizeBytes(node: ExplorerNode): number {
-  if (node.kind === "file") return node.content.length;
+  if (node.kind === "file") return node.type === "txt" ? node.content.length : node.sizeBytes;
   return node.children.reduce((total, child) => total + nodeSizeBytes(child), 0);
 }
 
