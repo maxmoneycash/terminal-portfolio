@@ -6,6 +6,7 @@
  * nest one level deep, which is all the Folders pane renders.
  */
 import { portfolio } from "./portfolio";
+import githubProjects from "./github-projects.json";
 
 export type ExplorerFile = {
   kind: "file";
@@ -105,6 +106,67 @@ const projectFiles: ExplorerFile[] = portfolio.projects.map((project) =>
   ]),
 );
 
+/* ------------------------------------------------------------------ */
+/* GitHub Repos: the full curated catalogue, including private repos   */
+/* (metadata only — same data the My Projects window ships).           */
+/* ------------------------------------------------------------------ */
+
+type CatalogRepo = (typeof githubProjects)["repositories"][number];
+
+function pushDateLabel(iso: string) {
+  return new Date(iso).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+}
+
+function repoFile(repo: CatalogRepo, taken: Set<string>): ExplorerFile {
+  const base = slugify(repo.name);
+  const name = taken.has(`${base}.txt`) ? `${base}_${repo.owner.toLowerCase()}.txt` : `${base}.txt`;
+  taken.add(name);
+
+  const flags = [
+    repo.private ? "Private" : "Public",
+    repo.fork ? "Fork" : null,
+    repo.archived ? "Archived" : null,
+  ].filter(Boolean);
+
+  return textFile(name, [
+    repo.name.toUpperCase(),
+    `${repo.owner}/${repo.name}`,
+    DIVIDER,
+    "",
+    `Visibility: ${flags.join(" · ")}`,
+    `Language:   ${repo.language ?? "n/a"}`,
+    repo.license ? `License:    ${repo.license}` : null,
+    repo.stars > 0 || repo.forks > 0 ? `GitHub:     ${repo.stars} stars · ${repo.forks} forks` : null,
+    `Last push:  ${pushDateLabel(repo.pushedAt)}`,
+    repo.private ? null : `Repo:       ${repo.url}`,
+    repo.homepage ? `Live:       ${repo.homepage}` : null,
+    "",
+    repo.description ?? "(no description)",
+  ]);
+}
+
+const repoNames = new Set<string>();
+const repoCatalogFiles: ExplorerFile[] = [...githubProjects.repositories]
+  .sort((a, b) => +new Date(b.pushedAt) - +new Date(a.pushedAt))
+  .map((repo) => repoFile(repo, repoNames));
+
+const repoCount = githubProjects.repositories.length;
+const privateRepoCount = githubProjects.repositories.filter((repo) => repo.private).length;
+
+const repoCatalogReadme = textFile("_README.txt", [
+  "GITHUB REPOS — THE FULL CATALOGUE",
+  DIVIDER,
+  "",
+  `${repoCount} repositories across maxmoneycash and SeamMoney,`,
+  `${privateRepoCount} of them private. One file per repo, newest push first.`,
+  "",
+  "Private repos show the same metadata the My Projects window",
+  "ships — name, description, language, last push — never code.",
+  "",
+  `Catalogue refreshed ${pushDateLabel(githubProjects.generatedAt)}`,
+  "via scripts/fetch-github-projects.mjs (npm run projects:refresh).",
+]);
+
 /** Company files, deduped by appending the start year when names repeat. */
 function roleFileName(company: string, period: string, taken: Set<string>) {
   const base = slugify(company);
@@ -197,7 +259,8 @@ const readme = textFile("README.txt", [
   "  * about_me.txt ......... who I am",
   "  * now.txt .............. what I'm working on right now",
   "  * skills.txt ........... stack and focus areas",
-  "  * Projects\\ ............ one file per shipped project",
+  "  * Projects\\ ............ write-ups of the featured projects",
+  `  * GitHub Repos\\ ........ all ${repoCount} repos, incl. ${privateRepoCount} private ones`,
   "  * Work History\\ ........ one file per role, newest first",
   "  * contact.txt .......... how to reach me",
   "",
@@ -244,6 +307,7 @@ export const myDocuments: ExplorerFolder = {
   name: "My Documents",
   children: [
     { kind: "folder", name: "Projects", children: projectFiles },
+    { kind: "folder", name: "GitHub Repos", children: [repoCatalogReadme, ...repoCatalogFiles] },
     { kind: "folder", name: "Work History", children: [...roleFiles, education, volunteering] },
     readme,
     aboutMe,
