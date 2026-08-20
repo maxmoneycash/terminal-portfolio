@@ -500,9 +500,11 @@ export function resolveFolder(path: string[]): ExplorerFolder {
   return folder;
 }
 
-/** XP-style size label ("12.4 KB"). */
+/** XP-style size label ("12.4 KB", "7.0 MB"). */
 export function sizeLabel(bytes: number): string {
-  return `${(bytes / 1024).toFixed(1)} KB`;
+  const kb = bytes / 1024;
+  if (kb >= 1024) return `${(kb / 1024).toFixed(1)} MB`;
+  return `${kb.toFixed(1)} KB`;
 }
 
 /** Rough on-disk size of a node, for the status bar and infotips. */
