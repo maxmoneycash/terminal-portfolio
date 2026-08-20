@@ -7,6 +7,7 @@
  */
 import { portfolio } from "./portfolio";
 import githubProjects from "./github-projects.json";
+import publicActivity from "./github-public-activity.json";
 
 export type ExplorerFile = {
   kind: "file";
@@ -111,7 +112,56 @@ const projectFiles: ExplorerFile[] = portfolio.projects.map((project) =>
 /* (metadata only — same data the My Projects window ships).           */
 /* ------------------------------------------------------------------ */
 
-type CatalogRepo = (typeof githubProjects)["repositories"][number];
+type CatalogRepo = {
+  owner: string;
+  name: string;
+  description: string | null;
+  private: boolean;
+  fork: boolean;
+  archived: boolean;
+  homepage: string | null;
+  pushedAt: string;
+  language: string | null;
+  url: string;
+  license: string | null;
+  stars: number;
+  forks: number;
+};
+
+const SINCE_JANUARY = "2026-01-01";
+
+function repoKey(repo: { owner: string; name: string }) {
+  return `${repo.owner}/${repo.name}`.toLowerCase();
+}
+
+/** Catalogue (incl. private metadata) overlaid with live public activity. */
+function mergeRepositories(): CatalogRepo[] {
+  const byKey = new Map<string, CatalogRepo>();
+  for (const repo of githubProjects.repositories) byKey.set(repoKey(repo), repo);
+  for (const repo of publicActivity.repositories) {
+    const existing = byKey.get(repoKey(repo));
+    if (!existing) {
+      byKey.set(repoKey(repo), repo);
+      continue;
+    }
+    // Keep catalogue stars/license; take the fresher public push + description.
+    const newer = repo.pushedAt > existing.pushedAt;
+    byKey.set(repoKey(repo), {
+      ...existing,
+      description: repo.description ?? existing.description,
+      homepage: repo.homepage ?? existing.homepage,
+      language: repo.language ?? existing.language,
+      pushedAt: newer ? repo.pushedAt : existing.pushedAt,
+      fork: repo.fork,
+      archived: repo.archived,
+      url: repo.url,
+    });
+  }
+  return [...byKey.values()].sort((a, b) => +new Date(b.pushedAt) - +new Date(a.pushedAt));
+}
+
+const mergedRepositories = mergeRepositories();
+const sinceJanuaryRepositories = mergedRepositories.filter((repo) => repo.pushedAt >= SINCE_JANUARY);
 
 function pushDateLabel(iso: string) {
   return new Date(iso).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
@@ -146,12 +196,13 @@ function repoFile(repo: CatalogRepo, taken: Set<string>): ExplorerFile {
 }
 
 const repoNames = new Set<string>();
-const repoCatalogFiles: ExplorerFile[] = [...githubProjects.repositories]
-  .sort((a, b) => +new Date(b.pushedAt) - +new Date(a.pushedAt))
-  .map((repo) => repoFile(repo, repoNames));
+const repoCatalogFiles: ExplorerFile[] = mergedRepositories.map((repo) => repoFile(repo, repoNames));
 
-const repoCount = githubProjects.repositories.length;
-const privateRepoCount = githubProjects.repositories.filter((repo) => repo.private).length;
+const repoCount = mergedRepositories.length;
+const privateRepoCount = mergedRepositories.filter((repo) => repo.private).length;
+const newPublicCount = publicActivity.repositories.filter(
+  (repo) => !githubProjects.repositories.some((known) => repoKey(known) === repoKey(repo)),
+).length;
 
 const repoCatalogReadme = textFile("_README.txt", [
   "GITHUB REPOS — THE FULL CATALOGUE",
@@ -162,9 +213,29 @@ const repoCatalogReadme = textFile("_README.txt", [
   "",
   "Private repos show the same metadata the My Projects window",
   "ships — name, description, language, last push — never code.",
+  `Public activity since January added ${newPublicCount} repos that`,
+  "were not in the July catalogue snapshot.",
   "",
-  `Catalogue refreshed ${pushDateLabel(githubProjects.generatedAt)}`,
-  "via scripts/fetch-github-projects.mjs (npm run projects:refresh).",
+  `Private catalogue: ${pushDateLabel(githubProjects.generatedAt)}`,
+  `Public activity:   ${pushDateLabel(publicActivity.generatedAt)}`,
+]);
+
+const sinceJanuaryNames = new Set<string>();
+const sinceJanuaryFiles: ExplorerFile[] = sinceJanuaryRepositories.map((repo) =>
+  repoFile(repo, sinceJanuaryNames),
+);
+
+const sinceJanuaryReadme = textFile("_README.txt", [
+  "WORK SINCE JANUARY 2026",
+  DIVIDER,
+  "",
+  `${sinceJanuaryRepositories.length} repositories with a push on or after`,
+  "January 1, 2026 — the stuff actually being edited this year.",
+  "",
+  `${sinceJanuaryRepositories.filter((repo) => repo.private).length} private (from the July catalogue snapshot)`,
+  `${sinceJanuaryRepositories.filter((repo) => !repo.private).length} public (live GitHub activity as of ${pushDateLabel(publicActivity.generatedAt)})`,
+  "",
+  "Newest push first. Click any file for the write-up.",
 ]);
 
 /** Company files, deduped by appending the start year when names repeat. */
@@ -260,6 +331,7 @@ const readme = textFile("README.txt", [
   "  * now.txt .............. what I'm working on right now",
   "  * skills.txt ........... stack and focus areas",
   "  * Projects\\ ............ write-ups of the featured projects",
+  `  * Since January\\ ....... ${sinceJanuaryRepositories.length} repos pushed in 2026`,
   `  * GitHub Repos\\ ........ all ${repoCount} repos, incl. ${privateRepoCount} private ones`,
   "  * Work History\\ ........ one file per role, newest first",
   "  * contact.txt .......... how to reach me",
@@ -307,6 +379,7 @@ export const myDocuments: ExplorerFolder = {
   name: "My Documents",
   children: [
     { kind: "folder", name: "Projects", children: projectFiles },
+    { kind: "folder", name: "Since January", children: [sinceJanuaryReadme, ...sinceJanuaryFiles] },
     { kind: "folder", name: "GitHub Repos", children: [repoCatalogReadme, ...repoCatalogFiles] },
     { kind: "folder", name: "Work History", children: [...roleFiles, education, volunteering] },
     readme,
