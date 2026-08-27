@@ -193,11 +193,8 @@ function pdfFile(name: string, src: string, sizeBytes: number): PdfFile {
   return { kind: "file", type: "pdf", name, src, sizeBytes };
 }
 
-const resumePdf = pdfFile("Max_Mohammadi_Resume.pdf", "/Max_Mohammadi_Resume.pdf", 70400);
-
 /* ------------------------------------------------------------------ */
-/* PDFs & Papers: documents Max actually wrote — whitepaper, research, */
-/* and the tailored resume variants                                    */
+/* PDFs & Papers: whitepapers, research reports, and audits            */
 /* ------------------------------------------------------------------ */
 
 const paperFiles: PdfFile[] = [
@@ -215,14 +212,6 @@ const paperFiles: PdfFile[] = [
   pdfFile("Panoptic_M-04_InAMMOverflow.pdf", "/docs/panoptic-M-04_InAMMOverflow.pdf", 301377),
   pdfFile("Cash_Markets_Zion_Audit_Report.pdf", "/docs/zion-audit-report.pdf", 345331),
   pdfFile("Ohlone_Unicode_Proposal.pdf", "/docs/ohlone-unicode-proposal.pdf", 12132),
-  pdfFile("Resume_Engineering.pdf", "/Max_Mohammadi_Resume_Engineering.pdf", 125382),
-  pdfFile("Resume_ATS.pdf", "/Max_Mohammadi_Resume_ATS.pdf", 125387),
-  pdfFile("Resume_Whop.pdf", "/Max_Mohammadi_Resume_Whop.pdf", 125889),
-  pdfFile("Resume_Whop_ATS.pdf", "/Max_Mohammadi_Resume_Whop_ATS.pdf", 125160),
-  pdfFile("Resume_Whop_Business.pdf", "/Max_Mohammadi_Resume_Whop_Business.pdf", 123823),
-  pdfFile("Resume_Whop_Design.pdf", "/Max_Mohammadi_Resume_Whop_Design.pdf", 123683),
-  pdfFile("Resume_Whop_Founder.pdf", "/Max_Mohammadi_Resume_Whop_Founder.pdf", 123840),
-  pdfFile("Resume_Whop_Hardcore.pdf", "/Max_Mohammadi_Resume_Whop_Hardcore.pdf", 125289),
 ];
 
 /* ------------------------------------------------------------------ */
@@ -443,18 +432,17 @@ const readme = textFile("README.txt", [
   "",
   "This folder is the file cabinet of the portfolio. Everything in",
   "here is generated from the same real data as the rest of MaxXP:",
-  "the resume, the GitHub catalogue, and the live telemetry.",
+  "the GitHub catalogue, and the live telemetry.",
   "",
   "  * about_me.txt ......... who I am",
   "  * now.txt .............. what I'm working on right now",
   "  * Projects\\ ............ write-ups + .url shortcuts to live sites",
-  "  * PDFs & Papers\\ ....... LilyShark paper, whitepapers, audits, resumes",
+  "  * PDFs & Papers\\ ....... LilyShark paper, whitepapers, audits",
   `  * My Pictures\\ ......... ${PROJECT_SHOTS.length} real deploy screenshots`,
   "  * My Videos\\ ........... the demo reels, playable in place",
   `  * Since January\\ ....... ${sinceJanuaryRepositories.length} repos pushed in 2026`,
   `  * GitHub Repos\\ ........ all ${repoCount} repos, incl. ${privateRepoCount} private ones`,
   "  * Work History\\ ........ one file per role, newest first",
-  "  * Max_Mohammadi_Resume.pdf ... the actual PDF",
   "",
   "Click any file to open it in Notepad. Windows drag, resize,",
   "and stack — just like the real thing.",
@@ -505,7 +493,6 @@ export const myDocuments: ExplorerFolder = {
     { kind: "folder", name: "Since January", children: [sinceJanuaryReadme, ...sinceJanuaryFiles] },
     { kind: "folder", name: "GitHub Repos", children: [repoCatalogReadme, ...repoCatalogFiles] },
     { kind: "folder", name: "Work History", children: [...roleFiles, education, volunteering] },
-    resumePdf,
     readme,
     aboutMe,
     now,
