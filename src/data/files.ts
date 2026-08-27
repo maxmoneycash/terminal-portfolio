@@ -207,11 +207,22 @@ const paperFiles: PdfFile[] = [
   pdfFile("MegaETH_vs_Aptos_Research_Report.pdf", "/docs/megaeth-vs-aptos-research.pdf", 435142),
   pdfFile("UMA_Oracle_One_Pager.pdf", "/docs/uma-one-pager.pdf", 29145),
   pdfFile("Panoptic_Code4rena_Audit_Report.pdf", "/docs/panoptic-audit-report.pdf", 1057940),
+  pdfFile("Panoptic_Audit_Index.pdf", "/docs/panoptic-00_INDEX.pdf", 340105),
+  pdfFile("Panoptic_H-01_ZombieAccounts.pdf", "/docs/panoptic-H-01_ZombieAccounts.pdf", 322356),
+  pdfFile("Panoptic_H-02_LiquidationArithmetic.pdf", "/docs/panoptic-H-02_LiquidationArithmetic.pdf", 363007),
+  pdfFile("Panoptic_H-03_ForceExerciseMismatch.pdf", "/docs/panoptic-H-03_ForceExerciseMismatch.pdf", 389610),
+  pdfFile("Panoptic_M-01_SettlementCasting.pdf", "/docs/panoptic-M-01_SettlementCasting.pdf", 302362),
+  pdfFile("Panoptic_M-04_InAMMOverflow.pdf", "/docs/panoptic-M-04_InAMMOverflow.pdf", 301377),
   pdfFile("Cash_Markets_Zion_Audit_Report.pdf", "/docs/zion-audit-report.pdf", 345331),
   pdfFile("Ohlone_Unicode_Proposal.pdf", "/docs/ohlone-unicode-proposal.pdf", 12132),
   pdfFile("Resume_Engineering.pdf", "/Max_Mohammadi_Resume_Engineering.pdf", 125382),
   pdfFile("Resume_ATS.pdf", "/Max_Mohammadi_Resume_ATS.pdf", 125387),
   pdfFile("Resume_Whop.pdf", "/Max_Mohammadi_Resume_Whop.pdf", 125889),
+  pdfFile("Resume_Whop_ATS.pdf", "/Max_Mohammadi_Resume_Whop_ATS.pdf", 125160),
+  pdfFile("Resume_Whop_Business.pdf", "/Max_Mohammadi_Resume_Whop_Business.pdf", 123823),
+  pdfFile("Resume_Whop_Design.pdf", "/Max_Mohammadi_Resume_Whop_Design.pdf", 123683),
+  pdfFile("Resume_Whop_Founder.pdf", "/Max_Mohammadi_Resume_Whop_Founder.pdf", 123840),
+  pdfFile("Resume_Whop_Hardcore.pdf", "/Max_Mohammadi_Resume_Whop_Hardcore.pdf", 125289),
 ];
 
 /* ------------------------------------------------------------------ */
