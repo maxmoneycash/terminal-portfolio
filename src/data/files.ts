@@ -194,7 +194,7 @@ function pdfFile(name: string, src: string, sizeBytes: number): PdfFile {
 }
 
 /* ------------------------------------------------------------------ */
-/* PDFs & Papers: whitepapers, research reports, and audits            */
+/* PDFs & Papers: public whitepapers and research                      */
 /* ------------------------------------------------------------------ */
 
 const paperFiles: PdfFile[] = [
@@ -203,14 +203,6 @@ const paperFiles: PdfFile[] = [
   pdfFile("Content_Rewards_Whitepaper.pdf", "https://propwhop.com/whitepaper.pdf", 20616626),
   pdfFile("MegaETH_vs_Aptos_Research_Report.pdf", "/docs/megaeth-vs-aptos-research.pdf", 435142),
   pdfFile("UMA_Oracle_One_Pager.pdf", "/docs/uma-one-pager.pdf", 29145),
-  pdfFile("Panoptic_Code4rena_Audit_Report.pdf", "/docs/panoptic-audit-report.pdf", 1057940),
-  pdfFile("Panoptic_Audit_Index.pdf", "/docs/panoptic-00_INDEX.pdf", 340105),
-  pdfFile("Panoptic_H-01_ZombieAccounts.pdf", "/docs/panoptic-H-01_ZombieAccounts.pdf", 322356),
-  pdfFile("Panoptic_H-02_LiquidationArithmetic.pdf", "/docs/panoptic-H-02_LiquidationArithmetic.pdf", 363007),
-  pdfFile("Panoptic_H-03_ForceExerciseMismatch.pdf", "/docs/panoptic-H-03_ForceExerciseMismatch.pdf", 389610),
-  pdfFile("Panoptic_M-01_SettlementCasting.pdf", "/docs/panoptic-M-01_SettlementCasting.pdf", 302362),
-  pdfFile("Panoptic_M-04_InAMMOverflow.pdf", "/docs/panoptic-M-04_InAMMOverflow.pdf", 301377),
-  pdfFile("Cash_Markets_Zion_Audit_Report.pdf", "/docs/zion-audit-report.pdf", 345331),
   pdfFile("Ohlone_Unicode_Proposal.pdf", "/docs/ohlone-unicode-proposal.pdf", 12132),
 ];
 
@@ -437,7 +429,7 @@ const readme = textFile("README.txt", [
   "  * about_me.txt ......... who I am",
   "  * now.txt .............. what I'm working on right now",
   "  * Projects\\ ............ write-ups + .url shortcuts to live sites",
-  "  * PDFs & Papers\\ ....... LilyShark paper, whitepapers, audits",
+  "  * PDFs & Papers\\ ....... LilyShark paper, whitepapers, research",
   `  * My Pictures\\ ......... ${PROJECT_SHOTS.length} real deploy screenshots`,
   "  * My Videos\\ ........... the demo reels, playable in place",
   `  * Since January\\ ....... ${sinceJanuaryRepositories.length} repos pushed in 2026`,
