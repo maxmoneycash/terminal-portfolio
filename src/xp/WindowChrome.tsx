@@ -17,6 +17,7 @@ import { portfolio } from "../data/portfolio";
 import { cn } from "../lib/cn";
 import { MenuBar, type WindowMenu } from "../components/MenuBar";
 import { Tooltip } from "../components/Tooltip";
+import { playSfx } from "./audio";
 import { appCatalog, xp, type AppId, type WindowRecord } from "./types";
 import { openResumePdf } from "./content";
 
@@ -141,6 +142,7 @@ export function WindowChrome({
       () => onMinimize(record.id),
       { duration: 190, easing: EASE_IN_OUT },
     );
+    playSfx("minimize");
   };
 
   const handleMaximize = (event?: ReactMouseEvent<HTMLElement>) => {
@@ -316,6 +318,7 @@ export function WindowChrome({
   return (
     <section
       ref={sectionRef}
+      data-window-id={record.id}
       className={cn(
         "xp-window",
         isNotepad && "is-notepad",

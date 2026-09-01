@@ -18,20 +18,7 @@ import { StartMenu } from "./xp/StartMenu";
 import { WindowChrome, type ResizeEdge } from "./xp/WindowChrome";
 import { WindowContent } from "./xp/content";
 import { Wallpaper } from "./xp/Wallpaper";
-
-type DragState =
-  | { mode: "move"; id: AppId; startX: number; startY: number; originX: number; originY: number }
-  | {
-      mode: "resize";
-      id: AppId;
-      edge: ResizeEdge;
-      startX: number;
-      startY: number;
-      originX: number;
-      originY: number;
-      width: number;
-      height: number;
-    };
+import { attachLiveDrag } from "./xp/liveGeometry";
 
 const TASKBAR_HEIGHT = 30;
 
@@ -58,7 +45,7 @@ function App() {
   // Mirrors the CRT store so Display Properties and the shell stay in sync.
   const [crtEnabled, setCrtEnabledState] = useState(getCrtEnabled);
   const [balloonVisible, setBalloonVisible] = useState(false);
-  const [drag, setDrag] = useState<DragState | null>(null);
+  const liveDragCleanupRef = useRef<(() => void) | null>(null);
   // Focus history powers the toolbar's Back/Forward, like a browser's session
   // history but over the apps visited in this session.
   const [history, setHistory] = useState<AppId[]>(["signature"]);
@@ -254,98 +241,88 @@ function App() {
   }, [maximizeWindow]);
 
   /* ------------------------------------------------------------------ */
-  /* Drag + resize                                                       */
+  /* Drag + resize — painted on the element, committed once on pointerup */
   /* ------------------------------------------------------------------ */
+
+  const commitGeometry = useCallback((id: AppId, box: { x: number; y: number; width: number; height: number }) => {
+    liveDragCleanupRef.current = null;
+    setWindows((current) =>
+      current.map((record) => (record.id === id ? { ...record, ...box } : record)),
+    );
+  }, []);
 
   const startDrag = useCallback(
     (event: ReactPointerEvent, record: WindowRecord) => {
       if (record.maximized) return;
       event.preventDefault();
-      setDrag({
-        mode: "move",
-        id: record.id,
-        startX: event.clientX,
-        startY: event.clientY,
-        originX: record.x,
-        originY: record.y,
-      });
+      const element = document.querySelector<HTMLElement>(`[data-window-id="${record.id}"]`);
+      if (!element) return;
+      liveDragCleanupRef.current?.();
       focusWindow(record.id);
+      liveDragCleanupRef.current = attachLiveDrag({
+        element,
+        session: {
+          mode: "move",
+          startX: event.clientX,
+          startY: event.clientY,
+          originX: record.x,
+          originY: record.y,
+          width: record.width,
+          height: record.height,
+          minWidth: record.width,
+          minHeight: record.height,
+          clamp: (box) => ({
+            ...box,
+            x: Math.max(100 - box.width, Math.min(window.innerWidth - 100, box.x)),
+            y: Math.max(0, Math.min(window.innerHeight - 50, box.y)),
+          }),
+        },
+        onCommit: (box) => commitGeometry(record.id, box),
+      });
     },
-    [focusWindow],
+    [commitGeometry, focusWindow],
   );
 
   const startResize = useCallback(
     (event: ReactPointerEvent, record: WindowRecord, edge: ResizeEdge) => {
       event.preventDefault();
       event.stopPropagation();
-      setDrag({
-        mode: "resize",
-        id: record.id,
-        edge,
-        startX: event.clientX,
-        startY: event.clientY,
-        originX: record.x,
-        originY: record.y,
-        width: record.width,
-        height: record.height,
-      });
+      const element = document.querySelector<HTMLElement>(`[data-window-id="${record.id}"]`);
+      if (!element) return;
+      const app = appCatalog[record.id];
+      liveDragCleanupRef.current?.();
       focusWindow(record.id);
+      liveDragCleanupRef.current = attachLiveDrag({
+        element,
+        session: {
+          mode: "resize",
+          edge,
+          startX: event.clientX,
+          startY: event.clientY,
+          originX: record.x,
+          originY: record.y,
+          width: record.width,
+          height: record.height,
+          minWidth: app.dimensions.minWidth,
+          minHeight: app.dimensions.minHeight,
+          clamp: (box) => ({
+            ...box,
+            width: Math.min(box.width, window.innerWidth - box.x),
+            height: Math.min(box.height, window.innerHeight - TASKBAR_HEIGHT - box.y),
+          }),
+        },
+        onCommit: (box) => commitGeometry(record.id, box),
+      });
     },
-    [focusWindow],
+    [commitGeometry, focusWindow],
   );
 
-  useEffect(() => {
-    if (!drag) return;
-
-    const handleMove = (event: PointerEvent) => {
-      setWindows((current) =>
-        current.map((record) => {
-          if (record.id !== drag.id) return record;
-          const app = appCatalog[record.id];
-          if (drag.mode === "move") {
-            return {
-              ...record,
-              x: Math.max(100 - record.width, Math.min(window.innerWidth - 100, drag.originX + event.clientX - drag.startX)),
-              y: Math.max(0, Math.min(window.innerHeight - 50, drag.originY + event.clientY - drag.startY)),
-            };
-          }
-          const dx = event.clientX - drag.startX;
-          const dy = event.clientY - drag.startY;
-          let { originX: x, originY: y, width, height } = drag;
-          if (drag.edge.includes("e")) width = drag.width + dx;
-          if (drag.edge.includes("s")) height = drag.height + dy;
-          if (drag.edge.includes("w")) {
-            width = drag.width - dx;
-            x = drag.originX + dx;
-          }
-          if (drag.edge.includes("n")) {
-            height = drag.height - dy;
-            y = drag.originY + dy;
-          }
-          if (width < app.dimensions.minWidth) {
-            if (drag.edge.includes("w")) x -= app.dimensions.minWidth - width;
-            width = app.dimensions.minWidth;
-          }
-          if (height < app.dimensions.minHeight) {
-            if (drag.edge.includes("n")) y -= app.dimensions.minHeight - height;
-            height = app.dimensions.minHeight;
-          }
-          width = Math.min(width, window.innerWidth - x);
-          height = Math.min(height, window.innerHeight - TASKBAR_HEIGHT - y);
-          return { ...record, x, y, width, height };
-        }),
-      );
-    };
-
-    const stopDrag = () => setDrag(null);
-    window.addEventListener("pointermove", handleMove);
-    window.addEventListener("pointerup", stopDrag, { once: true });
-
-    return () => {
-      window.removeEventListener("pointermove", handleMove);
-      window.removeEventListener("pointerup", stopDrag);
-    };
-  }, [drag]);
+  useEffect(
+    () => () => {
+      liveDragCleanupRef.current?.();
+    },
+    [],
+  );
 
   // Keep active window valid as windows close/minimize.
   useEffect(() => {

@@ -604,6 +604,7 @@ button.login-footer-left:focus-visible {
     3px 5px 0 rgb(0 29 108 / 0.14),
     8px 14px 32px rgb(0 24 73 / 0.32);
   pointer-events: auto;
+  contain: layout style;
 }
 
 .xp-window.is-maximized {
@@ -637,6 +638,7 @@ button.login-footer-left:focus-visible {
     inset 0 -1px 0 rgb(0 32 142 / 0.9);
   user-select: none;
   cursor: move;
+  touch-action: none;
 }
 
 .window-titlebar::after {
@@ -3308,19 +3310,7 @@ span.github-repo-name {
 
 .crt-on .crt-scanline,
 .crt-on .crt-vignette {
-  position: fixed;
-  inset: 0;
-  z-index: 1400;
   pointer-events: none;
-}
-
-.crt-on .crt-scanline {
-  background: repeating-linear-gradient(0deg, rgb(0 0 0 / 0.045), rgb(0 0 0 / 0.045) 1px, transparent 1px, transparent 3px);
-  mix-blend-mode: multiply;
-}
-
-.crt-on .crt-vignette {
-  box-shadow: inset 0 0 110px rgb(0 0 0 / 0.22);
 }
 
 @media (max-width: 900px) {
@@ -3630,6 +3620,20 @@ span.github-repo-name {
 .resize-edge {
   position: absolute;
   z-index: 2;
+  touch-action: none;
+}
+
+.xp-window.is-dragging,
+.explorer-notepad.is-dragging {
+  transition: none !important;
+  will-change: left, top, width, height;
+}
+
+.xp-window.is-dragging .window-content,
+.explorer-notepad.is-dragging iframe,
+.explorer-notepad.is-dragging video,
+.explorer-notepad.is-dragging .explorer-notepad-body {
+  pointer-events: none;
 }
 
 .resize-n,
@@ -3777,12 +3781,11 @@ span.github-repo-name {
 .crt-overlay .crt-scanline {
   background: repeating-linear-gradient(
     0deg,
-    rgb(0 0 0 / 0.08),
-    rgb(0 0 0 / 0.08) 1px,
+    rgb(0 0 0 / 0.07),
+    rgb(0 0 0 / 0.07) 1px,
     transparent 1px,
     transparent 3px
   );
-  mix-blend-mode: multiply;
 }
 
 .crt-overlay .crt-vignette {
@@ -4361,6 +4364,7 @@ span.github-repo-name {
   background: var(--xp-panel);
   box-shadow: 3px 5px 14px rgb(0 24 73 / 0.3);
   animation: explorer-notepad-open 150ms var(--ease-out-strong);
+  contain: layout style;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -4472,6 +4476,7 @@ span.github-repo-name {
   padding: 2px 3px 2px 6px;
   user-select: none;
   cursor: move;
+  touch-action: none;
 }
 
 .explorer-notepad.is-active .explorer-notepad-titlebar {
@@ -4563,6 +4568,7 @@ span.github-repo-name {
     linear-gradient(135deg, transparent 0 55%, #8a867a 56% 62%, transparent 63%),
     linear-gradient(135deg, transparent 0 70%, #8a867a 71% 77%, transparent 78%);
   cursor: nwse-resize;
+  touch-action: none;
 }
 
 /* ------------------------------------------------------------------ */
