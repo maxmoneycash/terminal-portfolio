@@ -18,6 +18,7 @@ import {
 } from "react";
 import { cn } from "../lib/cn";
 import { playSfx } from "../xp/audio";
+import { attachLiveDrag } from "../xp/liveGeometry";
 import { MenuBar, type WindowMenu } from "./MenuBar";
 import {
   MY_DOCUMENTS_PATH,
@@ -61,10 +62,6 @@ type ViewerWindow = {
   z: number;
   maximized: boolean;
 };
-
-type ViewerDrag =
-  | { mode: "move"; id: number; startX: number; startY: number; originX: number; originY: number }
-  | { mode: "resize"; id: number; startX: number; startY: number; width: number; height: number };
 
 function prefersReducedMotion() {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -442,6 +439,7 @@ function ViewerPane({
   return (
     <section
       ref={sectionRef}
+      data-viewer-id={pad.id}
       className={cn(
         "explorer-notepad",
         `is-${pad.file.type}-viewer`,
@@ -511,8 +509,8 @@ export function FileExplorerApp() {
   const [selected, setSelected] = useState<string | null>(null);
   const [docsExpanded, setDocsExpanded] = useState(true);
   const [viewers, setViewers] = useState<ViewerWindow[]>([]);
-  const [drag, setDrag] = useState<ViewerDrag | null>(null);
   const bodyRef = useRef<HTMLDivElement | null>(null);
+  const liveDragCleanupRef = useRef<(() => void) | null>(null);
   const idRef = useRef(0);
   const zRef = useRef(10);
   const openedRef = useRef(0);
@@ -580,68 +578,75 @@ export function FileExplorerApp() {
     );
   };
 
+  const commitViewerBox = (id: number, box: { x: number; y: number; width: number; height: number }) => {
+    liveDragCleanupRef.current = null;
+    setViewers((current) => current.map((pad) => (pad.id === id ? { ...pad, ...box } : pad)));
+  };
+
   const startViewerDrag = (event: ReactPointerEvent, pad: ViewerWindow) => {
     if (pad.maximized) return;
     event.preventDefault();
+    const element = document.querySelector<HTMLElement>(`[data-viewer-id="${pad.id}"]`);
+    if (!element) return;
+    const bounds = bodyRef.current?.getBoundingClientRect();
+    const maxX = (bounds?.width ?? 640) - 60;
+    const maxY = (bounds?.height ?? 480) - 26;
+    liveDragCleanupRef.current?.();
     focusViewer(pad.id);
-    setDrag({
-      mode: "move",
-      id: pad.id,
-      startX: event.clientX,
-      startY: event.clientY,
-      originX: pad.x,
-      originY: pad.y,
+    liveDragCleanupRef.current = attachLiveDrag({
+      element,
+      session: {
+        mode: "move",
+        startX: event.clientX,
+        startY: event.clientY,
+        originX: pad.x,
+        originY: pad.y,
+        width: pad.width,
+        height: pad.height,
+        minWidth: pad.width,
+        minHeight: pad.height,
+        clamp: (box) => ({
+          ...box,
+          x: Math.max(60 - box.width, Math.min(maxX, box.x)),
+          y: Math.max(0, Math.min(maxY, box.y)),
+        }),
+      },
+      onCommit: (box) => commitViewerBox(pad.id, box),
     });
   };
 
   const startViewerResize = (event: ReactPointerEvent, pad: ViewerWindow) => {
     event.preventDefault();
     event.stopPropagation();
+    const element = document.querySelector<HTMLElement>(`[data-viewer-id="${pad.id}"]`);
+    if (!element) return;
+    liveDragCleanupRef.current?.();
     focusViewer(pad.id);
-    setDrag({
-      mode: "resize",
-      id: pad.id,
-      startX: event.clientX,
-      startY: event.clientY,
-      width: pad.width,
-      height: pad.height,
+    liveDragCleanupRef.current = attachLiveDrag({
+      element,
+      session: {
+        mode: "resize",
+        edge: "se",
+        startX: event.clientX,
+        startY: event.clientY,
+        originX: pad.x,
+        originY: pad.y,
+        width: pad.width,
+        height: pad.height,
+        minWidth: VIEWER_MIN_WIDTH,
+        minHeight: VIEWER_MIN_HEIGHT,
+        clamp: (box) => box,
+      },
+      onCommit: (box) => commitViewerBox(pad.id, box),
     });
   };
 
-  useEffect(() => {
-    if (!drag) return;
-
-    const handleMove = (event: PointerEvent) => {
-      const bounds = bodyRef.current?.getBoundingClientRect();
-      setViewers((current) =>
-        current.map((pad) => {
-          if (pad.id !== drag.id) return pad;
-          if (drag.mode === "move") {
-            const maxX = (bounds?.width ?? 640) - 60;
-            const maxY = (bounds?.height ?? 480) - 26;
-            return {
-              ...pad,
-              x: Math.max(60 - pad.width, Math.min(maxX, drag.originX + event.clientX - drag.startX)),
-              y: Math.max(0, Math.min(maxY, drag.originY + event.clientY - drag.startY)),
-            };
-          }
-          return {
-            ...pad,
-            width: Math.max(VIEWER_MIN_WIDTH, drag.width + event.clientX - drag.startX),
-            height: Math.max(VIEWER_MIN_HEIGHT, drag.height + event.clientY - drag.startY),
-          };
-        }),
-      );
-    };
-
-    const stop = () => setDrag(null);
-    window.addEventListener("pointermove", handleMove);
-    window.addEventListener("pointerup", stop, { once: true });
-    return () => {
-      window.removeEventListener("pointermove", handleMove);
-      window.removeEventListener("pointerup", stop);
-    };
-  }, [drag]);
+  useEffect(
+    () => () => {
+      liveDragCleanupRef.current?.();
+    },
+    [],
+  );
 
   const subfolders = myDocuments.children.filter((child) => child.kind === "folder");
 
