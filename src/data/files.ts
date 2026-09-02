@@ -180,7 +180,7 @@ const PROJECT_SHOTS: { slug: string; sizeBytes: number }[] = [
   { slug: "terminal-portfolio", sizeBytes: 66694 },
 ];
 
-const pictureFiles: ImageFile[] = PROJECT_SHOTS.map(({ slug, sizeBytes }) => ({
+export const galleryPictures: ImageFile[] = PROJECT_SHOTS.map(({ slug, sizeBytes }) => ({
   kind: "file",
   type: "image",
   name: `${slugify(slug)}.jpg`,
@@ -488,7 +488,7 @@ export const myDocuments: ExplorerFolder = {
   children: [
     { kind: "folder", name: "Projects", children: [...projectShortcuts, ...projectFiles] },
     { kind: "folder", name: "PDFs & Papers", children: paperFiles },
-    { kind: "folder", name: "My Pictures", children: pictureFiles },
+    { kind: "folder", name: "My Pictures", children: galleryPictures },
     { kind: "folder", name: "My Videos", children: videoFiles },
     { kind: "folder", name: "Since January", children: [sinceJanuaryReadme, ...sinceJanuaryFiles] },
     { kind: "folder", name: "GitHub Repos", children: [repoCatalogReadme, ...repoCatalogFiles] },
