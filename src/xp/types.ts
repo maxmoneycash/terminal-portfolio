@@ -18,7 +18,8 @@ export type AppId =
   | "stats"
   | "minesweeper"
   | "recycle"
-  | "display";
+  | "display"
+  | "pictures";
 
 export type BootPhase = "boot" | "login" | "welcome" | "desktop";
 
@@ -131,10 +132,28 @@ export const appCatalog: Record<AppId, AppCatalogEntry> = {
     status: "Wallpaper, screen saver, and CRT effects — changes apply immediately",
     dimensions: { width: 430, height: 540, minWidth: 390, minHeight: 480 },
   },
+  pictures: {
+    title: "Windows Picture and Fax Viewer",
+    shortTitle: "My Pictures",
+    icon: `${xp}/gui/start-menu/image-viewer.webp`,
+    desktopLabel: "My Pictures",
+    status: "11 real deploy screenshots from the GitHub profile",
+    dimensions: { width: 780, height: 580, minWidth: 480, minHeight: 400 },
+  },
 };
 
 /** Icons shown on the desktop, top-to-bottom. */
-export const desktopApps: AppId[] = ["about", "files", "resume", "projects", "demos", "stats", "contact", "recycle"];
+export const desktopApps: AppId[] = [
+  "about",
+  "files",
+  "pictures",
+  "resume",
+  "projects",
+  "demos",
+  "stats",
+  "contact",
+  "recycle",
+];
 
 export function externalLabel(url?: string) {
   if (!url) return "";

@@ -20,6 +20,7 @@ import { FileExplorerApp } from "../components/FileExplorerApp";
 import { MinesweeperApp } from "../components/MinesweeperApp";
 import { RecycleBinApp } from "../components/RecycleBinApp";
 import { DisplayPropertiesApp } from "../components/DisplayPropertiesApp";
+import { PicturesApp } from "../components/PicturesApp";
 import { ReelsApp } from "../components/ReelsApp";
 import { StatsApp } from "../components/StatsApp";
 
@@ -596,5 +597,7 @@ export function WindowContent({
       return <RecycleBinApp />;
     case "display":
       return <DisplayPropertiesApp />;
+    case "pictures":
+      return <PicturesApp />;
   }
 }

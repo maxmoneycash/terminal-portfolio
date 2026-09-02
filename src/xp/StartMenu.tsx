@@ -139,6 +139,14 @@ export function StartMenu({
               </button>
               <div className="start-sep" aria-hidden="true" />
               <div className="start-programs-group" aria-hidden="true">
+                Accessories
+              </div>
+              <button type="button" role="menuitem" onClick={() => launch("pictures")}>
+                <img src={appCatalog.pictures.icon} alt="" />
+                Picture and Fax Viewer
+              </button>
+              <div className="start-sep" aria-hidden="true" />
+              <div className="start-programs-group" aria-hidden="true">
                 Tools I use daily
               </div>
               {DAILY_TOOLS.map((tool) => (
@@ -161,6 +169,10 @@ export function StartMenu({
           <button type="button" onClick={() => launch("files")}>
             <img src={`${xp}/gui/toolbar/folder.webp`} alt="" />
             My Documents
+          </button>
+          <button type="button" onClick={() => launch("pictures")}>
+            <img src={`${xp}/gui/start-menu/photos.webp`} alt="" />
+            My Pictures
           </button>
           <a href={portfolio.links.github} target="_blank" rel="noreferrer">
             <img src={`${xp}/gui/start-menu/github.webp`} alt="" />
