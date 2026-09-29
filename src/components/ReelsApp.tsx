@@ -1,25 +1,46 @@
-import { useEffect, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type KeyboardEvent as ReactKeyboardEvent,
+  type PointerEvent as ReactPointerEvent,
+} from "react";
 import { portfolio, type PortfolioVideo } from "../data/portfolio";
 import { cn } from "../lib/cn";
 import { Tooltip } from "./Tooltip";
 
 const featuredVideoId = "best-1";
 
+/** Slides this far from the active one keep a live <video>; the rest show a poster. */
+const MOUNT_RADIUS = 1;
+
 function orderSources(video: PortfolioVideo, preferHls: boolean) {
   return [...video.sources].sort((a, b) => {
     const aIsHls = a.type.includes("mpegurl");
     const bIsHls = b.type.includes("mpegurl");
-
-    if (aIsHls === bIsHls) {
-      return 0;
-    }
-
+    if (aIsHls === bIsHls) return 0;
     return preferHls ? (aIsHls ? -1 : 1) : aIsHls ? 1 : -1;
   });
 }
 
+function linkLabel(url: string) {
+  try {
+    return new URL(url).hostname.replace(/^www\./, "");
+  } catch {
+    return url;
+  }
+}
+
+function formatDuration(seconds?: number) {
+  if (!seconds) return null;
+  const rounded = Math.round(seconds);
+  return `${Math.floor(rounded / 60)}:${String(rounded % 60).padStart(2, "0")}`;
+}
+
 export function ReelsApp({ active = true }: { active?: boolean }) {
-  const videos = useMemo(() => {
+  const videos = useMemo<PortfolioVideo[]>(() => {
     const featured = portfolio.videos.find((video) => video.id === featuredVideoId);
     const rest = portfolio.videos.filter((video) => video.id !== featuredVideoId);
     return featured ? [featured, ...rest] : portfolio.videos;
@@ -29,21 +50,21 @@ export function ReelsApp({ active = true }: { active?: boolean }) {
   const [muted, setMuted] = useState(true);
   const [playing, setPlaying] = useState(false);
   const feedRef = useRef<HTMLDivElement | null>(null);
+  const scrubberRef = useRef<HTMLDivElement | null>(null);
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
+  const lastIndex = videos.length - 1;
 
   useEffect(() => {
     const userAgent = navigator.userAgent;
     const isTouchMac = navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1;
     const isAppleMobile = /iPad|iPhone|iPod/.test(userAgent) || isTouchMac;
     const isSafari = /Safari/i.test(userAgent) && !/Chrome|CriOS|FxiOS|Edg|OPR/i.test(userAgent);
-
     setPreferHls(isAppleMobile || isSafari);
   }, []);
 
   useEffect(() => {
     const feed = feedRef.current;
     if (!feed) return;
-
     const slides = Array.from(feed.querySelectorAll<HTMLElement>("[data-reel-index]"));
     const observer = new IntersectionObserver(
       (entries) => {
@@ -59,6 +80,7 @@ export function ReelsApp({ active = true }: { active?: boolean }) {
     return () => observer.disconnect();
   }, []);
 
+  // Only the active clip plays; neighbours stay mounted (buffered) but paused.
   useEffect(() => {
     videoRefs.current.forEach((element, index) => {
       if (!element) return;
@@ -71,22 +93,19 @@ export function ReelsApp({ active = true }: { active?: boolean }) {
     });
   }, [active, activeIndex, muted]);
 
-  const scrollToIndex = (index: number) => {
-    if (index < 0 || index >= videos.length) return;
+  const scrollToIndex = (index: number, behavior?: ScrollBehavior) => {
+    const target = Math.max(0, Math.min(lastIndex, index));
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     feedRef.current
-      ?.querySelector(`[data-reel-index="${index}"]`)
-      ?.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
+      ?.querySelector(`[data-reel-index="${target}"]`)
+      ?.scrollIntoView({ behavior: behavior ?? (reduceMotion ? "auto" : "smooth"), block: "start" });
   };
 
   const togglePlayback = (index: number) => {
     const element = videoRefs.current[index];
     if (!element) return;
-    if (element.paused) {
-      void element.play().catch(() => {});
-    } else {
-      element.pause();
-    }
+    if (element.paused) void element.play().catch(() => {});
+    else element.pause();
   };
 
   const handleKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
@@ -96,6 +115,12 @@ export function ReelsApp({ active = true }: { active?: boolean }) {
     } else if (event.key === "ArrowUp" || event.key === "PageUp") {
       event.preventDefault();
       scrollToIndex(activeIndex - 1);
+    } else if (event.key === "Home") {
+      event.preventDefault();
+      scrollToIndex(0);
+    } else if (event.key === "End") {
+      event.preventDefault();
+      scrollToIndex(lastIndex);
     } else if (event.key === " " || event.key === "Enter") {
       event.preventDefault();
       togglePlayback(activeIndex);
@@ -104,6 +129,41 @@ export function ReelsApp({ active = true }: { active?: boolean }) {
       setMuted((value) => !value);
     }
   };
+
+  /* Scrubber: a single vertical track instead of one button per clip, so it
+     stays usable whether the feed holds six clips or sixty. */
+  const indexFromPointer = (clientY: number) => {
+    const rect = scrubberRef.current?.getBoundingClientRect();
+    if (!rect || rect.height <= 0) return activeIndex;
+    const ratio = Math.min(1, Math.max(0, (clientY - rect.top) / rect.height));
+    return Math.round(ratio * lastIndex);
+  };
+
+  const handleScrubStart = (event: ReactPointerEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    event.currentTarget.setPointerCapture(event.pointerId);
+    scrollToIndex(indexFromPointer(event.clientY), "auto");
+  };
+
+  const handleScrubMove = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (!event.currentTarget.hasPointerCapture(event.pointerId)) return;
+    const next = indexFromPointer(event.clientY);
+    if (next !== activeIndex) scrollToIndex(next, "auto");
+  };
+
+  const handleScrubKey = (event: ReactKeyboardEvent<HTMLDivElement>) => {
+    const step: Record<string, number> = { ArrowUp: -1, ArrowLeft: -1, ArrowDown: 1, ArrowRight: 1 };
+    if (event.key in step) {
+      event.preventDefault();
+      scrollToIndex(activeIndex + step[event.key]);
+    } else if (event.key === "Home" || event.key === "End") {
+      event.preventDefault();
+      scrollToIndex(event.key === "Home" ? 0 : lastIndex);
+    }
+  };
+
+  const progress = lastIndex > 0 ? activeIndex / lastIndex : 0;
+  const current = videos[activeIndex];
 
   return (
     <div className="reels-app">
@@ -114,45 +174,64 @@ export function ReelsApp({ active = true }: { active?: boolean }) {
         aria-label="Demo reels feed. Use arrow keys to change clips, space to pause, and M to mute."
         onKeyDown={handleKeyDown}
       >
-        {videos.map((video, index) => (
-          <section
-            className={cn("reel-slide", activeIndex === index && "is-active")}
-            data-reel-index={index}
-            key={video.id}
-            aria-label={video.title}
-          >
-            <video
-              key={`${video.id}-${preferHls ? "hls" : "mp4"}`}
-              ref={(element) => {
-                videoRefs.current[index] = element;
-              }}
-              playsInline
-              muted={muted}
-              loop
-              preload={index === 0 ? "auto" : "none"}
-              poster={video.poster}
-              onClick={() => togglePlayback(index)}
-              onPlay={() => {
-                if (index === activeIndex) setPlaying(true);
-              }}
-              onPause={() => {
-                if (index === activeIndex) setPlaying(false);
-              }}
+        {videos.map((video, index) => {
+          const mounted = Math.abs(index - activeIndex) <= MOUNT_RADIUS;
+          const duration = formatDuration(video.durationSeconds);
+          return (
+            <section
+              className={cn("reel-slide", activeIndex === index && "is-active")}
+              data-reel-index={index}
+              key={video.id}
+              aria-label={video.title}
             >
-              {orderSources(video, preferHls).map((source) => (
-                <source key={source.src} src={source.src} type={source.type} />
-              ))}
-            </video>
-            <div className="reel-caption">
-              <p className="reel-kicker">
-                {String(index + 1).padStart(2, "0")} / {String(videos.length).padStart(2, "0")} • {video.date}
-              </p>
-              <strong>{video.title}</strong>
-              <p>{video.summary}</p>
-            </div>
-          </section>
-        ))}
+              {mounted ? (
+                <img className="reel-backdrop" src={video.poster} alt="" aria-hidden="true" decoding="async" />
+              ) : null}
+              {mounted ? (
+                <video
+                  key={`${video.id}-${preferHls ? "hls" : "mp4"}`}
+                  ref={(element) => {
+                    videoRefs.current[index] = element;
+                  }}
+                  className="reel-media"
+                  playsInline
+                  muted={muted}
+                  loop
+                  preload={index === activeIndex ? "auto" : "metadata"}
+                  poster={video.poster}
+                  onClick={() => togglePlayback(index)}
+                  onPlay={() => {
+                    if (index === activeIndex) setPlaying(true);
+                  }}
+                  onPause={() => {
+                    if (index === activeIndex) setPlaying(false);
+                  }}
+                >
+                  {orderSources(video, preferHls).map((source) => (
+                    <source key={source.src} src={source.src} type={source.type} />
+                  ))}
+                </video>
+              ) : (
+                <img className="reel-media" src={video.poster} alt="" loading="lazy" decoding="async" />
+              )}
+              <div className="reel-caption">
+                <p className="reel-kicker">
+                  {String(index + 1).padStart(2, "0")} / {String(videos.length).padStart(2, "0")} • {video.date}
+                  {duration ? ` • ${duration}` : null}
+                </p>
+                <strong>{video.title}</strong>
+                <p>{video.summary}</p>
+                {video.link ? (
+                  <a className="reel-link" href={video.link} target="_blank" rel="noreferrer">
+                    {linkLabel(video.link)} ↗
+                  </a>
+                ) : null}
+              </div>
+            </section>
+          );
+        })}
       </div>
+
       <div className="reels-rail">
         <Tooltip label="Previous clip">
           <button
@@ -168,24 +247,31 @@ export function ReelsApp({ active = true }: { active?: boolean }) {
         <span className="reels-count">
           {activeIndex + 1}/{videos.length}
         </span>
-        <div className="reels-progress" aria-label="Choose a demo clip">
-          {videos.map((video, index) => (
-            <button
-              key={video.id}
-              type="button"
-              className={cn(index === activeIndex && "is-active")}
-              aria-label={`Open clip ${index + 1}: ${video.title}`}
-              aria-current={index === activeIndex ? "true" : undefined}
-              onClick={() => scrollToIndex(index)}
-            />
-          ))}
+        <div
+          ref={scrubberRef}
+          className="reels-scrubber"
+          role="slider"
+          tabIndex={0}
+          aria-orientation="vertical"
+          aria-label="Choose a demo clip"
+          aria-valuemin={1}
+          aria-valuemax={videos.length}
+          aria-valuenow={activeIndex + 1}
+          aria-valuetext={`Clip ${activeIndex + 1} of ${videos.length}: ${current?.title ?? ""}`}
+          style={{ "--reel-progress": progress } as CSSProperties}
+          onPointerDown={handleScrubStart}
+          onPointerMove={handleScrubMove}
+          onKeyDown={handleScrubKey}
+        >
+          <span className="reels-scrubber-fill" />
+          <span className="reels-scrubber-thumb" />
         </div>
         <Tooltip label="Next clip">
           <button
             className="reel-nav"
             type="button"
             aria-label="Next clip"
-            disabled={activeIndex === videos.length - 1}
+            disabled={activeIndex === lastIndex}
             onClick={() => scrollToIndex(activeIndex + 1)}
           >
             ▼
@@ -201,6 +287,7 @@ export function ReelsApp({ active = true }: { active?: boolean }) {
             {playing ? "Ⅱ" : "▶"}
           </button>
         </Tooltip>
+        {current?.hasAudio ? (
         <Tooltip label={muted ? "Turn sound on" : "Mute"}>
           <button
             className="reel-nav reel-sound"
@@ -211,6 +298,7 @@ export function ReelsApp({ active = true }: { active?: boolean }) {
             {muted ? "🔇" : "🔊"}
           </button>
         </Tooltip>
+        ) : null}
       </div>
     </div>
   );

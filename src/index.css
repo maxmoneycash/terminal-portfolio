@@ -1823,16 +1823,31 @@ span.github-repo-name {
   position: relative;
   display: grid;
   height: 100%;
+  overflow: hidden;
+  background: #000;
   scroll-snap-align: start;
   scroll-snap-stop: always;
 }
 
-.reel-slide video {
+/* Landscape clips letterbox inside the portrait feed; a blurred copy of the
+   poster fills the bars so the frame never reads as empty black. */
+.reel-backdrop {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: blur(18px) brightness(0.42) saturate(1.15);
+  transform: scale(1.12);
+  pointer-events: none;
+}
+
+.reel-media {
+  position: relative;
   width: 100%;
   height: 100%;
   min-height: 0;
   object-fit: contain;
-  background: #000;
   cursor: pointer;
 }
 
@@ -1863,15 +1878,36 @@ span.github-repo-name {
   font-size: 14px;
 }
 
-.reel-caption p:last-child {
+.reel-caption p:not(.reel-kicker) {
   color: #d6dfeb;
   font-size: 11px;
   line-height: 1.45;
 }
 
+.reel-link {
+  justify-self: start;
+  margin-top: 2px;
+  border: 1px solid rgb(156 195 255 / 0.55);
+  border-radius: 2px;
+  background: rgb(23 87 215 / 0.35);
+  color: #dfeaff;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  text-decoration: none;
+  pointer-events: auto;
+}
+
+.reel-link:hover,
+.reel-link:focus-visible {
+  background: rgb(49 106 197 / 0.75);
+  color: #fff;
+  outline: none;
+}
+
 .reels-rail {
   display: grid;
-  align-content: center;
+  grid-template-rows: auto auto minmax(56px, 1fr) auto auto auto;
   justify-items: center;
   gap: 10px;
   border: 1px solid #9aa6bd;
@@ -1879,28 +1915,52 @@ span.github-repo-name {
   padding: 8px 4px;
 }
 
-.reels-progress {
-  display: grid;
-  justify-items: center;
-  gap: 5px;
-  padding: 3px 0;
-}
-
-.reels-progress button {
-  width: 13px;
-  height: 4px;
-  border-radius: 3px;
-  background: #8fa6cb;
-  opacity: 0.62;
-  padding: 0;
+/* One sunken XP track for the whole feed: stays usable at 6 clips or 60,
+   where a dot per clip would not. --reel-progress runs 0..1. */
+.reels-scrubber {
+  --reel-inset: 6px;
+  position: relative;
+  width: 16px;
+  height: 100%;
   cursor: pointer;
-  transform: scaleY(1);
+  touch-action: none;
 }
 
-.reels-progress button.is-active {
-  background: #1757d7;
-  opacity: 1;
-  transform: scaleY(1.75);
+.reels-scrubber::before {
+  position: absolute;
+  inset: 0 5px;
+  border-radius: 3px;
+  background: #c9d5ea;
+  box-shadow: inset 1px 1px 1px rgb(0 0 0 / 0.3), inset -1px -1px 0 #fff;
+  content: "";
+}
+
+.reels-scrubber-fill {
+  position: absolute;
+  top: 0;
+  left: 5px;
+  right: 5px;
+  height: calc(var(--reel-inset) + (100% - 2 * var(--reel-inset)) * var(--reel-progress, 0));
+  border-radius: 3px;
+  background: linear-gradient(90deg, #4d8ef0, #1757d7);
+}
+
+.reels-scrubber-thumb {
+  position: absolute;
+  top: calc(var(--reel-inset) + (100% - 2 * var(--reel-inset)) * var(--reel-progress, 0));
+  left: 50%;
+  width: 16px;
+  height: 11px;
+  border: 1px solid #3a5ea8;
+  border-radius: 2px;
+  background: linear-gradient(180deg, #fff, #dce7fd 45%, #a8c3f4);
+  box-shadow: 0 1px 1px rgb(0 0 0 / 0.25);
+  transform: translate(-50%, -50%);
+}
+
+.reels-scrubber:focus-visible {
+  outline: 1px dotted #000;
+  outline-offset: 2px;
 }
 
 .reel-nav {
@@ -1943,9 +2003,8 @@ span.github-repo-name {
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .reels-progress button:hover {
-    opacity: 1;
-    transform: scaleY(1.4);
+  .reels-scrubber:hover .reels-scrubber-thumb {
+    filter: brightness(1.05);
   }
 }
 
@@ -3088,7 +3147,6 @@ span.github-repo-name {
 .start-menu-right a:active,
 .start-menu-footer button:active,
 .reel-nav:active:not(:disabled),
-.reels-progress button:active,
 .tm-range:active,
 .login-user:active {
   transform: scale(0.97);
@@ -3113,14 +3171,14 @@ span.github-repo-name {
   .start-menu-right a,
   .start-menu-footer button,
   .reel-nav,
-  .reels-progress button,
   .tm-range,
   .login-user {
     transition: transform 140ms var(--ease-out-strong);
   }
 
-  .reels-progress button {
-    transition: opacity 120ms ease, transform 140ms var(--ease-out-strong);
+  .reels-scrubber-fill,
+  .reels-scrubber-thumb {
+    transition: height 160ms var(--ease-out-strong), top 160ms var(--ease-out-strong);
   }
 
   .scroll-edge {

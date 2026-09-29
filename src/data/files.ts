@@ -140,14 +140,6 @@ const projectShortcuts: UrlFile[] = portfolio.projects
 /* My Videos: the real demo reels, playable in a media-player window   */
 /* ------------------------------------------------------------------ */
 
-const VIDEO_SIZES: Record<string, number> = {
-  "best-1": 7189628,
-  "screen-2025-12-01-213809": 7332206,
-  "screen-2025-12-22-011301": 5787684,
-  "screen-2026-01-31-011109": 2450511,
-  "screen-2026-02-24-151159": 5485044,
-};
-
 const videoFiles: VideoFile[] = portfolio.videos.map((video) => ({
   kind: "file",
   type: "video",
@@ -155,7 +147,7 @@ const videoFiles: VideoFile[] = portfolio.videos.map((video) => ({
   src: video.sources.find((source) => source.type === "video/mp4")?.src ?? video.sources[0].src,
   poster: video.poster,
   caption: `${video.title} · ${video.date}`,
-  sizeBytes: VIDEO_SIZES[video.id] ?? 5_000_000,
+  sizeBytes: video.sizeBytes ?? 5_000_000,
 }));
 
 /* ------------------------------------------------------------------ */
@@ -462,7 +454,7 @@ const howThisSiteWasMade = textFile("how_this_site_was_made.txt", [
   "    Tahoma, balloon tips, Task Manager greens",
   "  * The Bliss wallpaper as an orientation-aware video loop",
   "  * XP sound scheme decoded into a shared AudioContext",
-  "  * Demo reels served as HLS with poster-first loading",
+  "  * Demo reels cut from raw screen recordings, poster-first",
   "  * Live commit + AI-token telemetry streamed from commits.sh",
   "",
   "Every window is wired to real content. No lorem, no mock stats.",
