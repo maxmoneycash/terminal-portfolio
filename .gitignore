@@ -28,3 +28,7 @@ design-system/
 resume/*.aux
 resume/*.log
 resume/*.out
+
+# Intro video render workspace (frames, renders)
+.intro-build/
+__pycache__/

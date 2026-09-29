@@ -1,7 +1,7 @@
 /**
- * MaxXP boot subsystem: pre-boot overlay, boot screen, boot→login crossfade,
- * login screen (with welcome + shutdown states), and the log off / turn off
- * confirmation dialog.
+ * MaxXP boot subsystem: pre-boot overlay, the intro video (which stands in for
+ * the boot screen), intro→login crossfade, login screen (with welcome +
+ * shutdown states), and the log off / turn off confirmation dialog.
  *
  * Visual metrics and timings follow the Windows XP (Luna) design language;
  * the state machine and code structure are original to this project.
@@ -16,13 +16,14 @@ import {
 } from "./audio";
 import { portfolio } from "../data/portfolio";
 import { cn } from "../lib/cn";
+import { IntroVideo, type IntroEnd } from "./IntroVideo";
 import "./boot.css";
 
 export type LogoffDialogType = "logOff" | "shutDown";
 
 const APP_NAME = "MaxXP";
 
-/** Images gated on before the boot screen may finish. */
+/** Desktop images warmed into the cache while the intro plays. */
 const BOOT_PRELOAD_IMAGES = [
   `${xp}/gui/desktop/about.webp`,
   `${xp}/gui/desktop/projects.webp`,
@@ -34,12 +35,10 @@ const BOOT_PRELOAD_IMAGES = [
 ];
 
 // Boot timeline (ms), measured from boot-flow start.
-const PREBOOT_MS = 1000; // black pre-boot overlay hold
-const BOOT_MIN_MS = 3750; // minimum boot-screen dwell before fade-out
-const BOOT_POLL_MS = 100; // asset-gate poll interval
-const FADEOUT_OVERLAY_IN_MS = 250; // boot fade-out → black overlay fade-in
-const FADEOUT_TO_LOGIN_MS = 1150; // black hold → login screen revealed
-const FADEOUT_OVERLAY_OUT_MS = 500; // black overlay fade-away duration
+const PREBOOT_MS = 400; // black pre-boot beat before the intro
+// The intro ends on the login screen, so a finished intro holds that frame until the
+// live login has faded in, then dissolves onto it; a skipped one just fades out.
+const INTRO_HANDOFF_MS = { ended: 1200, skipped: 500 } as const;
 
 // Login timeline (ms), measured from the user-tile click.
 const LOGIN_FADE_MS = 160; // tile active → login chrome starts fading (0.3s)
@@ -58,7 +57,6 @@ const GRAYSCALE_DELAY_MS = 700; // dialog open → rest of screen desaturates
 type Stage =
   | "preboot"
   | "boot"
-  | "boot-out"
   | "login"
   | "login-fade"
   | "welcome"
@@ -69,7 +67,6 @@ function phaseForStage(stage: Stage): BootPhase {
   switch (stage) {
     case "preboot":
     case "boot":
-    case "boot-out":
       return "boot";
     case "login":
     case "shutdown":
@@ -112,9 +109,8 @@ export function useBootFlow(callbacks: {
   const [initial] = useState(resolveInitialBoot);
   const [stage, setStage] = useState<Stage>(initial.stage);
   const [bootRun, setBootRun] = useState(0);
-  const [bootDelayVisible, setBootDelayVisible] = useState(false);
-  /** Black crossfade overlay between boot and login. */
-  const [fadeoutOverlay, setFadeoutOverlay] = useState<"hidden" | "in" | "out">("hidden");
+  /** The intro stays mounted over the login screen while it dissolves. */
+  const [introFading, setIntroFading] = useState<IntroEnd | null>(null);
   /** Login chrome (center columns + corners) fades out 160ms after tile click. */
   const [loginChromeFading, setLoginChromeFading] = useState(false);
   /** Welcome message .visible class (fades opacity in over 0.7s). */
@@ -168,61 +164,24 @@ export function useBootFlow(callbacks: {
   }, [initial.restored, notifyLoginComplete]);
 
   // Full boot sequence. Re-runs whenever `bootRun` increments (login-screen restart).
+  // The intro decides when boot ends (it finished, was skipped, or stalled).
   useEffect(() => {
     if (initial.restored && bootRun === 0) return;
-
-    let cancelled = false;
-    let gateA = false;
-    let loadedCount = 0;
-    let assetsReady = false;
-
     BOOT_PRELOAD_IMAGES.forEach((src) => {
-      const img = new Image();
-      const done = () => {
-        loadedCount += 1;
-        if (loadedCount === BOOT_PRELOAD_IMAGES.length) assetsReady = true;
-      };
-      img.onload = done;
-      img.onerror = done;
-      img.src = src;
+      new Image().src = src;
     });
-
-    const finishBoot = () => {
-      if (cancelled) return;
-      setBootDelayVisible(false);
-      setStage("boot-out");
-      schedule(() => setFadeoutOverlay("in"), FADEOUT_OVERLAY_IN_MS);
-      schedule(() => {
-        setStage("login");
-        setFadeoutOverlay("out");
-      }, FADEOUT_OVERLAY_IN_MS + FADEOUT_TO_LOGIN_MS);
-      schedule(
-        () => setFadeoutOverlay("hidden"),
-        FADEOUT_OVERLAY_IN_MS + FADEOUT_TO_LOGIN_MS + FADEOUT_OVERLAY_OUT_MS,
-      );
-    };
-
     schedule(() => setStage("boot"), PREBOOT_MS);
-    schedule(() => {
-      gateA = true;
-    }, PREBOOT_MS + BOOT_MIN_MS);
-
-    const poll = window.setInterval(() => {
-      if (cancelled) return;
-      if (gateA && assetsReady) {
-        window.clearInterval(poll);
-        finishBoot();
-      } else if (gateA) {
-        setBootDelayVisible(true);
-      }
-    }, BOOT_POLL_MS);
-
-    return () => {
-      cancelled = true;
-      window.clearInterval(poll);
-      clearScheduled();
-    };
+    return clearScheduled;
   }, [bootRun, initial.restored, schedule, clearScheduled]);
+
+  const finishIntro = useCallback(
+    (how: IntroEnd) => {
+      setStage((current) => (current === "boot" ? "login" : current));
+      setIntroFading(how);
+      schedule(() => setIntroFading(null), INTRO_HANDOFF_MS[how]);
+    },
+    [schedule],
+  );
 
   // User tile click → welcome → desktop.
   const performLogin = useCallback(() => {
@@ -260,8 +219,7 @@ export function useBootFlow(callbacks: {
     loginBusyRef.current = false;
     setLoginChromeFading(false);
     setWelcomeVisible(false);
-    setFadeoutOverlay("hidden");
-    setBootDelayVisible(false);
+    setIntroFading(null);
     setStage("preboot");
     setBootRun((run) => run + 1);
   }, [clearScheduled]);
@@ -354,8 +312,8 @@ export function useBootFlow(callbacks: {
     // Internal view model consumed by <BootScreens flow={…} />.
     view: {
       stage,
-      bootDelayVisible,
-      fadeoutOverlay,
+      introFading,
+      finishIntro,
       loginChromeFading,
       welcomeVisible,
       shutdownText,
@@ -384,7 +342,7 @@ export function BootScreens({ flow }: { flow: BootFlow }): JSX.Element | null {
 
   if (view.stage === "desktop" && !logoffDialog) return null;
 
-  const showBoot = view.stage === "boot" || view.stage === "boot-out";
+  const showIntro = view.stage === "boot" || view.introFading !== null;
   const showLogin =
     view.stage === "login" ||
     view.stage === "login-fade" ||
@@ -403,58 +361,6 @@ export function BootScreens({ flow }: { flow: BootFlow }): JSX.Element | null {
     <>
       {view.stage === "preboot" && (
         <div className="pre-boot-overlay-style" id="pre-boot-overlay" />
-      )}
-
-      {showBoot && (
-        <div
-          id="boot-screen"
-          className={cn(
-            view.stage === "boot" && "boot-fade-in",
-            view.stage === "boot-out" && "fading-out",
-          )}
-        >
-          <div className="loading-container">
-            <img
-              id="boot-logo"
-              src={`${xp}/gui/boot/xp-logo.webp`}
-              alt="Windows XP Loading"
-              draggable={false}
-            />
-            <div className="container" aria-hidden="true">
-              <div className="box" />
-              <div className="box" />
-              <div className="box" />
-            </div>
-          </div>
-          <div
-            id="boot-delay-message"
-            className={cn(view.bootDelayVisible && "is-visible")}
-          >
-            Still booting... hang tight.
-          </div>
-          <div className="boot-bottom-left">
-            <span>For the best experience</span>
-            <span>Enter Full Screen (F11)</span>
-          </div>
-          <div className="boot-bottom-right">
-            <img
-              src={`${xp}/gui/boot/boot-wordmark.webp`}
-              alt="Boot Wordmark"
-              draggable={false}
-              decoding="async"
-            />
-          </div>
-        </div>
-      )}
-
-      {view.fadeoutOverlay !== "hidden" && (
-        <div
-          id="boot-fadeout-overlay"
-          className={cn(
-            "boot-fadeout-overlay-style",
-            view.fadeoutOverlay === "in" && "is-visible",
-          )}
-        />
       )}
 
       {showLogin && (
@@ -578,6 +484,8 @@ export function BootScreens({ flow }: { flow: BootFlow }): JSX.Element | null {
           </div>
         </div>
       )}
+
+      {showIntro && <IntroVideo onFinish={view.finishIntro} fading={view.introFading} />}
 
       {logoffDialog && (
         <div
