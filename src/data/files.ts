@@ -143,7 +143,6 @@ const projectShortcuts: UrlFile[] = portfolio.projects
 const VIDEO_SIZES: Record<string, number> = {
   "best-1": 7189628,
   "screen-2025-12-01-213809": 7332206,
-  "screen-2025-12-09-191737": 23724964,
   "screen-2025-12-22-011301": 5787684,
   "screen-2026-01-31-011109": 2450511,
   "screen-2026-02-24-151159": 5485044,

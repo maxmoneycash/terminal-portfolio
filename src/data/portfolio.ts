@@ -19,6 +19,10 @@ export type PortfolioVideo = {
   summary: string;
   sourceFilename: string;
   poster: string;
+  /** Live app the clip demonstrates, shown as a link chip under the caption. */
+  link?: string;
+  /** Clip length, shown in the caption kicker. */
+  durationSeconds?: number;
   sources: Array<{
     src: string;
     type: string;
@@ -85,18 +89,6 @@ export const portfolio = {
     },
   ] satisfies Project[],
   videos: [
-    {
-      id: "screen-2025-12-09-191737",
-      title: "Demo clip 01",
-      date: "December 9, 2025",
-      summary: "A focused product walkthrough cut for quick review on the portfolio.",
-      sourceFilename: "Screen Recording 2025-12-09 at 7.17.37 PM",
-      poster: "/videos/posters/screen-2025-12-09-191737.jpg",
-      sources: [
-        { src: "/videos/hls/screen-2025-12-09-191737/index.m3u8", type: "application/vnd.apple.mpegurl", quality: "HLS" },
-        { src: "/videos/screen-2025-12-09-191737.mp4", type: "video/mp4", quality: "HD" },
-      ],
-    },
     {
       id: "screen-2025-12-01-213809",
       title: "Demo clip 02",
