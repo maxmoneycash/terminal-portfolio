@@ -27,6 +27,7 @@ ap = argparse.ArgumentParser()
 ap.add_argument("--orient", choices=["portrait", "landscape"], default="portrait")
 ap.add_argument("--out", required=True)
 ap.add_argument("--still", type=int, help="render just this frame (1-based) to --out as a PNG")
+ap.add_argument("--stills", help="comma-separated frames (1-based) to render as --out/NNNN.png")
 ap.add_argument("--start", type=int, default=1)
 ap.add_argument("--end", type=int)
 ap.add_argument("--samples", type=int, default=32)
@@ -206,10 +207,11 @@ scene.render.resolution_x, scene.render.resolution_y = (1080, 1920) if portrait 
 scene.render.resolution_percentage = args.scale
 
 cam_data = bpy.data.cameras.new("phone")
-cam_data.lens = 34 if args.orient == "portrait" else 28
+cam_data.lens = 28  # a phone's main camera, held close to the glass
 cam_data.sensor_width = 36
 cam_data.sensor_fit = "AUTO"
 cam_data.clip_start = 0.01
+cam_data.dof.use_dof = False  # a phone keeps the whole screen sharp
 # rig aims at the target; the camera rides it and adds hand roll
 rig = bpy.data.objects.new("rig", None)
 scene.collection.objects.link(rig)
@@ -222,11 +224,32 @@ scene.collection.objects.link(target)
 track = rig.constraints.new("TRACK_TO")
 track.target = target
 track.track_axis, track.up_axis = "TRACK_NEGATIVE_Z", "UP_Y"
-cam_data.dof.use_dof = True
-cam_data.dof.focus_object = target
-cam_data.dof.aperture_fstop = 5.6
 
-focus = np.array(timeline["focus"], dtype=np.float64)  # (u, v) in screen space, v down
+# Framing, like the phone in the reference: close enough that the screen fills
+# the frame and each window fills most of it. The hand reacts a beat after a
+# window opens (no anticipation), swings over, and settles.
+LW, LH = timeline["screen"]
+M_PER_PX = SW / LW
+regions = np.array(timeline["regions"], dtype=np.float64)  # x, y, w, h per frame, logical px
+t = np.arange(FRAMES) / FPS
+logoff_t = timeline["logoff"][0]
+if portrait:
+    aspect = 9 / 16
+    fill_w, fill_h = 0.80, 0.82  # room for cover-cropping on tall phones
+    vis_h_min, vis_h_max = 620.0, 880.0
+    regions[t >= logoff_t] = (760, 330, 340, 190)  # end close on the user tile
+else:
+    aspect = 16 / 9
+    fill_w, fill_h = 0.62, 0.76  # windows sit mid-frame with desktop around them
+    vis_h_min, vis_h_max = 450.0, 810.0
+
+
+def framing(reg):
+    vis_h = np.clip(np.maximum(reg[:, 2] / fill_w / aspect, reg[:, 3] / fill_h), vis_h_min, vis_h_max)
+    vis_w = vis_h * aspect
+    cx = np.clip(reg[:, 0] + reg[:, 2] / 2, vis_w / 2 - 6, LW - vis_w / 2 + 6)  # stay on the glass
+    cy = np.clip(reg[:, 1] + reg[:, 3] / 2, vis_h / 2 - 6, LH - vis_h / 2 + 6)
+    return cx, cy, vis_h
 
 
 def zero_phase(x: np.ndarray, alpha: float) -> np.ndarray:
@@ -239,36 +262,36 @@ def zero_phase(x: np.ndarray, alpha: float) -> np.ndarray:
     return y
 
 
-fu = zero_phase(focus[:, 0], 0.06)
-fv = zero_phase(focus[:, 1], 0.05)
-t = np.arange(FRAMES) / FPS
-logoff_t = timeline["logoff"][0]
-end_push = np.clip((t - logoff_t) / (t[-1] - logoff_t), 0, 1)
-end_push = end_push * end_push * (3 - 2 * end_push)
+def spring(x: np.ndarray, omega: float, delay: int = 3) -> np.ndarray:
+    """Critically damped follow of x, starting `delay` frames late."""
+    goal = np.concatenate([np.full(delay, x[0]), x[:-delay]])
+    y, v, dt = np.empty_like(x), 0.0, 1 / FPS
+    y[0] = x[0]
+    for i in range(1, len(x)):
+        v += (omega * omega * (goal[i] - y[i - 1]) - 2 * omega * v) * dt
+        y[i] = y[i - 1] + v * dt
+    return y
 
-if portrait:
-    follow_x, follow_z = 0.72, 0.18
-    dist = 0.36 + 0.02 * np.sin(0.23 * t + 0.4) - 0.01 * end_push
-    aim_z_bias = -0.018 * (1 - end_push)
-    end_u = 0.57  # a vertical frame can't hold the whole login screen: end on the user tile
-else:
-    follow_x, follow_z = 0.22, 0.08
-    dist = 0.47 + 0.025 * np.sin(0.19 * t) - 0.09 * end_push
-    aim_z_bias = -0.02 * (1 - end_push)
-    end_u = 0.5
+
+cx, cy, vis_h = framing(regions)
+cx, cy, vis_h = spring(cx, 9.0), spring(cy, 9.0), spring(vis_h, 7.0)
+vis_w = vis_h * aspect
+cx = np.clip(cx, vis_w / 2 - 6, LW - vis_w / 2 + 6)
+cy = np.clip(cy, vis_h / 2 - 6, LH - vis_h / 2 + 6)
+# distance that shows vis_h (portrait: the sensor spans the height) or vis_w
+dist = (vis_h if portrait else vis_w) * M_PER_PX / 2 * cam_data.lens / (cam_data.sensor_width / 2)
 
 for i in range(FRAMES):
-    u = fu[i] * (1 - end_push[i]) + end_u * end_push[i]
-    v = fv[i] * (1 - end_push[i]) + 0.5 * end_push[i]
-    tx = (u - 0.5) * SW * follow_x
-    tz = ZC - (v - 0.5) * SH * follow_z + aim_z_bias[i]
+    tx = (cx[i] - LW / 2) * M_PER_PX
+    tz = ZC - (cy[i] - LH / 2) * M_PER_PX
     target.location = (tx, 0.0, tz)
     target.keyframe_insert("location", frame=i + 1)
-    sway_x = 0.035 * math.sin(0.41 * t[i] + 1.1) * (1 - 0.6 * end_push[i])
-    sway_z = 0.018 * math.sin(0.33 * t[i] + 2.0)
-    rig.location = (tx * 0.85 + sway_x, -dist[i], tz + 0.012 + sway_z)
+    # never quite square to the glass: a little off to the side and below
+    off_x = dist[i] * (0.10 * math.sin(0.41 * t[i] + 1.1) + 0.04 * math.sin(0.93 * t[i]))
+    off_z = dist[i] * (-0.07 + 0.05 * math.sin(0.33 * t[i] + 2.0))
+    rig.location = (tx + off_x, -dist[i], tz + off_z)
     rig.keyframe_insert("location", frame=i + 1)
-    cam.rotation_euler = (0.0, 0.0, math.radians(0.9 * math.sin(0.37 * t[i] + 0.7)))
+    cam.rotation_euler = (0.0, 0.0, math.radians(1.1 * math.sin(0.37 * t[i] + 0.7)))
     cam.keyframe_insert("rotation_euler", index=2, frame=i + 1)
 
 
@@ -282,9 +305,9 @@ def shake(ob, path, strength, scale, phase):
         n.blend_in = n.blend_out = 0
 
 
-shake(rig, "location", 0.0035, 38, 3.0)   # slow drift of hands
-shake(rig, "location", 0.0009, 4.5, 9.0)  # micro tremor
-shake(target, "location", 0.003, 30, 21.0)
+shake(rig, "location", 0.0022, 38, 3.0)   # slow drift of hands
+shake(rig, "location", 0.0006, 4.5, 9.0)  # micro tremor
+shake(target, "location", 0.0016, 30, 21.0)
 shake(cam, "rotation_euler", 0.004, 22, 5.0)  # roll wobble (radians)
 
 # ---------------------------------------------------------------------------
@@ -338,6 +361,12 @@ if args.still:
     scene.frame_set(args.still)
     scene.render.filepath = args.out
     bpy.ops.render.render(write_still=True)
+elif args.stills:
+    os.makedirs(args.out, exist_ok=True)
+    for frame in (int(v) for v in args.stills.split(",")):
+        scene.frame_set(frame)
+        scene.render.filepath = os.path.join(args.out, f"{frame:04d}.png")
+        bpy.ops.render.render(write_still=True)
 else:
     os.makedirs(args.out, exist_ok=True)
     scene.frame_start = args.start

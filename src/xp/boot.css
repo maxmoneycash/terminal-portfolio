@@ -49,43 +49,16 @@
   transition: opacity 450ms ease;
 }
 
-/* The picture is a monitor in a dark room, so fill the viewport like `cover`
-   but only ever crop the room: never the width of the tall cut (its screen runs
-   edge to edge) and at most ~11% a side of the wide one. Whatever is left over
-   letterboxes onto black, which matches the room. */
+/* Fill the viewport. The camera centers each project window, leaving
+   surrounding desktop to crop as the viewport's proportions change. */
 .intro-video {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  max-width: none;
+  object-fit: cover;
   background: #000;
-}
-
-@supports (width: 1cqw) {
-  .intro {
-    container-type: size;
-  }
-
-  .intro-video {
-    inset: auto;
-    top: 50%;
-    left: 50%;
-    height: auto;
-    max-width: none; /* preflight caps video at 100%, which would undo the crop */
-    object-fit: cover;
-    transform: translate(-50%, -50%);
-  }
-
-  .intro-video.is-portrait {
-    aspect-ratio: 9 / 16;
-    width: min(100cqw, 63cqh);
-  }
-
-  .intro-video.is-landscape {
-    aspect-ratio: 16 / 9;
-    width: min(max(100cqw, 177.78cqh), 128cqw, 189cqh);
-  }
 }
 
 .intro-skip {

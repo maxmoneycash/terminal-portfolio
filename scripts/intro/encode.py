@@ -8,6 +8,8 @@ immutable), and points src/xp/IntroVideo.tsx at the new files.
 
   python3 scripts/intro/encode.py
 """
+from __future__ import annotations
+
 import glob
 import hashlib
 import os

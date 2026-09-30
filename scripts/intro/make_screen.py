@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import argparse
 import glob
+import hashlib
 import json
 import math
 import os
@@ -32,70 +33,80 @@ BUILD = os.path.join(ROOT, ".intro-build")
 FONT_DIR = "/System/Library/Fonts/Supplemental"
 
 FPS = 30
-DURATION = 26.0
+DURATION = 28.5
 FRAMES = int(round(DURATION * FPS))
-S = 1.5  # texture pixels per logical XP pixel
+S = 2.5  # texture pixels per logical XP pixel (the camera films it close up)
 LW, LH = 1440, 900  # the monitor's logical resolution (a 16:10 LCD)
 W, H = int(LW * S), int(LH * S)
 TASKBAR = 30
 BODY = (236, 233, 216)  # Luna window face colour
 
 # ---------------------------------------------------------------------------
-# The show. Each window pops open at t0 and closes at t1 (seconds), playing
-# `clip` from `clip_in`. x/y place the frame's top-left and cw sets the
-# content width in logical pixels; height follows the clip's aspect ratio.
-# The portrait camera sees only ~716 of the 1440 logical pixels and eases
-# between windows, so wide (~560) windows need their centre within about
-# x 470-970 or they play half off the edge of the phone cut; narrow ones
-# (~300) can sit anywhere.
+# The show. Windows pop open one after another (FIRST_OPEN, then every STEP
+# seconds, each open for HOLD), playing the moment saved in highlights.json.
+# cx/cy place the
+# window's centre and cw sets the content width in logical pixels; height
+# follows the clip's shape. The phone camera frames each window as it opens,
+# so keep consecutive windows a short pan apart and every centre inside
+# x 480-960, y 300-440, and tall windows nearer 650-680 so the wide cut can centre them too.
 # ---------------------------------------------------------------------------
 IE_BLOCK = "http://aptos-consensus-visualizer.vercel.app/block-machine"
-TIMELINE = [
-    dict(style="ie", clip="commits-sh-menubar", clip_in=3.0, t0=1.30, t1=3.10, x=500, y=66, cw=420,
+IE_VELOCIRAPTR = "http://aptos-consensus-visualizer.vercel.app/"
+FIRST_OPEN, STEP, HOLD = 1.30, 1.25, 1.40
+with open(os.path.join(ROOT, "scripts", "intro", "highlights.json")) as fh:
+    HIGHLIGHTS = json.load(fh)
+SHOW = [
+    dict(style="ie", clip="commits-sh-menubar", cx=660, cy=420, cw=330,
          title="commits.sh - Microsoft Internet Explorer", url="http://commits.sh/"),
-    dict(style="wmp", clip="aptos-validator-globe", clip_in=4.0, t0=2.85, t1=4.40, x=560, y=150, cw=560,
+    dict(style="wmp", clip="aptos-validator-globe", cx=820, cy=360, cw=390,
          title="Aptos validator globe"),
-    dict(style="demo", clip="temper-trade", clip_in=5.0, t0=4.25, t1=5.80, x=440, y=80, cw=300,
+    dict(style="demo", clip="temper-trade", cx=670, cy=420, cw=280,
          title="TEMPER TRADE", color=(57, 255, 20)),
-    dict(style="luna", clip="money-clicker", clip_in=12.0, t0=5.65, t1=7.00, x=600, y=250, cw=560,
+    dict(style="luna", clip="money-clicker", cx=860, cy=330, cw=390,
          title="Money Clicker", menu=True),
-    dict(style="luna", clip="emoji-candlestick-charts", clip_in=4.0, t0=6.85, t1=8.20, x=780, y=110, cw=300,
-         title="Emoji Candlestick Charts"),
-    dict(style="ie", clip="aptos-block-machine", clip_in=3.0, t0=8.05, t1=9.50, x=400, y=200, cw=560,
+    dict(style="luna", clip="peptide-tracker", cx=660, cy=410, cw=300,
+         title="Peptide Tracker"),
+    dict(style="ie", clip="aptos-block-machine", cx=820, cy=350, cw=390,
          title="Aptos Block Machine - Microsoft Internet Explorer", url=IE_BLOCK),
-    dict(style="demo", clip="deepsurge-rounds", clip_in=6.0, t0=9.35, t1=10.70, x=860, y=76, cw=300,
-         title="DEEPSURGE", color=(0, 229, 255)),
-    dict(style="luna", clip="wick-markets-ride", clip_in=7.0, t0=10.55, t1=11.90, x=470, y=300, cw=560,
+    dict(style="luna", clip="emoji-candlestick-charts", cx=650, cy=400, cw=300,
+         title="Emoji Candlestick Charts"),
+    dict(style="luna", clip="wick-markets-ride", cx=800, cy=330, cw=390,
          title="Wick Markets", menu=True),
-    dict(style="ie", clip="fee-market-simulator", clip_in=12.0, t0=11.75, t1=13.10, x=620, y=60, cw=470,
-         title="Aptos Velociraptr - Microsoft Internet Explorer", url="http://aptos-consensus-visualizer.vercel.app/"),
-    dict(style="luna", clip="shelby-pulse", clip_in=1.0, t0=12.95, t1=14.30, x=330, y=130, cw=300,
-         title="Shelby Pulse"),
-    dict(style="wmp", clip="nipahscan", clip_in=0.3, t0=14.15, t1=15.50, x=480, y=200, cw=560,
+    dict(style="ie", clip="aptos-hft-demo", cx=670, cy=420, cw=310,
+         title="Aptos HFT Demo - Microsoft Internet Explorer", url="http://aptos-polymarket.vercel.app/"),
+    dict(style="wmp", clip="nipahscan", cx=840, cy=360, cw=390,
          title="NipahScan"),
-    dict(style="luna", clip="sol2move-boringvault", clip_in=6.2, t0=15.35, t1=16.50, x=520, y=420, cw=480,
-         title="Sol2Move"),
-    dict(style="demo", clip="decibrrr-points", clip_in=20.0, t0=16.35, t1=17.70, x=560, y=76, cw=290,
+    dict(style="luna", clip="shelby-pulse", cx=660, cy=400, cw=300,
+         title="Shelby Pulse"),
+    dict(style="ie", clip="decibrrr-live", cx=820, cy=350, cw=390,
+         title="Decibrrr - Microsoft Internet Explorer", url="http://cash.trading/"),
+    dict(style="demo", clip="decibrrr-points", cx=670, cy=420, cw=280,
          title="DECIBRRR", color=(255, 212, 0)),
-    dict(style="luna", clip="seam-dex", clip_in=9.0, t0=17.55, t1=18.80, x=420, y=330, cw=560,
+    dict(style="luna", clip="seam-dex", cx=820, cy=320, cw=390,
          title="Seam", menu=True),
-    dict(style="wmp", clip="best-1", clip_in=20.0, t0=18.65, t1=20.00, x=500, y=190, cw=560,
+    dict(style="ie", clip="fee-market-simulator", cx=650, cy=400, cw=360,
+         title="Aptos Velociraptr - Microsoft Internet Explorer", url=IE_VELOCIRAPTR),
+    dict(style="wmp", clip="aptos-vs-megaeth", cx=840, cy=360, cw=390,
          title="Aptos vs MegaETH"),
-    dict(style="luna", clip="order-entry-ladder", clip_in=5.0, t0=19.85, t1=21.10, x=520, y=110, cw=360,
+    dict(style="luna", clip="order-entry-ladder", cx=660, cy=400, cw=330,
          title="Order Ladder"),
-    # Finale: windows stack up fast, then everything closes before log off.
-    dict(style="wmp", clip="aptos-validator-globe", clip_in=7.5, t0=21.00, t1=23.20, x=250, y=70, cw=520,
-         title="Aptos validator globe"),
-    dict(style="demo", clip="temper-trade", clip_in=27.6, t0=21.30, t1=23.10, x=520, y=60, cw=290,
-         title="TEMPER TRADE", color=(255, 46, 136)),
-    dict(style="ie", clip="commits-sh-menubar", clip_in=10.0, t0=21.60, t1=23.00, x=760, y=90, cw=380,
-         title="commits.sh - Microsoft Internet Explorer", url="http://commits.sh/"),
-    dict(style="luna", clip="money-clicker", clip_in=20.0, t0=21.90, t1=22.90, x=420, y=380, cw=500,
-         title="Money Clicker", menu=True),
+    dict(style="luna", clip="sol2move-boringvault", cx=820, cy=340, cw=390,
+         title="Sol2Move"),
+    dict(style="luna", clip="aptos-velociraptr", cx=670, cy=410, cw=300,
+         title="Aptos Velociraptr"),
 ]
+TIMELINE = [
+    dict(spec, clip_in=HIGHLIGHTS[spec["clip"]]["intro"],
+         t0=round(FIRST_OPEN + i * STEP, 3), t1=round(FIRST_OPEN + i * STEP + HOLD, 3))
+    for i, spec in enumerate(SHOW)
+]
+# What the camera frames with no window up: the desktop icons being
+# double-clicked at the start, then the login screen after log off.
+START_REGION = (0, 120, 420, 560)
+LOGIN_REGION = (260, 290, 840, 280)  # logo, user tile, and the hint line
 DOUBLE_CLICK = (0.95, 1.10)  # cursor double-clicks the Demo Reel icon
 ICON_SELECTED = (0.95, 1.30)
-LOGOFF = (23.35, 23.95)  # desktop fades to the login screen
+LOGOFF = (25.45, 26.05)  # desktop fades to the login screen
 
 DESKTOP_ICONS = [
     ("desktop/about.webp", "About Me"),
@@ -385,9 +396,9 @@ BUILDERS = {"luna": build_luna, "ie": build_ie, "wmp": build_wmp, "demo": build_
 
 
 def clip_path(clip_id: str) -> str:
-    if clip_id == "best-1":
-        return os.path.join(ROOT, "public", "videos", "best-1.mp4")
-    hits = glob.glob(os.path.join(ROOT, "public", "videos", "reels", f"{clip_id}-*.mp4"))
+    if source := HIGHLIGHTS[clip_id].get("source"):
+        return os.path.join(ROOT, source)
+    hits = glob.glob(os.path.join(ROOT, "public", "videos", "reels", f"{clip_id}-{'[0-9a-f]' * 8}.mp4"))
     if len(hits) != 1:
         raise SystemExit(f"expected one reel for {clip_id}, found {hits}")
     return hits[0]
@@ -407,6 +418,12 @@ def prepare_windows() -> list[dict]:
     for i, spec in enumerate(TIMELINE):
         win = dict(spec, id=i)
         cw_px, ch_px, dur = probe(win["clip"])
+        pick = HIGHLIGHTS[win["clip"]]
+        if not (0 <= pick["start"] <= win["clip_in"] and
+                win["clip_in"] + HOLD <= pick["start"] + pick["duration"] <= dur + 0.001):
+            raise SystemExit(f"invalid highlight bounds: {win['clip']}")
+        if crop := pick.get("crop"):
+            cw_px, ch_px = crop[2:]
         win["ch"] = round(win["cw"] * ch_px / cw_px)
         win["clip_duration"] = dur
         if win["clip_in"] + (win["t1"] - win["t0"]) > dur:
@@ -419,11 +436,19 @@ def decode_clip(win: dict) -> str:
     """Decode the window's clip span, scaled to its content box, as raw RGB."""
     _, _, cw, ch = win["content"]
     n = int(math.ceil((win["t1"] - win["t0"]) * FPS)) + 2
-    out = os.path.join(BUILD, "clips", f"{win['id']:02d}-{win['clip']}-{cw}x{ch}-{win['clip_in']}.raw")
+    source = clip_path(win["clip"])
+    crop = HIGHLIGHTS[win["clip"]].get("crop")
+    signature = hashlib.sha1((source + str(os.stat(source).st_mtime_ns) + str(crop)).encode()).hexdigest()[:8]
+    filters = [f"fps={FPS}"]
+    if crop:
+        x, y, w, h = crop
+        filters.append(f"crop={w}:{h}:{x}:{y}")
+    filters.append(f"scale={cw}:{ch}:flags=lanczos")
+    out = os.path.join(BUILD, "clips", f"{win['id']:02d}-{win['clip']}-{signature}-{cw}x{ch}-{win['clip_in']}.raw")
     if not (os.path.exists(out) and os.path.getsize(out) == n * cw * ch * 3):
         os.makedirs(os.path.dirname(out), exist_ok=True)
-        subprocess.run(["ffmpeg", "-v", "error", "-y", "-ss", f"{win['clip_in']:.3f}", "-i", clip_path(win["clip"]),
-                        "-frames:v", str(n), "-vf", f"fps={FPS},scale={cw}:{ch}:flags=lanczos",
+        subprocess.run(["ffmpeg", "-v", "error", "-y", "-ss", f"{win['clip_in']:.3f}", "-i", source,
+                        "-frames:v", str(n), "-vf", ",".join(filters),
                         "-pix_fmt", "rgb24", "-f", "rawvideo", out], check=True)
     have = os.path.getsize(out) // (cw * ch * 3)
     win["raw"], win["raw_frames"] = out, have
@@ -645,7 +670,8 @@ def draw_dynamic(canvas: Image.Image, win: dict, t: float):
         pos = win["clip_in"] + el
         iy = y0 + cy + ch + px(3)
         d.text((x0 + p + px(2), iy), "Now Playing: " + win["title"], font=font(TAHOMA, 11), fill=(159, 193, 255))
-        ts = f"00:{int(pos) % 60:02d} / 00:{int(win['clip_duration']) % 60:02d}"
+        duration = int(win["clip_duration"])
+        ts = f"{int(pos) // 60:02d}:{int(pos) % 60:02d} / {duration // 60:02d}:{duration % 60:02d}"
         fnt = font(TAHOMA, 11)
         d.text((x0 + ww - p - px(4) - fnt.getlength(ts), iy), ts, font=fnt, fill=(159, 193, 255))
         sy = y0 + cy + ch + px(WMP_INFO) + px(3)
@@ -763,16 +789,17 @@ def render_frame(f: int) -> tuple[int, list[float], list[float]]:
     small = np.asarray(img.resize((64, 40), Image.BILINEAR), dtype=np.float32) / 255.0
     mean = small.reshape(-1, 3).mean(axis=0)
     img.save(os.path.join(BUILD, "screen", f"{f + 1:04d}.jpg"), quality=93, subsampling=0)
-    top = showing[-1] if showing else None
-    if top:
-        x, y, ww, wh = top["rect"]
-        focus = [(x + ww / 2) / LW, (y + wh / 2) / LH]
+    # what the camera should frame (logical px): the newest window, else the
+    # desktop icons before the first one, else the login screen
+    if showing:
+        region = showing[-1]["rect"]
+    elif t < LOGOFF[0] and t < TIMELINE[0]["t0"]:
+        region = START_REGION
     elif t < LOGOFF[0]:
-        cxl, cyl = cursor_at(_STATE["keys"], t)
-        focus = [cxl / LW, cyl / LH]
+        region = _STATE["wins"][-1]["rect"]
     else:
-        focus = [0.5, 0.5]
-    return f, [round(float(v), 4) for v in mean], [round(v, 4) for v in focus]
+        region = LOGIN_REGION
+    return f, [round(float(v), 4) for v in mean], [round(float(v), 1) for v in region]
 
 
 def main():
@@ -785,7 +812,10 @@ def main():
     for win in wins:
         chrome, content = BUILDERS[win["style"]](win)
         win["content"] = content
-        win["rect"] = [win["x"], win["y"], chrome.width / S, chrome.height / S]
+        ww, wh = chrome.width / S, chrome.height / S
+        win["x"] = round(min(max(win["cx"] - ww / 2, 6), LW - ww - 6))
+        win["y"] = round(min(max(win["cy"] - wh / 2, 6), LH - TASKBAR - wh - 6))
+        win["rect"] = [win["x"], win["y"], ww, wh]
         decode_clip(win)
     frames = [int(round(float(v) * FPS)) for v in args.at.split(",")] if args.at else list(range(FRAMES))
     with ProcessPoolExecutor(max_workers=args.jobs, initializer=init_worker, initargs=(wins,)) as pool:
@@ -798,7 +828,7 @@ def main():
         "fps": FPS, "frames": FRAMES, "screen": [LW, LH], "texture": [W, H],
         "windows": [{k: w[k] for k in ("id", "style", "title", "clip", "t0", "t1", "rect")} for w in wins],
         "spill": [m for _, m, _ in results],
-        "focus": [fo for _, _, fo in results],
+        "regions": [r for _, _, r in results],
         "logoff": LOGOFF,
     }
     with open(os.path.join(BUILD, "timeline.json"), "w") as fh:

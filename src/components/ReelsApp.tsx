@@ -70,7 +70,6 @@ export function ReelsApp({ active = true }: { active?: boolean }) {
       (entries) => {
         entries.forEach((entry) => {
           if (!entry.isIntersecting) return;
-          setPlaying(false);
           setActiveIndex(Number((entry.target as HTMLElement).dataset.reelIndex));
         });
       },

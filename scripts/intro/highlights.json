@@ -1,0 +1,129 @@
+{
+  "commits-sh-menubar": {
+    "start": 6.5,
+    "intro": 7.2,
+    "reason": "Token total steps upward while the candle chart and live model mix update.",
+    "duration": 5
+  },
+  "aptos-validator-globe": {
+    "start": 4.5,
+    "intro": 6.0,
+    "reason": "Zoom into Asian validator nodes with luminous broadcast arcs crossing the globe.",
+    "duration": 5
+  },
+  "temper-trade": {
+    "start": 0,
+    "intro": 0.2,
+    "reason": "The green chart surges into a multiplier and pays a +$2434 win.",
+    "source": "scripts/intro/sources/temper-trade-6aa01747.mp4",
+    "original": {
+      "pattern": "Screen Recording 2025-12-15 at 7.02*",
+      "start": 839,
+      "duration": 5,
+      "filter": "fps=30,scale=790:1440,setsar=1"
+    },
+    "duration": 5
+  },
+  "money-clicker": {
+    "start": 6.5,
+    "intro": 8.0,
+    "reason": "Repeated taps throw banknotes outward as the power meter changes from green through yellow to red.",
+    "duration": 5
+  },
+  "peptide-tracker": {
+    "start": 12,
+    "intro": 13.1,
+    "reason": "Select a fresh site on the interactive body map.",
+    "duration": 5
+  },
+  "aptos-block-machine": {
+    "start": 21.5,
+    "intro": 23.3,
+    "reason": "Reveal the transaction flame graph after profiling.",
+    "duration": 5
+  },
+  "emoji-candlestick-charts": {
+    "start": 6.7,
+    "intro": 8.1,
+    "reason": "A new live emoji candle extends down and then reverses upward.",
+    "duration": 5
+  },
+  "wick-markets-ride": {
+    "start": 17.5,
+    "intro": 20.0,
+    "reason": "The P&L rises, then the rider cashes out and the profit settles onto the chart.",
+    "duration": 5
+  },
+  "aptos-hft-demo": {
+    "start": 5.5,
+    "intro": 6.0,
+    "reason": "Switch to the trade stream and watch executed buys and sells arrive.",
+    "duration": 5
+  },
+  "nipahscan": {
+    "start": 13,
+    "intro": 14.1,
+    "reason": "Switch from variant statistics to the interactive haplotype network.",
+    "duration": 5
+  },
+  "shelby-pulse": {
+    "start": 21.5,
+    "intro": 22.0,
+    "reason": "Explore the live latency chart with an updating highlighted reading.",
+    "duration": 5
+  },
+  "decibrrr-live": {
+    "start": 25,
+    "intro": 27.2,
+    "reason": "Trade counters and the latest bot activity update beside the exchange.",
+    "duration": 5
+  },
+  "decibrrr-points": {
+    "start": 5.1,
+    "intro": 5.2,
+    "reason": "Balance and the yellow portfolio chart populate, then the chart is explored.",
+    "duration": 5,
+    "crop": [
+      0,
+      0,
+      744,
+      1296
+    ]
+  },
+  "seam-dex": {
+    "start": 12,
+    "intro": 12.4,
+    "reason": "Drag the liquidity range; the histogram fills blue and allocation changes.",
+    "duration": 5
+  },
+  "fee-market-simulator": {
+    "start": 14.5,
+    "intro": 15.5,
+    "reason": "Increase transaction load and compare how Ethereum and Aptos fees respond.",
+    "duration": 5
+  },
+  "aptos-vs-megaeth": {
+    "start": 36.0,
+    "intro": 37.0,
+    "reason": "A burst of MegaETH blocks and latency spikes contrasts with the steady Aptos dashboard.",
+    "duration": 5
+  },
+  "order-entry-ladder": {
+    "start": 7.2,
+    "intro": 7.3,
+    "reason": "Place the sell marker and move the buy preview down the live depth ladder.",
+    "duration": 5
+  },
+  "sol2move-boringvault": {
+    "start": 11.8,
+    "intro": 12.6,
+    "reason": "The transpilation pipeline completes and reveals the contract analysis and Solidity/Move comparison.",
+    "duration": 5
+  },
+  "aptos-velociraptr": {
+    "start": 33,
+    "intro": 33.5,
+    "reason": "The leader broadcasts to the validator ring, commits, and rotates.",
+    "duration": 5
+  }
+}
