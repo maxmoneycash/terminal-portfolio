@@ -89,7 +89,7 @@ export const appCatalog: Record<AppId, AppCatalogEntry> = {
     icon: `${xp}/gui/start-menu/mediaPlayer.webp`,
     desktopLabel: "Demo Reel",
     status: "Scroll the feed — every clip is a real screen recording",
-    dimensions: { width: 620, height: 740, minWidth: 440, minHeight: 460 },
+    dimensions: { width: 900, height: 760, minWidth: 440, minHeight: 460 },
   },
   contact: {
     title: "Contact Me",

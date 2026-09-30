@@ -11,7 +11,7 @@ import { portfolio, type PortfolioVideo } from "../data/portfolio";
 import { cn } from "../lib/cn";
 import { Tooltip } from "./Tooltip";
 
-const featuredVideoId = "best-1";
+const featuredVideoId = "aptos-vs-megaeth";
 
 /** Slides this far from the active one keep a live <video>; the rest show a poster. */
 const MOUNT_RADIUS = 1;
@@ -177,6 +177,7 @@ export function ReelsApp({ active = true }: { active?: boolean }) {
         {videos.map((video, index) => {
           const mounted = Math.abs(index - activeIndex) <= MOUNT_RADIUS;
           const duration = formatDuration(video.durationSeconds);
+          const shape = { "--reel-w": video.width, "--reel-h": video.height } as CSSProperties;
           return (
             <section
               className={cn("reel-slide", activeIndex === index && "is-active")}
@@ -184,36 +185,36 @@ export function ReelsApp({ active = true }: { active?: boolean }) {
               key={video.id}
               aria-label={video.title}
             >
-              {mounted ? (
-                <img className="reel-backdrop" src={video.poster} alt="" aria-hidden="true" decoding="async" />
-              ) : null}
-              {mounted ? (
-                <video
-                  key={`${video.id}-${preferHls ? "hls" : "mp4"}`}
-                  ref={(element) => {
-                    videoRefs.current[index] = element;
-                  }}
-                  className="reel-media"
-                  playsInline
-                  muted={muted}
-                  loop
-                  preload={index === activeIndex ? "auto" : "metadata"}
-                  poster={video.poster}
-                  onClick={() => togglePlayback(index)}
-                  onPlay={() => {
-                    if (index === activeIndex) setPlaying(true);
-                  }}
-                  onPause={() => {
-                    if (index === activeIndex) setPlaying(false);
-                  }}
-                >
-                  {orderSources(video, preferHls).map((source) => (
-                    <source key={source.src} src={source.src} type={source.type} />
-                  ))}
-                </video>
-              ) : (
-                <img className="reel-media" src={video.poster} alt="" loading="lazy" decoding="async" />
-              )}
+              <div className="reel-stage">
+                {mounted ? (
+                  <video
+                    key={`${video.id}-${preferHls ? "hls" : "mp4"}`}
+                    ref={(element) => {
+                      videoRefs.current[index] = element;
+                    }}
+                    className="reel-media"
+                    style={shape}
+                    playsInline
+                    muted={muted}
+                    loop
+                    preload={index === activeIndex ? "auto" : "metadata"}
+                    poster={video.poster}
+                    onClick={() => togglePlayback(index)}
+                    onPlay={() => {
+                      if (index === activeIndex) setPlaying(true);
+                    }}
+                    onPause={() => {
+                      if (index === activeIndex) setPlaying(false);
+                    }}
+                  >
+                    {orderSources(video, preferHls).map((source) => (
+                      <source key={source.src} src={source.src} type={source.type} />
+                    ))}
+                  </video>
+                ) : (
+                  <img className="reel-media" style={shape} src={video.poster} alt="" loading="lazy" decoding="async" />
+                )}
+              </div>
               <div className="reel-caption">
                 <p className="reel-kicker">
                   {String(index + 1).padStart(2, "0")} / {String(videos.length).padStart(2, "0")} • {video.date}
