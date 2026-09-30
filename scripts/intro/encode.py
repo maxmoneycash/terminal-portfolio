@@ -18,6 +18,7 @@ ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 BUILD = os.path.join(ROOT, ".intro-build")
 OUT = os.path.join(ROOT, "public", "videos", "intro")
 COMPONENT = os.path.join(ROOT, "src", "xp", "IntroVideo.tsx")
+INDEX = os.path.join(ROOT, "index.html")  # preloads the poster frames
 FPS = 30
 
 TARGETS = {
@@ -54,12 +55,15 @@ def encode(orient: str) -> tuple[str, str]:
 
 def main():
     src = open(COMPONENT).read()
+    index = open(INDEX).read()
     for orient in TARGETS:
         video, poster = encode(orient)
         src = re.sub(rf'"/videos/intro/intro-{orient}-[^"]+\.mp4"', f'"{video}"', src)
         src = re.sub(rf'"/videos/intro/intro-{orient}-[^"]+\.jpg"', f'"{poster}"', src)
+        index = re.sub(rf'"/videos/intro/intro-{orient}-[^"]+\.jpg"', f'"{poster}"', index)
     open(COMPONENT, "w").write(src)
-    print("updated", os.path.relpath(COMPONENT, ROOT))
+    open(INDEX, "w").write(index)
+    print("updated", os.path.relpath(COMPONENT, ROOT), "and", os.path.relpath(INDEX, ROOT))
 
 
 if __name__ == "__main__":

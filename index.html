@@ -8,19 +8,34 @@
       content="MaxXP — Max Mohammadi's portfolio as a Windows XP desktop: projects, demo reels, live commit stats, and resume."
     />
     <link rel="icon" href="/xp/gui/boot/favicon.png" />
+    <!-- First paint is the intro's poster frame; the wallpaper isn't seen until after login. -->
     <link
       rel="preload"
       as="image"
-      href="/xp/gui/bgs/bliss-desktop.webp"
+      href="/videos/intro/intro-landscape-25266439.jpg"
       media="(orientation: landscape)"
       fetchpriority="high"
     />
     <link
       rel="preload"
       as="image"
-      href="/xp/gui/bgs/bliss-mobile.webp"
+      href="/videos/intro/intro-portrait-3e7d005d.jpg"
       media="(orientation: portrait)"
       fetchpriority="high"
+    />
+    <link
+      rel="preload"
+      as="image"
+      href="/xp/gui/bgs/bliss-desktop.webp"
+      media="(orientation: landscape)"
+      fetchpriority="low"
+    />
+    <link
+      rel="preload"
+      as="image"
+      href="/xp/gui/bgs/bliss-mobile.webp"
+      media="(orientation: portrait)"
+      fetchpriority="low"
     />
     <link rel="preconnect" href="https://commits.sh" crossorigin />
     <link rel="preconnect" href="https://raw.githubusercontent.com" crossorigin />
@@ -32,7 +47,13 @@
       content="Max Mohammadi's portfolio as a Windows XP desktop: projects, demo reels, live commit stats, and resume."
     />
     <meta property="og:url" content="https://www.maxmohammadi.com/" />
-    <meta property="og:image" content="https://www.maxmohammadi.com/videos/posters/best-1.jpg" />
+    <meta property="og:image" content="https://www.maxmohammadi.com/og/maxxp-d5bfc4b5.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="A Windows XP desktop on a monitor with project windows open: an Aptos validator globe, Temper Trade, commits.sh, and Money Clicker."
+    />
     <meta name="twitter:card" content="summary_large_image" />
     <title>Max Mohammadi | MaxXP</title>
   </head>
