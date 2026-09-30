@@ -16,7 +16,7 @@ import { DesktopIcons } from "./xp/DesktopIcons";
 import { Taskbar } from "./xp/Taskbar";
 import { StartMenu } from "./xp/StartMenu";
 import { WindowChrome, type ResizeEdge } from "./xp/WindowChrome";
-import { WindowContent } from "./xp/content";
+import { prefetchWindowApps, WindowContent } from "./xp/content";
 import { Wallpaper } from "./xp/Wallpaper";
 
 type DragState =
@@ -108,6 +108,17 @@ function App() {
     onLoginComplete: handleLoginComplete,
     onLogOff: resetSessionWindows,
   });
+
+  // Fetch the on-demand apps once the intro has had a head start on its
+  // video, or right away if the visitor skipped it or is already signed in.
+  useEffect(() => {
+    if (flow.phase !== "boot") {
+      prefetchWindowApps();
+      return;
+    }
+    const id = window.setTimeout(prefetchWindowApps, 4000);
+    return () => window.clearTimeout(id);
+  }, [flow.phase]);
 
   /* ------------------------------------------------------------------ */
   /* Window manager                                                      */
