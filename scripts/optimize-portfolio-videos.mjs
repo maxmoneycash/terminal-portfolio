@@ -5,10 +5,6 @@ import { basename, extname, join, resolve } from "node:path";
 
 const videoJobs = [
   {
-    id: "screen-2025-12-01-213809",
-    sourceFilename: "Screen Recording 2025-12-01 at 9.38.09 PM",
-  },
-  {
     id: "screen-2025-12-22-011301",
     sourceFilename: "Screen Recording 2025-12-22 at 1.13.01 AM",
   },
