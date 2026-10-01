@@ -11,13 +11,13 @@ import { cn } from "../lib/cn";
 const INTRO = {
   portrait: {
     orient: "portrait",
-    src: "/videos/intro/intro-portrait-612ba263.mp4",
-    poster: "/videos/intro/intro-portrait-612ba263.jpg",
+    src: "/videos/intro/intro-portrait-a99b1d3c.mp4",
+    poster: "/videos/intro/intro-portrait-a99b1d3c.jpg",
   },
   landscape: {
     orient: "landscape",
-    src: "/videos/intro/intro-landscape-01fd4d13.mp4",
-    poster: "/videos/intro/intro-landscape-01fd4d13.jpg",
+    src: "/videos/intro/intro-landscape-511562ae.mp4",
+    poster: "/videos/intro/intro-landscape-511562ae.jpg",
   },
 };
 
