@@ -29,7 +29,20 @@ SEARCH = [
 # crop is (x, y, w, h) in source pixels. keep lists (start, end) seconds of the
 # source to keep, in order; None keeps it all. width is the output width
 # (height follows the crop's shape). poster is seconds into the output.
+# span is (start, duration) for an exact short extract without montage cuts.
 JOBS = {
+    "maxxp-desktop": dict(
+        source="Screen Recording 2026-08-05 at 9.44*", crop=(36, 104, 1088, 2088), width=900,
+        span=(66, 5), poster=3.4, crf=18),
+    "sol2move-generated-code": dict(
+        source="veda-transpiled-code.mp4", crop=(32, 190, 2330, 2018), width=1600,
+        span=(17, 5), poster=1, crf=18),
+    "aptos-load-test": dict(
+        source="Screen Recording 2026-01-29 at 2.58*", crop=(64, 210, 1028, 1970), width=960,
+        span=(16.5, 5), poster=2.5, crf=18),
+    "aptos-testnet-nodes": dict(
+        source="Screen Recording 2026-01-29 at 6.46*", crop=(18, 92, 932, 1370), width=932,
+        span=(0.2, 3), poster=1, crf=18),
     "aptos-velociraptr": dict(
         source="Screen Recording 2025-12-22 at 1.13*", crop=(140, 90, 1070, 2110), width=730, poster=18),
     "peptide-tracker": dict(
@@ -74,8 +87,11 @@ def cut(job_id: str, job: dict) -> None:
         filters += [f"select='{expr}'", "setpts=N/(30*TB)"]
     filters.append("format=yuv420p")
     tmp = os.path.join(REELS, f".{job_id}.tmp.mp4")
-    subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", source, "-an", "-vf", ",".join(filters),
-                    "-c:v", "libx264", "-preset", "slow", "-crf", "23", "-profile:v", "high",
+    span = job.get("span")
+    seek = ["-ss", str(span[0])] if span else []
+    length = ["-t", str(span[1])] if span else []
+    subprocess.run(["ffmpeg", "-v", "error", "-y", *seek, "-i", source, *length, "-an", "-vf", ",".join(filters),
+                    "-c:v", "libx264", "-preset", "slow", "-crf", str(job.get("crf", 23)), "-profile:v", "high",
                     "-movflags", "+faststart", tmp], check=True)
     digest = hashlib.sha1(open(tmp, "rb").read()).hexdigest()[:8]
     stale = glob.glob(os.path.join(REELS, f"{job_id}-{HASH}.mp4")) + glob.glob(os.path.join(POSTERS, f"{job_id}-{HASH}.jpg"))
