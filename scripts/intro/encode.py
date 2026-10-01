@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """MaxXP intro, final step: encode the Blender renders for the web.
 
-Turns .intro-build/render/{portrait,landscape}/*.png into H.264 MP4s with a
-phone-camera finish (fine grain, soft vignette, light sharpening), writes a
+Turns .intro-build/render/{portrait,landscape}/*.png into full-resolution
+H.264 MP4s without grain or softening filters, writes a
 poster frame for each, names both by content hash (/videos is served as
 immutable), and points src/xp/IntroVideo.tsx at the new files.
 
@@ -25,10 +25,9 @@ FPS = 30
 
 TARGETS = {
     # orient: (output size, crf)
-    "portrait": ((720, 1280), 24),
-    "landscape": ((1600, 900), 24),
+    "portrait": ((1080, 1920), 18),
+    "landscape": ((1920, 1080), 18),
 }
-FINISH = "noise=alls=3:allf=t,vignette=angle=PI/6,unsharp=5:5:0.3:5:5:0"
 
 
 def encode(orient: str) -> tuple[str, str]:
@@ -39,7 +38,7 @@ def encode(orient: str) -> tuple[str, str]:
     tmp = os.path.join(BUILD, f"intro-{orient}.mp4")
     subprocess.run([
         "ffmpeg", "-v", "error", "-y", "-framerate", str(FPS), "-i", os.path.join(BUILD, "render", orient, "%04d.png"),
-        "-vf", f"scale={w}:{h}:flags=lanczos,{FINISH},format=yuv420p",
+        "-vf", f"scale={w}:{h}:flags=lanczos,format=yuv420p",
         "-c:v", "libx264", "-preset", "slow", "-crf", str(crf), "-profile:v", "high",
         "-g", "60", "-movflags", "+faststart", "-an", tmp,
     ], check=True)

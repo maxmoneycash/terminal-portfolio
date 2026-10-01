@@ -33,8 +33,8 @@ ap.add_argument("--end", type=int)
 ap.add_argument("--samples", type=int, default=32)
 ap.add_argument("--scale", type=int, default=100, help="resolution percentage")
 ap.add_argument("--view", default="Standard", help="view transform: Standard or AgX")
-ap.add_argument("--emission", type=float, default=1.15, help="screen brightness")
-ap.add_argument("--bloom", type=float, default=0.25, help="bloom strength")
+ap.add_argument("--emission", type=float, default=1.0, help="screen brightness")
+ap.add_argument("--bloom", type=float, default=0.0, help="optional bloom strength; off to preserve screen detail")
 args = ap.parse_args(argv)
 
 timeline = json.load(open(os.path.join(BUILD, "timeline.json")))
@@ -126,7 +126,7 @@ img.source = "SEQUENCE"
 img.colorspace_settings.name = "sRGB"
 tex = nt.nodes.new("ShaderNodeTexImage")
 tex.image = img
-tex.interpolation = "Cubic"
+tex.interpolation = "Linear"
 tex.image_user.frame_duration = FRAMES
 tex.image_user.frame_start = 1
 tex.image_user.frame_offset = 0
@@ -225,9 +225,9 @@ track = rig.constraints.new("TRACK_TO")
 track.target = target
 track.track_axis, track.up_axis = "TRACK_NEGATIVE_Z", "UP_Y"
 
-# Framing, like the phone in the reference: close enough that the screen fills
-# the frame and each window fills most of it. The hand reacts a beat after a
-# window opens (no anticipation), swings over, and settles.
+# Keep a comfortable view of the desktop. Follow the active window gently,
+# with only a small distance adjustment between wide and tall recordings.
+# The previous full fit-to-window move pumped the zoom on every cut.
 LW, LH = timeline["screen"]
 M_PER_PX = SW / LW
 regions = np.array(timeline["regions"], dtype=np.float64)  # x, y, w, h per frame, logical px
@@ -235,31 +235,25 @@ t = np.arange(FRAMES) / FPS
 logoff_t = timeline["logoff"][0]
 if portrait:
     aspect = 9 / 16
-    fill_w, fill_h = 0.80, 0.82  # room for cover-cropping on tall phones
+    fill_w, fill_h = 0.80, 0.82
     vis_h_min, vis_h_max = 620.0, 880.0
-    regions[t >= logoff_t] = (760, 330, 340, 190)  # end close on the user tile
+    regions[t >= logoff_t] = (760, 330, 340, 190)
 else:
     aspect = 16 / 9
-    fill_w, fill_h = 0.62, 0.76  # windows sit mid-frame with desktop around them
+    fill_w, fill_h = 0.62, 0.76
     vis_h_min, vis_h_max = 450.0, 810.0
 
 
 def framing(reg):
-    vis_h = np.clip(np.maximum(reg[:, 2] / fill_w / aspect, reg[:, 3] / fill_h), vis_h_min, vis_h_max)
+    fitted_h = np.clip(np.maximum(reg[:, 2] / fill_w / aspect, reg[:, 3] / fill_h), vis_h_min, vis_h_max)
+    # Retain just 20% of the old zoom variation, then move the camera back 12%.
+    vis_h = (0.8 * vis_h_max + 0.2 * fitted_h) * 1.12
     vis_w = vis_h * aspect
-    cx = np.clip(reg[:, 0] + reg[:, 2] / 2, vis_w / 2 - 6, LW - vis_w / 2 + 6)  # stay on the glass
-    cy = np.clip(reg[:, 1] + reg[:, 3] / 2, vis_h / 2 - 6, LH - vis_h / 2 + 6)
+    # When the view extends past the screen, centre that axis rather than
+    # clipping against reversed bounds and shoving the monitor off-centre.
+    cx = np.clip(reg[:, 0] + reg[:, 2] / 2, np.minimum(vis_w / 2 - 6, LW / 2), np.maximum(LW - vis_w / 2 + 6, LW / 2))
+    cy = np.clip(reg[:, 1] + reg[:, 3] / 2, np.minimum(vis_h / 2 - 6, LH / 2), np.maximum(LH - vis_h / 2 + 6, LH / 2))
     return cx, cy, vis_h
-
-
-def zero_phase(x: np.ndarray, alpha: float) -> np.ndarray:
-    """Exponential smoothing run forwards then backwards (no lag)."""
-    y = x.copy()
-    for i in range(1, len(y)):
-        y[i] = y[i - 1] + alpha * (y[i] - y[i - 1])
-    for i in range(len(y) - 2, -1, -1):
-        y[i] = y[i + 1] + alpha * (y[i] - y[i + 1])
-    return y
 
 
 def spring(x: np.ndarray, omega: float, delay: int = 3) -> np.ndarray:
@@ -274,10 +268,10 @@ def spring(x: np.ndarray, omega: float, delay: int = 3) -> np.ndarray:
 
 
 cx, cy, vis_h = framing(regions)
-cx, cy, vis_h = spring(cx, 9.0), spring(cy, 9.0), spring(vis_h, 7.0)
+cx, cy, vis_h = spring(cx, 7.0), spring(cy, 7.0), spring(vis_h, 5.0)
 vis_w = vis_h * aspect
-cx = np.clip(cx, vis_w / 2 - 6, LW - vis_w / 2 + 6)
-cy = np.clip(cy, vis_h / 2 - 6, LH - vis_h / 2 + 6)
+cx = np.clip(cx, np.minimum(vis_w / 2 - 6, LW / 2), np.maximum(LW - vis_w / 2 + 6, LW / 2))
+cy = np.clip(cy, np.minimum(vis_h / 2 - 6, LH / 2), np.maximum(LH - vis_h / 2 + 6, LH / 2))
 # distance that shows vis_h (portrait: the sensor spans the height) or vis_w
 dist = (vis_h if portrait else vis_w) * M_PER_PX / 2 * cam_data.lens / (cam_data.sensor_width / 2)
 
@@ -305,10 +299,9 @@ def shake(ob, path, strength, scale, phase):
         n.blend_in = n.blend_out = 0
 
 
-shake(rig, "location", 0.0022, 38, 3.0)   # slow drift of hands
-shake(rig, "location", 0.0006, 4.5, 9.0)  # micro tremor
-shake(target, "location", 0.0016, 30, 21.0)
-shake(cam, "rotation_euler", 0.004, 22, 5.0)  # roll wobble (radians)
+shake(rig, "location", 0.0011, 38, 3.0)   # restrained hand drift
+shake(target, "location", 0.0008, 30, 21.0)
+shake(cam, "rotation_euler", 0.002, 22, 5.0)
 
 # ---------------------------------------------------------------------------
 # Render settings and the phone-camera look
@@ -319,39 +312,28 @@ ev.taa_render_samples = args.samples
 for attr, val in (("use_raytracing", True), ("use_shadows", True), ("use_gtao", True)):
     if hasattr(ev, attr):
         setattr(ev, attr, val)
-scene.render.use_motion_blur = True
-scene.render.motion_blur_shutter = 0.5
+scene.render.use_motion_blur = False
 scene.render.film_transparent = False
 vs = scene.view_settings
 vs.view_transform = args.view
-vs.look = "AgX - Punchy" if args.view == "AgX" else "Medium High Contrast"
+vs.look = "AgX - Punchy" if args.view == "AgX" else "None"
 vs.exposure = 0.0
-# phone auto-exposure: the picture brightens a little as the screen darkens
-lum = np.array([0.2126 * r + 0.7152 * g + 0.0722 * b for r, g, b in timeline["spill"]])
-lum = zero_phase(lum, 0.08)
-for f in range(FRAMES):
-    vs.exposure = float(np.clip(-0.9 * (lum[f] - lum.mean()), -0.35, 0.35))
-    vs.keyframe_insert("exposure", frame=f + 1)
-
-scene.use_nodes = True
-tree = scene.node_tree
-for n in list(tree.nodes):
-    tree.nodes.remove(n)
-rl = tree.nodes.new("CompositorNodeRLayers")
-glare = tree.nodes.new("CompositorNodeGlare")
-glare.glare_type, glare.quality = "BLOOM", "HIGH"
-glare.inputs["Threshold"].default_value = 0.95
-glare.inputs["Smoothness"].default_value = 0.3
-glare.inputs["Strength"].default_value = args.bloom
-glare.inputs["Size"].default_value = 0.45
-lens = tree.nodes.new("CompositorNodeLensdist")
-lens.inputs["Fit"].default_value = True
-lens.inputs["Distortion"].default_value = -0.007
-lens.inputs["Dispersion"].default_value = 0.012
-comp = tree.nodes.new("CompositorNodeComposite")
-tree.links.new(rl.outputs["Image"], glare.inputs["Image"])
-tree.links.new(glare.outputs["Image"], lens.inputs["Image"])
-tree.links.new(lens.outputs["Image"], comp.inputs["Image"])
+# Preserve the screen's colours and fine text. The viewing angle already
+# supplies the filmed-monitor look; lens dispersion blurred every recording.
+scene.use_nodes = args.bloom > 0
+if scene.use_nodes:
+    tree = scene.node_tree
+    tree.nodes.clear()
+    rl = tree.nodes.new("CompositorNodeRLayers")
+    glare = tree.nodes.new("CompositorNodeGlare")
+    glare.glare_type, glare.quality = "BLOOM", "HIGH"
+    glare.inputs["Threshold"].default_value = 0.95
+    glare.inputs["Smoothness"].default_value = 0.3
+    glare.inputs["Strength"].default_value = args.bloom
+    glare.inputs["Size"].default_value = 0.45
+    comp = tree.nodes.new("CompositorNodeComposite")
+    tree.links.new(rl.outputs["Image"], glare.inputs["Image"])
+    tree.links.new(glare.outputs["Image"], comp.inputs["Image"])
 
 scene.render.image_settings.file_format = "PNG"
 scene.render.image_settings.color_mode = "RGB"

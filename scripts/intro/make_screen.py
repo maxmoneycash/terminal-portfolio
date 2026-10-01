@@ -52,48 +52,52 @@ BODY = (236, 233, 216)  # Luna window face colour
 # ---------------------------------------------------------------------------
 IE_BLOCK = "http://aptos-consensus-visualizer.vercel.app/block-machine"
 IE_VELOCIRAPTR = "http://aptos-consensus-visualizer.vercel.app/"
-FIRST_OPEN, STEP, HOLD = 1.30, 1.25, 1.40
+FIRST_OPEN, STEP, HOLD = 1.30, 1.13, 1.30
 with open(os.path.join(ROOT, "scripts", "intro", "highlights.json")) as fh:
     HIGHLIGHTS = json.load(fh)
 SHOW = [
-    dict(style="ie", clip="commits-sh-menubar", cx=660, cy=420, cw=330,
-         title="commits.sh - Microsoft Internet Explorer", url="http://commits.sh/"),
-    dict(style="wmp", clip="aptos-validator-globe", cx=820, cy=360, cw=390,
-         title="Aptos validator globe"),
-    dict(style="demo", clip="temper-trade", cx=670, cy=420, cw=280,
-         title="TEMPER TRADE", color=(57, 255, 20)),
-    dict(style="luna", clip="money-clicker", cx=860, cy=330, cw=390,
-         title="Money Clicker", menu=True),
-    dict(style="luna", clip="peptide-tracker", cx=660, cy=410, cw=300,
-         title="Peptide Tracker"),
-    dict(style="ie", clip="aptos-block-machine", cx=820, cy=350, cw=390,
-         title="Aptos Block Machine - Microsoft Internet Explorer", url=IE_BLOCK),
-    dict(style="luna", clip="emoji-candlestick-charts", cx=650, cy=400, cw=300,
-         title="Emoji Candlestick Charts"),
-    dict(style="luna", clip="wick-markets-ride", cx=800, cy=330, cw=390,
-         title="Wick Markets", menu=True),
-    dict(style="ie", clip="aptos-hft-demo", cx=670, cy=420, cw=310,
-         title="Aptos HFT Demo - Microsoft Internet Explorer", url="http://aptos-polymarket.vercel.app/"),
-    dict(style="wmp", clip="nipahscan", cx=840, cy=360, cw=390,
-         title="NipahScan"),
-    dict(style="luna", clip="shelby-pulse", cx=660, cy=400, cw=300,
-         title="Shelby Pulse"),
-    dict(style="ie", clip="decibrrr-live", cx=820, cy=350, cw=390,
-         title="Decibrrr - Microsoft Internet Explorer", url="http://cash.trading/"),
-    dict(style="demo", clip="decibrrr-points", cx=670, cy=420, cw=280,
-         title="DECIBRRR", color=(255, 212, 0)),
-    dict(style="luna", clip="seam-dex", cx=820, cy=320, cw=390,
-         title="Seam", menu=True),
-    dict(style="ie", clip="fee-market-simulator", cx=650, cy=400, cw=360,
-         title="Aptos Velociraptr - Microsoft Internet Explorer", url=IE_VELOCIRAPTR),
     dict(style="wmp", clip="aptos-vs-megaeth", cx=840, cy=360, cw=390,
          title="Aptos vs MegaETH"),
-    dict(style="luna", clip="order-entry-ladder", cx=660, cy=400, cw=330,
-         title="Order Ladder"),
     dict(style="luna", clip="sol2move-boringvault", cx=820, cy=340, cw=390,
          title="Sol2Move"),
+    dict(style="ie", clip="aptos-block-machine", cx=820, cy=350, cw=390,
+         title="Aptos Block Machine - Microsoft Internet Explorer", url=IE_BLOCK),
+    dict(style="wmp", clip="nipahscan", cx=840, cy=360, cw=390,
+         title="NipahScan"),
+    dict(style="ie", clip="aptos-hft-demo", cx=670, cy=420, cw=310,
+         title="Aptos HFT Demo - Microsoft Internet Explorer", url="http://aptos-polymarket.vercel.app/"),
+    dict(style="ie", clip="decibrrr-live", cx=820, cy=350, cw=390,
+         title="Decibrrr - Microsoft Internet Explorer", url="http://cash.trading/"),
+    dict(style="luna", clip="seam-dex", cx=820, cy=320, cw=390,
+         title="Seam", menu=True),
     dict(style="luna", clip="aptos-velociraptr", cx=670, cy=410, cw=300,
          title="Aptos Velociraptr"),
+    dict(style="luna", clip="aptos-load-test", cx=660, cy=410, cw=300,
+         title="Aptos Load Test"),
+    dict(style="luna", clip="sol2move-generated-code", cx=820, cy=350, cw=390,
+         title="Sol2Move - Generated Move"),
+    dict(style="ie", clip="fee-market-simulator", cx=650, cy=400, cw=360,
+         title="Aptos Velociraptr - Microsoft Internet Explorer", url=IE_VELOCIRAPTR),
+    dict(style="luna", clip="shelby-pulse", cx=660, cy=400, cw=300,
+         title="Shelby Pulse"),
+    dict(style="luna", clip="peptide-tracker", cx=660, cy=410, cw=300,
+         title="Peptide Tracker"),
+    dict(style="luna", clip="order-entry-ladder", cx=660, cy=400, cw=330,
+         title="Order Ladder"),
+    dict(style="demo", clip="decibrrr-points", cx=670, cy=420, cw=280,
+         title="DECIBRRR", color=(255, 212, 0)),
+    dict(style="luna", clip="wick-markets-ride", cx=800, cy=330, cw=390,
+         title="Wick Markets", menu=True),
+    dict(style="luna", clip="emoji-candlestick-charts", cx=650, cy=400, cw=300,
+         title="Emoji Candlestick Charts"),
+    dict(style="demo", clip="temper-trade", cx=670, cy=420, cw=280,
+         title="TEMPER TRADE", color=(57, 255, 20)),
+    dict(style="wmp", clip="aptos-validator-globe", cx=820, cy=360, cw=390,
+         title="Aptos validator globe"),
+    dict(style="luna", clip="maxxp-desktop", cx=660, cy=410, cw=300,
+         title="MaxXP - Live Dev Stats"),
+    dict(style="ie", clip="commits-sh-menubar", cx=660, cy=420, cw=330,
+         title="commits.sh - Microsoft Internet Explorer", url="http://commits.sh/"),
 ]
 TIMELINE = [
     dict(spec, clip_in=HIGHLIGHTS[spec["clip"]]["intro"],
@@ -788,7 +792,7 @@ def render_frame(f: int) -> tuple[int, list[float], list[float]]:
         img = Image.blend(img, _STATE["login"], smoothstep(LOGOFF[0], LOGOFF[1], t))
     small = np.asarray(img.resize((64, 40), Image.BILINEAR), dtype=np.float32) / 255.0
     mean = small.reshape(-1, 3).mean(axis=0)
-    img.save(os.path.join(BUILD, "screen", f"{f + 1:04d}.jpg"), quality=93, subsampling=0)
+    img.save(os.path.join(BUILD, "screen", f"{f + 1:04d}.jpg"), quality=98, subsampling=0)
     # what the camera should frame (logical px): the newest window, else the
     # desktop icons before the first one, else the login screen
     if showing:

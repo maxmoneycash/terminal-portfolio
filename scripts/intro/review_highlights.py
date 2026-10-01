@@ -9,7 +9,7 @@ import html
 import os
 import subprocess
 
-from make_screen import BUILD, HIGHLIGHTS, SHOW, clip_path, prepare_windows
+from make_screen import BUILD, HIGHLIGHTS, HOLD, SHOW, clip_path, prepare_windows
 
 
 def main():
@@ -36,7 +36,7 @@ def main():
         offset = pick["intro"] - pick["start"]
         cards.append(f'<article><h2>{title}</h2><video controls playsinline preload="metadata" '
                      f'src="{clip}.mp4"></video><p>{reason}</p><small>Intro uses '
-                     f'{offset:.2f}–{offset + 1.4:.2f}s of this five-second select.</small></article>')
+                     f'{offset:.2f}–{offset + HOLD:.2f}s of this five-second select.</small></article>')
         print(clip, "ready", flush=True)
     with open(os.path.join(out, "index.html"), "w") as fh:
         fh.write('''<!doctype html><html lang="en"><meta charset="utf-8">

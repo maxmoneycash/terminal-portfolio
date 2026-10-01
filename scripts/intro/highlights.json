@@ -24,12 +24,6 @@
     },
     "duration": 5
   },
-  "money-clicker": {
-    "start": 6.5,
-    "intro": 8.0,
-    "reason": "Repeated taps throw banknotes outward as the power meter changes from green through yellow to red.",
-    "duration": 5
-  },
   "peptide-tracker": {
     "start": 12,
     "intro": 13.1,
@@ -125,5 +119,23 @@
     "intro": 33.5,
     "reason": "The leader broadcasts to the validator ring, commits, and rotates.",
     "duration": 5
+  },
+  "aptos-load-test": {
+    "start": 0,
+    "intro": 1.1,
+    "duration": 5,
+    "reason": "TPS climbs while the block-time, latency and block heatmap update under load."
+  },
+  "sol2move-generated-code": {
+    "start": 0,
+    "intro": 0.5,
+    "duration": 5,
+    "reason": "Reveal the generated BoringVault Move module and its compatibility notes."
+  },
+  "maxxp-desktop": {
+    "start": 0,
+    "intro": 2.2,
+    "duration": 5,
+    "reason": "Switch the XP Task Manager from live token stats to the populated commit-velocity chart."
   }
 }
