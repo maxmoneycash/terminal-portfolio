@@ -1,8 +1,20 @@
+import githubProjects from "./github-projects.json";
+
+const publicRepo = (owner: string, name: string) => githubProjects.repositories.find(
+  (repo) => !repo.private && repo.owner === owner && repo.name === name,
+);
+const cashTrading = publicRepo("SeamMoney", "cash.trading");
+const txComposer = publicRepo("SeamMoney", "tx-composer");
+
 export type Project = {
   name: string;
   stack: string;
   summary: string;
   link?: string;
+  code?: string;
+  demoId?: string;
+  category?: string;
+  details?: Array<{ label: string; text: string }>;
 };
 
 export type Role = {
@@ -43,7 +55,7 @@ export const portfolio = {
   title: "Product engineer",
   location: "Palo Alto / San Francisco Bay Area",
   summary:
-    "I build Aptos Move systems, onchain trading products, LLM agent infrastructure, and high-throughput crypto demos for teams evaluating the Aptos stack.",
+    "I build onchain products, developer tools, and trading infrastructure.",
   focus: ["Aptos Move", "Onchain trading", "LLM MCP servers", "High-throughput systems"],
   links: {
     email: "mailto:maxwell.mohammadi@gmail.com",
@@ -53,46 +65,59 @@ export const portfolio = {
   },
   projects: [
     {
-      name: "commits.sh",
-      stack: "Live dev-rank + AI-usage telemetry, REST API, MCP server, CLI",
-      summary:
-        "Built a product that turns GitHub activity into a live velocity index and dev rank, streaming real-time token telemetry from 8 coding agents — 67B+ tokens tracked with per-model cost and burn dashboards.",
-      link: "https://commits.sh",
-    },
-    {
-      name: "Aptos Prediction Market",
-      stack: "Move, Aptos, React, HFT demo infrastructure",
-      summary:
-        "Built a Polymarket-style Aptos demo with Move contracts, market UI, live trade streams, TPS dashboard, HFT bot visualization, and 10k TPS pitch benchmarks.",
+      name: "Aptos vs MegaETH",
+      category: "Trading & benchmarks",
+      stack: "Move · React · trading bots",
+      summary: "A prediction market with live, side-by-side chain benchmarks.",
       link: "https://aptos-polymarket.vercel.app/",
-    },
-    {
-      name: "Whop Finance",
-      stack: "Aptos, Whop, Aave V3, Panora, x402a",
-      summary:
-        "Built a Whop-style Aptos finance demo with Tether WDK flows, creator payments, yield, cross-chain transfers, investing, and agent banking account views.",
-      link: "https://whop.finance/",
-    },
-    {
-      name: "Decibel / Shelby Agent Infrastructure",
-      stack: "MCP servers, Decibel SDK, PineScript, Shelby",
-      summary:
-        "Built Decibrrr with custom Decibel onchain SDK paths, TWAP and market maker strategies, delegation-based trading, Shelby content rewards, and MCP workflows.",
-      link: "https://github.com/SeamMoney/decibrrr",
+      demoId: "aptos-vs-megaeth",
+      details: [
+        { label: "Demo", text: "The recording compares Aptos and MegaETH activity through block heatmaps, latency, and transaction throughput." },
+        { label: "Context", text: "A benchmark demo for evaluating the Aptos stack. The displayed rates describe the recorded run." },
+      ],
     },
     {
       name: "Sol2Move",
-      stack: "Solidity AST, Move v2, parser validation, fuzzing",
-      summary:
-        "Built a Solidity-to-Aptos Move v2 transpiler with Solidity analysis, inheritance flattening, OpenZeppelin support, Move parsing, validation, and differential fuzzing.",
-      link: "https://github.com/SeamMoney/aptos-move-transpiler",
+      category: "Compiler tooling",
+      stack: "Solidity AST · Move v2 · differential fuzzing",
+      summary: "Solidity contracts translated into Aptos Move, with validation.",
+      link: undefined,
+      demoId: "sol2move-boringvault",
+      details: [
+        { label: "Demo", text: "Veda’s BoringVault: a pipeline run, per-contract analysis, generated code, and a quality scorecard." },
+      ],
+    },
+    {
+      name: "cash.trading",
+      category: "Trading infrastructure",
+      stack: "Decibel SDK · MCP · trading agents",
+      summary: cashTrading?.description || "Trading on Decibel, with an automated volume bot.",
+      link: "https://cash.trading/",
+      code: cashTrading?.url,
+      demoId: "decibrrr-live",
+      details: [
+        { label: "Built", text: "Custom Decibel SDK paths, TWAP and market-maker strategies, and delegation-based trading." },
+        { label: "Agents", text: "MCP workflows expose trading tools to coding agents. Shelby integrations support content rewards." },
+        { label: "Demo", text: "A volume bot trading Decibel’s BTC/USD market, with progress tracked in the dashboard." },
+      ],
+    },
+    {
+      name: "commits.sh",
+      stack: "REST API · MCP · CLI",
+      summary: "GitHub activity and coding-agent usage in one live dashboard.",
+      link: "https://commits.sh",
     },
     {
       name: "tx-composer",
-      stack: "Aptos Script Composer, TypeScript SDK, AI JSON plans",
-      summary:
-        "Built simulate-first Aptos transaction composition tooling with declarative Move call steps, return wiring, balance tracking, VM error diagnosis, and JSON plans for AI agents.",
-      link: "https://github.com/SeamMoney/tx-composer",
+      stack: "Aptos · TypeScript · AI transaction plans",
+      summary: txComposer?.description || "Compose and simulate Aptos transactions.",
+      link: txComposer?.url,
+    },
+    {
+      name: "Whop Finance",
+      stack: "Aptos · Whop · Aave V3 · Panora",
+      summary: "A finance demo for creator payments, yield, and agent banking.",
+      link: "https://whop.finance/",
     },
   ] satisfies Project[],
   videos: [

@@ -4,7 +4,17 @@
  * truth.
  */
 
-let enabled = true;
+const STORAGE_KEY = "maxxp:crt";
+
+function readPreference() {
+  try {
+    return window.localStorage.getItem(STORAGE_KEY) === "on";
+  } catch {
+    return false;
+  }
+}
+
+let enabled = readPreference();
 const listeners = new Set<(value: boolean) => void>();
 
 export function getCrtEnabled() {
@@ -14,6 +24,11 @@ export function getCrtEnabled() {
 export function setCrtEnabled(value: boolean) {
   if (enabled === value) return;
   enabled = value;
+  try {
+    window.localStorage.setItem(STORAGE_KEY, value ? "on" : "off");
+  } catch {
+    // The control still works when storage is unavailable.
+  }
   listeners.forEach((listener) => listener(enabled));
 }
 

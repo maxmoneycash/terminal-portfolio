@@ -18,7 +18,8 @@ export type AppId =
   | "stats"
   | "minesweeper"
   | "recycle"
-  | "display";
+  | "display"
+  | "browser";
 
 export type BootPhase = "boot" | "login" | "welcome" | "desktop";
 
@@ -43,6 +44,14 @@ export type AppCatalogEntry = {
 };
 
 export const appCatalog: Record<AppId, AppCatalogEntry> = {
+  browser: {
+    title: "Internet Explorer",
+    shortTitle: "Browser",
+    icon: `${xp}/gui/desktop/projects.webp`,
+    desktopLabel: "Internet Explorer",
+    status: "Internet",
+    dimensions: { width: 1100, height: 780, minWidth: 440, minHeight: 380 },
+  },
   signature: {
     title: "welcome.txt - Notepad",
     shortTitle: "Welcome",
@@ -80,7 +89,7 @@ export const appCatalog: Record<AppId, AppCatalogEntry> = {
     shortTitle: "My Projects",
     icon: `${xp}/gui/desktop/projects.webp`,
     desktopLabel: "My Projects",
-    status: "57 curated repositories across maxmoneycash and SeamMoney",
+    status: "Selected work · demos, code, and build notes",
     dimensions: { width: 860, height: 710, minWidth: 520, minHeight: 420 },
   },
   demos: {
@@ -134,7 +143,7 @@ export const appCatalog: Record<AppId, AppCatalogEntry> = {
 };
 
 /** Icons shown on the desktop, top-to-bottom. */
-export const desktopApps: AppId[] = ["about", "files", "resume", "projects", "demos", "stats", "contact", "recycle"];
+export const desktopApps: AppId[] = ["projects", "demos", "about", "resume", "contact", "files", "recycle"];
 
 export function externalLabel(url?: string) {
   if (!url) return "";

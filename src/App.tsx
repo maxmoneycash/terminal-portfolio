@@ -11,6 +11,8 @@ import { playSfx, bindAudioUnlockGestures } from "./xp/audio";
 import { getCrtEnabled, subscribeCrt, toggleCrtEnabled } from "./xp/crtStore";
 import { ScreenSaverOverlay } from "./components/ScreenSaver";
 import { BootScreens, useBootFlow } from "./xp/BootScreens";
+import type { LiveProject } from "./components/LiveProjectApp";
+import { IntroVideo } from "./xp/IntroVideo";
 import { CrtOverlay } from "./xp/CrtOverlay";
 import { DesktopIcons } from "./xp/DesktopIcons";
 import { Taskbar } from "./xp/Taskbar";
@@ -35,12 +37,14 @@ type DragState =
 
 const TASKBAR_HEIGHT = 30;
 
-function createSignatureWindow(z = 2): WindowRecord {
-  const { width, height } = appCatalog.signature.dimensions;
+function createProjectsWindow(z = 2): WindowRecord {
+  const dimensions = appCatalog.projects.dimensions;
   const viewportWidth = typeof window === "undefined" ? 1280 : window.innerWidth;
   const viewportHeight = typeof window === "undefined" ? 800 : window.innerHeight;
+  const width = Math.min(dimensions.width, viewportWidth - 32);
+  const height = Math.min(dimensions.height, viewportHeight - TASKBAR_HEIGHT - 48);
   return {
-    id: "signature",
+    id: "projects",
     x: Math.max(16, Math.round((viewportWidth - width) / 2)),
     y: Math.max(24, Math.round((viewportHeight - height - TASKBAR_HEIGHT) / 2)),
     width,
@@ -52,8 +56,11 @@ function createSignatureWindow(z = 2): WindowRecord {
 }
 
 function App() {
-  const [windows, setWindows] = useState<WindowRecord[]>(() => [createSignatureWindow()]);
-  const [activeWindow, setActiveWindow] = useState<AppId | null>("signature");
+  const [windows, setWindows] = useState<WindowRecord[]>(() => [createProjectsWindow()]);
+  const [activeWindow, setActiveWindow] = useState<AppId | null>("projects");
+  const [browserProject, setBrowserProject] = useState<LiveProject | null>(null);
+  const [introOpen, setIntroOpen] = useState(false);
+  const introTriggerRef = useRef<HTMLElement | null>(null);
   const [startOpen, setStartOpen] = useState(false);
   // Mirrors the CRT store so Display Properties and the shell stay in sync.
   const [crtEnabled, setCrtEnabledState] = useState(getCrtEnabled);
@@ -61,7 +68,7 @@ function App() {
   const [drag, setDrag] = useState<DragState | null>(null);
   // Focus history powers the toolbar's Back/Forward, like a browser's session
   // history but over the apps visited in this session.
-  const [history, setHistory] = useState<AppId[]>(["signature"]);
+  const [history, setHistory] = useState<AppId[]>(["projects"]);
   const [historyIndex, setHistoryIndex] = useState(0);
   const suppressHistoryRef = useRef(false);
   const zRef = useRef(3);
@@ -77,31 +84,14 @@ function App() {
   /* ------------------------------------------------------------------ */
 
   const resetSessionWindows = useCallback(() => {
-    setWindows([createSignatureWindow(++zRef.current)]);
-    setActiveWindow("signature");
+    setWindows([createProjectsWindow(++zRef.current)]);
+    setActiveWindow("projects");
     setStartOpen(false);
   }, []);
 
   const handleLoginComplete = useCallback(() => {
     resetSessionWindows();
-    // Welcome balloon, once per session.
-    let seen = false;
-    try {
-      seen = window.sessionStorage.getItem("maxxp:balloon") === "1";
-    } catch {
-      // Storage optional.
-    }
-    if (seen) return;
-    window.setTimeout(() => {
-      setBalloonVisible(true);
-      playSfx("balloon");
-      try {
-        window.sessionStorage.setItem("maxxp:balloon", "1");
-      } catch {
-        // Storage optional.
-      }
-      window.setTimeout(() => setBalloonVisible(false), 9000);
-    }, 1400);
+    setBalloonVisible(false);
   }, [resetSessionWindows]);
 
   const flow = useBootFlow({
@@ -158,17 +148,19 @@ function App() {
         );
       }
       const app = appCatalog[id];
+      const width = Math.min(app.dimensions.width, window.innerWidth - 16);
+      const height = Math.min(app.dimensions.height, window.innerHeight - TASKBAR_HEIGHT - 16);
       const offset = current.length * 26;
-      const x = Math.max(8, Math.min(150 + offset, window.innerWidth - app.dimensions.width - 8));
-      const y = Math.max(8, Math.min(72 + offset, window.innerHeight - app.dimensions.height - TASKBAR_HEIGHT - 8));
+      const x = Math.max(8, Math.min(150 + offset, window.innerWidth - width - 8));
+      const y = Math.max(8, Math.min(72 + offset, window.innerHeight - height - TASKBAR_HEIGHT - 8));
       return [
         ...current,
         {
           id,
           x,
           y,
-          width: app.dimensions.width,
-          height: app.dimensions.height,
+          width,
+          height,
           z: ++zRef.current,
           minimized: false,
           maximized: false,
@@ -178,6 +170,17 @@ function App() {
     setActiveWindow(id);
     pushHistory(id);
   }, [pushHistory]);
+
+  const openSite = useCallback((project: LiveProject) => {
+    try {
+      const url = new URL(project.url);
+      if (!["https:", "http:"].includes(url.protocol)) return;
+      setBrowserProject({ name: project.name, url: url.href });
+      openApp("browser");
+    } catch {
+      // Malformed external URLs cannot navigate the shell.
+    }
+  }, [openApp]);
 
   const closeWindow = useCallback((id: AppId) => {
     setWindows((current) => current.filter((record) => record.id !== id));
@@ -375,8 +378,8 @@ function App() {
     <>
       <main
         className={cn("xp-desktop", !desktopVisible && "is-hidden")}
-        aria-hidden={!desktopVisible}
-        inert={!desktopVisible}
+        aria-hidden={!desktopVisible || introOpen}
+        inert={!desktopVisible || introOpen}
       >
         <Wallpaper />
 
@@ -387,15 +390,15 @@ function App() {
           onShowDesktop={showDesktop}
         />
 
+        {/* CSS z-index handles stacking. Moving iframe DOM nodes would reload live apps. */}
         <div className="xp-windows-container">
           {desktopVisible &&
             windows
-              .slice()
-              .sort((a, b) => a.z - b.z)
               .map((record) => (
                 <WindowChrome
                   key={record.id}
                   record={record}
+                  browserProject={record.id === "browser" ? browserProject : null}
                   active={activeWindow === record.id}
                   crtEnabled={crtEnabled}
                   onToggleCrt={toggleCrtEnabled}
@@ -411,7 +414,17 @@ function App() {
                   canGoBack={historyIndex > 0}
                   canGoForward={historyIndex < history.length - 1}
                 >
-                  <WindowContent record={record} openApp={openApp} />
+                  <WindowContent
+                    record={record}
+                    openApp={openApp}
+                    onOpenSite={openSite}
+                    browserProject={browserProject}
+                    active={activeWindow === record.id && !record.minimized && !introOpen}
+                    onWatchIntro={() => {
+                      introTriggerRef.current = document.activeElement as HTMLElement;
+                      setIntroOpen(true);
+                    }}
+                  />
                 </WindowChrome>
               ))}
         </div>
@@ -439,8 +452,12 @@ function App() {
       </main>
 
       <BootScreens flow={flow} />
+      {introOpen ? <IntroVideo fading={null} onFinish={() => {
+        setIntroOpen(false);
+        requestAnimationFrame(() => introTriggerRef.current?.focus({ preventScroll: true }));
+      }} /> : null}
       <CrtOverlay enabled={crtEnabled} />
-      <ScreenSaverOverlay desktopVisible={desktopVisible} />
+      <ScreenSaverOverlay desktopVisible={desktopVisible && !introOpen} />
     </>
   );
 }

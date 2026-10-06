@@ -7,9 +7,10 @@
  * Files have real types with real viewers: .txt opens in Notepad (working
  * menus, Word Wrap, live Ln/Col), .jpg in a Picture-and-Fax-Viewer with
  * prev/next, .mp4 in a media player, .pdf in a reader, and .url shortcuts
- * open the live site in a new tab. Image and video grid icons are actual
+ * open live sites inside the XP browser. Image and video grid icons are actual
  * thumbnails.
  */
+import type { LiveProject } from "./LiveProjectApp";
 import {
   useEffect,
   useRef,
@@ -505,7 +506,7 @@ function ViewerPane({
 /* Explorer                                                            */
 /* ------------------------------------------------------------------ */
 
-export function FileExplorerApp() {
+export function FileExplorerApp({ onOpenSite }: { onOpenSite: (project: LiveProject) => void }) {
   // Path of folder names below My Documents; [] is the root.
   const [path, setPath] = useState<string[]>([]);
   const [selected, setSelected] = useState<string | null>(null);
@@ -540,7 +541,8 @@ export function FileExplorerApp() {
   const openFile = (file: ExplorerFile) => {
     playSfx("ding");
     if (file.type === "url") {
-      window.open(file.href, "_blank", "noopener,noreferrer");
+      if (new URL(file.href).hostname === "github.com") window.open(file.href, "_blank", "noopener,noreferrer");
+      else onOpenSite({ name: file.name.replace(/\.url$/, ""), url: file.href });
       return;
     }
     setViewers((current) => {

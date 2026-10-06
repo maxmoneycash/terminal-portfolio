@@ -1,318 +1,161 @@
-/**
- * My Projects: the GitHub repositories explorer. Loaded on demand (it carries
- * framer-motion for the filter and list animations), see WindowContent.
- */
-import { useMemo, useState } from "react";
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+/** Selected work first; the full repository archive is one click away. */
+import { useEffect, useMemo, useRef, useState } from "react";
 import githubProjects from "../data/github-projects.json";
-import { cn } from "../lib/cn";
-import { xp } from "../xp/types";
+import { portfolio, type Project } from "../data/portfolio";
 import { ScrollPane } from "../xp/ScrollPane";
+import type { AppId } from "../xp/types";
+import { CommitSummary } from "./CommitSummary";
+import type { LiveProject } from "./LiveProjectApp";
 
 type Repository = (typeof githubProjects.repositories)[number];
-type RepositoryFilter = "all" | "maxmoneycash" | "SeamMoney" | "public" | "private";
+type RepositoryFilter = "all" | "maxmoneycash" | "SeamMoney";
+const selectedProjects: Project[] = portfolio.projects.filter((project) => "demoId" in project);
+const moreProjects = portfolio.projects.filter((project) => !("demoId" in project));
 
-const repositoryKey = (repository: Repository) => `${repository.owner}/${repository.name}`;
+function ProjectPreview({ project, playing, onPlay }: {
+  project: Project;
+  playing: boolean;
+  onPlay: () => void;
+}) {
+  const video = portfolio.videos.find((item) => item.id === project.demoId);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [failed, setFailed] = useState(false);
 
-function languageClass(language: string | null) {
-  return `is-${(language ?? "other").toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
-}
+  useEffect(() => {
+    if (playing) void videoRef.current?.play().catch(() => {});
+  }, [playing]);
 
-function updatedLabel(value: string) {
-  const date = new Date(value);
-  const elapsed = Math.max(0, Date.now() - date.getTime());
-  const minutes = Math.floor(elapsed / 60_000);
-  const hours = Math.floor(elapsed / 3_600_000);
-  const days = Math.floor(elapsed / 86_400_000);
-
-  if (minutes < 2) return "Updated just now";
-  if (minutes < 60) return `Updated ${minutes} minutes ago`;
-  if (hours < 2) return "Updated 1 hour ago";
-  if (hours < 24) return `Updated ${hours} hours ago`;
-  if (days === 1) return "Updated yesterday";
-  if (days < 7) return `Updated ${days} days ago`;
-  if (days < 14) return "Updated last week";
-  if (days < 31) return `Updated ${Math.floor(days / 7)} weeks ago`;
-  if (days < 61) return "Updated last month";
-  if (days < 365) return `Updated ${Math.floor(days / 30)} months ago`;
-  return `Updated on ${date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`;
-}
-
-function RepositoryTitle({ repository }: { repository: Repository }) {
-  return repository.private ? (
-    <span className="github-repo-name">{repository.name}</span>
-  ) : (
-    <a className="github-repo-name" href={repository.url} target="_blank" rel="noreferrer">
-      {repository.name}
-    </a>
-  );
-}
-
-function RepositoryMeta({ repository }: { repository: Repository }) {
+  if (!video) return null;
   return (
-    <div className="github-repo-meta">
-      {repository.language ? (
-        <span>
-          <i className={cn("github-language-dot", languageClass(repository.language))} aria-hidden="true" />
-          {repository.language}
-        </span>
-      ) : null}
-      {repository.license ? <span>{repository.license}</span> : null}
-      {repository.stars > 0 ? <span>{repository.stars} stars</span> : null}
-      {repository.forks > 0 ? <span>{repository.forks} forks</span> : null}
-      <span>{updatedLabel(repository.pushedAt)}</span>
+    <div className="project-preview">
+      {playing ? (
+        <video
+          ref={videoRef}
+          src={video.sources[0].src}
+          poster={video.poster}
+          controls
+          playsInline
+          autoPlay
+          muted
+          aria-label={`${project.name} demo`}
+          onError={() => setFailed(true)}
+        />
+      ) : (
+        <button type="button" onClick={onPlay} aria-label={`Watch ${project.name} demo`}>
+          <img src={video.poster} width={video.width} height={video.height} alt="" loading="lazy" />
+          <span className="project-play"><span aria-hidden="true">▶</span> Watch demo</span>
+        </button>
+      )}
+      {failed && playing ? <a className="project-video-fallback" href={video.sources[0].src}>Open recording ↗</a> : null}
     </div>
   );
 }
 
-export function ProjectsApp() {
-  const { profile, repositories, pinned, generatedAt } = githubProjects;
+function RepositoryTitle({ repository }: { repository: Repository }) {
+  return <a className="github-repo-name" href={repository.url} target="_blank" rel="noreferrer">{repository.name}</a>;
+}
+
+export function ProjectsApp({ active, openApp, onWatchIntro, onOpenSite }: {
+  active: boolean;
+  openApp: (id: AppId) => void;
+  onWatchIntro: () => void;
+  onOpenSite: (project: LiveProject) => void;
+}) {
+  const [view, setView] = useState<"selected" | "all" | "live">("selected");
+  const [playing, setPlaying] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<RepositoryFilter>("all");
-  const reduceMotion = useReducedMotion();
+  const { repositories } = githubProjects;
+  const visibleRepositories = useMemo(() => repositories.filter((repository) => {
+    const matchesFilter = !repository.private && (filter === "all" || repository.owner === filter);
+    const terms = [repository.owner, repository.name, repository.description, repository.language].join(" ").toLowerCase();
+    return matchesFilter && (view !== "live" || Boolean(repository.homepage)) && terms.includes(query.trim().toLowerCase());
+  }), [repositories, filter, query, view]);
 
-  const visibleRepositories = useMemo(() => {
-    const normalizedQuery = query.trim().toLowerCase();
-    return repositories.filter((repository) => {
-      const matchesFilter =
-        filter === "all" ||
-        (filter === "public" && !repository.private) ||
-        (filter === "private" && repository.private) ||
-        repository.owner === filter;
-      if (!matchesFilter) return false;
-      if (!normalizedQuery) return true;
-      return [repository.owner, repository.name, repository.description, repository.language]
-        .filter(Boolean)
-        .some((value) => String(value).toLowerCase().includes(normalizedQuery));
-    });
-  }, [filter, query, repositories]);
+  useEffect(() => {
+    if (!active) setPlaying(null);
+  }, [active]);
 
-  const repositoriesByKey = useMemo(
-    () => new Map(repositories.map((repository) => [repositoryKey(repository), repository])),
-    [repositories],
-  );
-  const pinnedRepositories = pinned
-    .map((key) => repositoriesByKey.get(key))
-    .filter((repository): repository is Repository => Boolean(repository));
-  const filterOptions: { id: RepositoryFilter; label: string }[] = [
-    { id: "all", label: `All ${repositories.length}` },
-    { id: "maxmoneycash", label: "Max" },
-    { id: "SeamMoney", label: "Seam" },
-    { id: "public", label: "Public" },
-    { id: "private", label: "Private" },
+  const filters: { id: RepositoryFilter; label: string }[] = [
+    { id: "all", label: "All" }, { id: "maxmoneycash", label: "Max" },
+    { id: "SeamMoney", label: "SeamMoney" },
   ];
-  const repositoryGroups = ["maxmoneycash", "SeamMoney"].map((owner) => ({
-    owner,
-    repositories: visibleRepositories.filter((repository) => repository.owner === owner),
-  }));
-  const motionTransition = reduceMotion
-    ? { duration: 0 }
-    : { duration: 0.16, ease: [0.16, 1, 0.3, 1] as const };
 
   return (
-    <div className="github-projects-page">
-      <ScrollPane className="github-projects-scroll">
-        <div className="github-projects-layout">
-          <aside className="github-profile" aria-label="GitHub profile summary">
-            <a className="github-profile-avatar" href={profile.url} target="_blank" rel="noreferrer">
-              <img src={profile.avatarUrl} width="160" height="160" alt={`${profile.login} on GitHub`} />
-            </a>
-            <div className="github-profile-title">
-              <h1>{profile.name}</h1>
-              <p>{profile.login} · {profile.descriptor}</p>
-            </div>
-            <p className="github-profile-bio">{profile.bio}</p>
-            <div className="github-profile-follows">
-              <a href={`${profile.url}?tab=followers`} target="_blank" rel="noreferrer">
-                <strong>{profile.followers}</strong> followers
-              </a>
-              <span aria-hidden="true">·</span>
-              <a href={`${profile.url}?tab=following`} target="_blank" rel="noreferrer">
-                <strong>{profile.following}</strong> following
-              </a>
-            </div>
-            <dl className="github-profile-facts">
-              <div>
-                <dt>Location</dt>
-                <dd>{profile.location}</dd>
-              </div>
-              <div>
-                <dt>GitHub</dt>
-                <dd>
-                  <a href={profile.url} target="_blank" rel="noreferrer">@{profile.login}</a>
-                </dd>
-              </div>
-            </dl>
-
-            <fieldset className="xp-group-box github-achievements">
-              <legend>Achievements</legend>
-              <ul>
-                {profile.achievements.map((achievement) => (
-                  <li key={achievement.name}>
-                    <img src={achievement.imageUrl} width="42" height="42" alt="" loading="lazy" />
-                    <span>
-                      <strong>{achievement.name}</strong>
-                      {achievement.count > 1 ? <small>×{achievement.count}</small> : null}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </fieldset>
-
-            <fieldset className="xp-group-box github-organizations">
-              <legend>Organizations</legend>
-              <div>
-                {profile.organizations.map((organization) => (
-                  <a
-                    key={organization.login}
-                    href={organization.url}
-                    target="_blank"
-                    rel="noreferrer"
-                    aria-label={`Open ${organization.login} on GitHub`}
-                    title={`@${organization.login}`}
-                  >
-                    <img src={organization.avatarUrl} width="34" height="34" alt="" loading="lazy" />
-                  </a>
-                ))}
-              </div>
-              <p>{profile.organizations.map((organization) => `@${organization.login}`).join(" · ")}</p>
-            </fieldset>
-          </aside>
-
-          <main className="github-projects-main">
-            <section className="github-pinned" aria-labelledby="github-pinned-heading">
-              <div className="github-section-heading">
-                <div>
-                  <img src={`${xp}/gui/start-menu/github.webp`} width="24" height="24" alt="" />
-                  <h2 id="github-pinned-heading">Pinned projects</h2>
-                </div>
-                <span>{pinnedRepositories.length} selected</span>
-              </div>
-              <div className="github-pinned-grid">
-                {pinnedRepositories.map((repository) => (
-                  <article className="github-pinned-card" key={repositoryKey(repository)}>
-                    <div className="github-repo-title-row">
-                      <RepositoryTitle repository={repository} />
-                      <span className="github-visibility">{repository.private ? "Private" : "Public"}</span>
-                    </div>
-                    {repository.description ? <p>{repository.description}</p> : null}
-                    <div className="github-pinned-footer">
-                      <RepositoryMeta repository={repository} />
-                      {repository.homepage ? (
-                        <a
-                          className="github-live-link"
-                          href={repository.homepage}
-                          target="_blank"
-                          rel="noreferrer"
-                          aria-label={`Open the live site for ${repository.name}`}
-                        >
-                          Live site ↗
-                        </a>
-                      ) : null}
-                    </div>
-                  </article>
-                ))}
-              </div>
-            </section>
-
-            <section className="github-repositories" aria-labelledby="github-repositories-heading">
-              <div className="github-section-heading github-repositories-heading">
-                <div>
-                  <img src={`${xp}/gui/desktop/projects.webp`} width="24" height="24" alt="" />
-                  <h2 id="github-repositories-heading">Repositories</h2>
-                </div>
-                <span aria-live="polite">{visibleRepositories.length} shown</span>
-              </div>
-
-              <div className="github-repo-tools">
-                <label className="github-repo-search">
-                  <span>Find a repository…</span>
-                  <input
-                    type="search"
-                    value={query}
-                    onChange={(event) => setQuery(event.target.value)}
-                    placeholder="Search repositories"
-                  />
-                </label>
-                <div className="github-repo-filters" aria-label="Filter repositories">
-                  {filterOptions.map((option) => (
-                    <motion.button
-                      key={option.id}
-                      type="button"
-                      className={cn(filter === option.id && "is-active")}
-                      aria-pressed={filter === option.id}
-                      onClick={() => setFilter(option.id)}
-                      whileTap={reduceMotion ? undefined : { y: 1 }}
-                      transition={motionTransition}
-                    >
-                      {option.label}
-                    </motion.button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="github-repository-catalogue">
-                {repositoryGroups.map((group) =>
-                  group.repositories.length > 0 ? (
-                    <section className="github-repository-group" key={group.owner} aria-labelledby={`repos-${group.owner}`}>
-                      <h3 id={`repos-${group.owner}`}>
-                        <img src={`${xp}/gui/start-menu/github.webp`} width="18" height="18" alt="" />
-                        {group.owner}
-                        <span>{group.repositories.length}</span>
-                      </h3>
-                      <ul className="github-repo-list">
-                        <AnimatePresence initial={false}>
-                          {group.repositories.map((repository) => (
-                            <motion.li
-                              key={repositoryKey(repository)}
-                              layout={reduceMotion ? false : "position"}
-                              initial={{ opacity: 0 }}
-                              animate={{ opacity: 1 }}
-                              exit={{ opacity: 0 }}
-                              transition={motionTransition}
-                            >
-                              <div className="github-repo-title-row">
-                                <RepositoryTitle repository={repository} />
-                                <span className="github-visibility">{repository.private ? "Private" : "Public"}</span>
-                                {repository.fork ? <span className="github-repo-state">Fork</span> : null}
-                                {repository.archived ? <span className="github-repo-state">Archived</span> : null}
-                                {repository.homepage ? (
-                                  <a
-                                    className="github-live-link"
-                                    href={repository.homepage}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    aria-label={`Open the live site for ${repository.name}`}
-                                  >
-                                    Live site ↗
-                                  </a>
-                                ) : null}
-                              </div>
-                              {repository.description ? <p>{repository.description}</p> : null}
-                              <RepositoryMeta repository={repository} />
-                            </motion.li>
-                          ))}
-                        </AnimatePresence>
-                      </ul>
-                    </section>
-                  ) : null,
-                )}
-                {visibleRepositories.length === 0 ? (
-                  <div className="github-repo-empty" role="status">
-                    <img src={`${xp}/gui/start-menu/recently-used.webp`} width="40" height="40" alt="" />
-                    <strong>No repositories found</strong>
-                    <span>Clear the search or choose a different filter.</span>
-                  </div>
-                ) : null}
-              </div>
-
-              <p className="github-repo-footer">
-                {repositories.length} curated repositories · refreshed{" "}
-                {new Date(generatedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
-              </p>
-            </section>
-          </main>
+    <div className="projects-app">
+      <header className="projects-header">
+        <div><h1>{portfolio.name}</h1><p>{portfolio.title}</p></div>
+        <div className="projects-header-links">
+          <button type="button" onClick={() => openApp("resume")}>Résumé</button>
+          <a href={portfolio.links.email}>Contact ↗</a>
         </div>
+      </header>
+      <CommitSummary active={active} onOpen={() => openApp("stats")} />
+      <nav className="projects-views" aria-label="Project views">
+        <button type="button" aria-pressed={view === "selected"} onClick={() => { setView("selected"); setPlaying(null); }}>Selected work</button>
+        <button type="button" aria-pressed={view === "all"} onClick={() => { setView("all"); setPlaying(null); }}>GitHub <span>{repositories.length}</span></button>
+        <button type="button" aria-pressed={view === "live"} onClick={() => { setView("live"); setPlaying(null); }}>Live apps</button>
+      </nav>
+      <ScrollPane className="projects-scroll" key={view}>
+        {view === "selected" ? (
+          <div className="selected-work">
+            {selectedProjects.map((project) => (
+              <article className="selected-project" key={project.name} aria-labelledby={`project-${project.demoId}`}>
+                <ProjectPreview project={project} playing={playing === project.demoId && active} onPlay={() => setPlaying(project.demoId ?? null)} />
+                <div className="project-copy">
+                  <p className="project-category">{project.category}</p>
+                  <h2 id={`project-${project.demoId}`}>{project.name}</h2>
+                  <p className="project-summary">{project.summary}</p>
+                  <div className="project-links">
+                    {project.link && project.link !== project.code ? <button className="xp-control primary" type="button" onClick={() => onOpenSite({ name: project.name, url: project.link! })}>Open app</button> : null}
+                    {project.code ? <a href={project.code} target="_blank" rel="noreferrer" aria-label={`View ${project.name} source code`}>Code ↗</a> : null}
+                  </div>
+                  <details className="project-details">
+                    <summary>Build notes</summary>
+                    <p className="project-stack">{project.stack}</p>
+                    <dl>{project.details?.map((detail) => <div key={detail.label}><dt>{detail.label}</dt><dd>{detail.text}</dd></div>)}</dl>
+                  </details>
+                </div>
+              </article>
+            ))}
+            <section className="more-projects" aria-labelledby="more-projects-heading">
+              <h2 id="more-projects-heading">Also built</h2>
+              {moreProjects.map((project) => (
+                <div className="more-project" key={project.name}>
+                  {project.link?.startsWith("https://github.com/") ? <a href={project.link} target="_blank" rel="noreferrer"><strong>{project.name} ↗</strong></a> : <button type="button" onClick={() => project.link && onOpenSite({ name: project.name, url: project.link })}><strong>{project.name} ↗</strong></button>}
+                  <span>{project.summary}</span>
+                </div>
+              ))}
+            </section>
+            <footer className="projects-footer">
+              <button type="button" onClick={() => openApp("demos")}>All {portfolio.videos.length} recordings ↗</button>
+              <button type="button" onClick={onWatchIntro}>Watch intro</button>
+              <a href={portfolio.links.github} target="_blank" rel="noreferrer">GitHub ↗</a>
+            </footer>
+          </div>
+        ) : (
+          <section className="project-archive" aria-label="Repository archive">
+            <div className="github-repo-tools">
+              <input aria-label="Search projects" type="search" placeholder="Search projects…" value={query} onChange={(event) => setQuery(event.target.value)} />
+              <div className="github-repo-filters" aria-label="Filter repositories">
+                {filters.map((option) => <button key={option.id} type="button" aria-pressed={filter === option.id} onClick={() => setFilter(option.id)}>{option.label}</button>)}
+              </div>
+            </div>
+            <p className="archive-count" role="status">{visibleRepositories.length} {view === "live" ? "live apps" : "public repositories"}</p>
+            <p className="archive-source"><a href={githubProjects.profile.url} target="_blank" rel="noreferrer">@{githubProjects.profile.login} ↗</a> · Updated {new Date(githubProjects.generatedAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</p>
+            <ul className="github-repo-list">
+              {visibleRepositories.map((repository) => <li key={`${repository.owner}/${repository.name}`}>
+                <div className="github-repo-title-row">
+                  <RepositoryTitle repository={repository} />
+                  {repository.homepage ? <button className="github-live-link" type="button" onClick={() => onOpenSite({ name: repository.name, url: repository.homepage! })} aria-label={`Open ${repository.name} app`}>Open app ↗</button> : null}
+                </div>
+                {repository.description ? <p>{repository.description}</p> : null}
+                <div className="github-repo-meta"><span>{repository.owner}</span>{repository.stars > 0 ? <span>{repository.stars} stars</span> : null}{repository.language ? <span>{repository.language}</span> : null}{repository.archived ? <span>Archived</span> : null}{repository.fork ? <span>Fork</span> : null}</div>
+              </li>)}
+            </ul>
+            {!visibleRepositories.length ? <div className="github-repo-empty"><p>No matches.</p><button className="xp-control" type="button" onClick={() => { setQuery(""); setFilter("all"); }}>Clear filters</button></div> : null}
+          </section>
+        )}
       </ScrollPane>
     </div>
   );

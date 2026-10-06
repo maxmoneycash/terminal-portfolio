@@ -13,9 +13,9 @@ import { DisplayPropertiesApp } from "../components/DisplayPropertiesApp";
 import { ReelsApp } from "../components/ReelsApp";
 import { StatsApp } from "../components/StatsApp";
 import { ScrollPane } from "./ScrollPane";
+import { LiveProjectApp, type LiveProject } from "../components/LiveProjectApp";
 
-// The two apps that animate with framer-motion load on demand, which keeps
-// that library out of the bundle the intro waits on. App prefetches them.
+// Prefetch these larger apps while the shell loads.
 const loadProjectsApp = () => import("../components/ProjectsApp");
 const loadSignatureNoteApp = () => import("../components/SignatureNoteApp");
 const ProjectsApp = lazy(() => loadProjectsApp().then((m) => ({ default: m.ProjectsApp })));
@@ -24,7 +24,6 @@ const SignatureNoteApp = lazy(() => loadSignatureNoteApp().then((m) => ({ defaul
 /** Starts downloading the on-demand apps so they are ready when a window opens. */
 export function prefetchWindowApps() {
   void loadProjectsApp();
-  void loadSignatureNoteApp();
 }
 
 function AboutApp({ openApp }: { openApp: (id: AppId) => void }) {
@@ -52,15 +51,8 @@ function AboutApp({ openApp }: { openApp: (id: AppId) => void }) {
         ))}
       </div>
       <section className="xp-document">
-        <h2>What I build</h2>
-        <p>
-          I work where product, Move contracts, and agent tooling meet. The through-line is shipping demos that
-          feel real enough for a technical buyer to use, test, and critique.
-        </p>
-        <p>
-          Most of the work here is Aptos-focused: markets, transaction composition, content rewards, trading agents,
-          and infrastructure that helps teams understand what the chain can actually do.
-        </p>
+        <h2>From contracts to interface</h2>
+        <p>Move contracts, transaction tooling, trading agents, and the interfaces to use them.</p>
       </section>
     </ScrollPane>
   );
@@ -173,7 +165,7 @@ function ContactApp() {
         <textarea
           readOnly
           value={
-            "Send context on the protocol, product, or workflow you want to ship. Email is the fastest way to reach me.\n\nI can help with Move systems, demo infrastructure, transaction composition, onchain trading flows, and agent tooling."
+            "Have a project in mind? Send me a note."
           }
         />
         <div className="contact-actions">
@@ -196,31 +188,41 @@ function ContactApp() {
 export function WindowContent({
   record,
   openApp,
+  active,
+  onWatchIntro,
+  onOpenSite,
+  browserProject,
 }: {
   record: WindowRecord;
   openApp: (id: AppId) => void;
+  active: boolean;
+  onWatchIntro: () => void;
+  onOpenSite: (project: LiveProject) => void;
+  browserProject: LiveProject | null;
 }) {
   switch (record.id) {
+    case "browser":
+      return <LiveProjectApp project={browserProject} />;
     case "signature":
       return (
         <Suspense fallback={null}>
-          <SignatureNoteApp onContinue={() => openApp("about")} />
+          <SignatureNoteApp onContinue={() => openApp("projects")} />
         </Suspense>
       );
     case "about":
       return <AboutApp openApp={openApp} />;
     case "files":
-      return <FileExplorerApp />;
+      return <FileExplorerApp onOpenSite={onOpenSite} />;
     case "resume":
       return <ResumeApp />;
     case "projects":
       return (
-        <Suspense fallback={null}>
-          <ProjectsApp />
+        <Suspense fallback={<p className="projects-loading" role="status">Opening projects…</p>}>
+          <ProjectsApp active={active} openApp={openApp} onWatchIntro={onWatchIntro} onOpenSite={onOpenSite} />
         </Suspense>
       );
     case "demos":
-      return <ReelsApp active={!record.minimized} />;
+      return <ReelsApp active={active} />;
     case "contact":
       return <ContactApp />;
     case "stats":

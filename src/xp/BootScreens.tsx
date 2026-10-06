@@ -92,14 +92,15 @@ function resolveInitialBoot(): InitialBoot {
         window.location.pathname + window.location.hash,
       );
       window.sessionStorage.removeItem("logged_in");
+      return { stage: "preboot", restored: false };
     }
     if (window.sessionStorage.getItem("logged_in") === "true") {
       return { stage: "desktop", restored: true };
     }
   } catch {
-    // storage/URL unavailable — fall through to a full boot
+    // Storage is optional; the work remains immediately accessible.
   }
-  return { stage: "preboot", restored: false };
+  return { stage: "desktop", restored: true };
 }
 
 export function useBootFlow(callbacks: {
@@ -293,9 +294,12 @@ export function useBootFlow(callbacks: {
       const hold = new Promise<void>((resolve) => {
         window.setTimeout(resolve, SHUTDOWN_MIN_MS);
       });
-      Promise.all([sting, hold])
-        .then(() => window.location.reload())
-        .catch(() => window.location.reload());
+      const restart = () => {
+        const url = new URL(window.location.href);
+        url.searchParams.set("forceBoot", "true");
+        window.location.assign(url);
+      };
+      void Promise.all([sting, hold]).then(restart, restart);
     }, SHUTDOWN_TEXT_SWAP_MS);
   }, [schedule, clearScheduled]);
 

@@ -7,7 +7,6 @@
  */
 import { portfolio } from "./portfolio";
 import githubProjects from "./github-projects.json";
-import publicActivity from "./github-public-activity.json";
 
 export type TextFile = { kind: "file"; type: "txt"; name: string; content: string };
 /** Internet shortcut — opens its target in a new tab, like a real .url. */
@@ -77,9 +76,8 @@ const aboutMe = textFile("about_me.txt", [
   "Focus areas:",
   ...portfolio.focus.map((item) => `  * ${item}`),
   "",
-  "The short version: I work where product, Move contracts, and",
-  "agent tooling meet. The through-line is shipping demos that feel",
-  "real enough for a technical buyer to use, test, and critique.",
+  "Move contracts, transaction tooling, trading agents,",
+  "and the interfaces to use them.",
 ]);
 
 const currentRole = portfolio.roles[0];
@@ -95,7 +93,7 @@ const now = textFile("now.txt", [
   "",
   "Also running commits.sh — a live velocity index and dev rank",
   "built from GitHub activity, streaming real-time token telemetry",
-  "from 8 coding agents. 67B+ tokens tracked so far. You can watch",
+  "from coding agents. You can watch",
   "the live feed in the Task Manager window on this desktop.",
 ]);
 
@@ -206,8 +204,7 @@ const paperFiles: PdfFile[] = [
 ];
 
 /* ------------------------------------------------------------------ */
-/* GitHub Repos: the full curated catalogue, including private repos   */
-/* (metadata only — same data the My Projects window ships).           */
+/* GitHub Repos: metadata fetched from anonymous public GitHub endpoints. */
 /* ------------------------------------------------------------------ */
 
 type CatalogRepo = {
@@ -228,37 +225,8 @@ type CatalogRepo = {
 
 const SINCE_JANUARY = "2026-01-01";
 
-function repoKey(repo: { owner: string; name: string }) {
-  return `${repo.owner}/${repo.name}`.toLowerCase();
-}
-
-/** Catalogue (incl. private metadata) overlaid with live public activity. */
-function mergeRepositories(): CatalogRepo[] {
-  const byKey = new Map<string, CatalogRepo>();
-  for (const repo of githubProjects.repositories) byKey.set(repoKey(repo), repo);
-  for (const repo of publicActivity.repositories) {
-    const existing = byKey.get(repoKey(repo));
-    if (!existing) {
-      byKey.set(repoKey(repo), repo);
-      continue;
-    }
-    // Keep catalogue stars/license; take the fresher public push + description.
-    const newer = repo.pushedAt > existing.pushedAt;
-    byKey.set(repoKey(repo), {
-      ...existing,
-      description: repo.description ?? existing.description,
-      homepage: repo.homepage ?? existing.homepage,
-      language: repo.language ?? existing.language,
-      pushedAt: newer ? repo.pushedAt : existing.pushedAt,
-      fork: repo.fork,
-      archived: repo.archived,
-      url: repo.url,
-    });
-  }
-  return [...byKey.values()].sort((a, b) => +new Date(b.pushedAt) - +new Date(a.pushedAt));
-}
-
-const mergedRepositories = mergeRepositories();
+// One public-only source is shared with My Projects. Never merge older snapshots.
+const mergedRepositories: CatalogRepo[] = githubProjects.repositories.filter((repo) => !repo.private);
 const sinceJanuaryRepositories = mergedRepositories.filter((repo) => repo.pushedAt >= SINCE_JANUARY);
 
 function pushDateLabel(iso: string) {
@@ -271,7 +239,7 @@ function repoFile(repo: CatalogRepo, taken: Set<string>): ExplorerFile {
   taken.add(name);
 
   const flags = [
-    repo.private ? "Private" : "Public",
+    "Public",
     repo.fork ? "Fork" : null,
     repo.archived ? "Archived" : null,
   ].filter(Boolean);
@@ -286,7 +254,7 @@ function repoFile(repo: CatalogRepo, taken: Set<string>): ExplorerFile {
     repo.license ? `License:    ${repo.license}` : null,
     repo.stars > 0 || repo.forks > 0 ? `GitHub:     ${repo.stars} stars · ${repo.forks} forks` : null,
     `Last push:  ${pushDateLabel(repo.pushedAt)}`,
-    repo.private ? null : `Repo:       ${repo.url}`,
+    `Repo:       ${repo.url}`,
     repo.homepage ? `Live:       ${repo.homepage}` : null,
     "",
     repo.description ?? "(no description)",
@@ -297,25 +265,13 @@ const repoNames = new Set<string>();
 const repoCatalogFiles: ExplorerFile[] = mergedRepositories.map((repo) => repoFile(repo, repoNames));
 
 const repoCount = mergedRepositories.length;
-const privateRepoCount = mergedRepositories.filter((repo) => repo.private).length;
-const newPublicCount = publicActivity.repositories.filter(
-  (repo) => !githubProjects.repositories.some((known) => repoKey(known) === repoKey(repo)),
-).length;
-
 const repoCatalogReadme = textFile("_README.txt", [
-  "GITHUB REPOS — THE FULL CATALOGUE",
+  "PUBLIC GITHUB REPOSITORIES",
   DIVIDER,
   "",
-  `${repoCount} repositories across maxmoneycash and SeamMoney,`,
-  `${privateRepoCount} of them private. One file per repo, newest push first.`,
-  "",
-  "Private repos show the same metadata the My Projects window",
-  "ships — name, description, language, last push — never code.",
-  `Public activity since January added ${newPublicCount} repos that`,
-  "were not in the July catalogue snapshot.",
-  "",
-  `Private catalogue: ${pushDateLabel(githubProjects.generatedAt)}`,
-  `Public activity:   ${pushDateLabel(publicActivity.generatedAt)}`,
+  `${repoCount} public repositories across maxmoneycash and SeamMoney.`,
+  "Names, descriptions, and links come directly from public GitHub records.",
+  `Updated: ${pushDateLabel(githubProjects.generatedAt)}`,
 ]);
 
 const sinceJanuaryNames = new Set<string>();
@@ -330,8 +286,7 @@ const sinceJanuaryReadme = textFile("_README.txt", [
   `${sinceJanuaryRepositories.length} repositories with a push on or after`,
   "January 1, 2026 — the stuff actually being edited this year.",
   "",
-  `${sinceJanuaryRepositories.filter((repo) => repo.private).length} private (from the July catalogue snapshot)`,
-  `${sinceJanuaryRepositories.filter((repo) => !repo.private).length} public (live GitHub activity as of ${pushDateLabel(publicActivity.generatedAt)})`,
+  `Public GitHub data as of ${pushDateLabel(githubProjects.generatedAt)}`,
   "",
   "Newest push first. Click any file for the write-up.",
 ]);
@@ -432,7 +387,7 @@ const readme = textFile("README.txt", [
   `  * My Pictures\\ ......... ${PROJECT_SHOTS.length} real deploy screenshots`,
   "  * My Videos\\ ........... the demo reels, playable in place",
   `  * Since January\\ ....... ${sinceJanuaryRepositories.length} repos pushed in 2026`,
-  `  * GitHub Repos\\ ........ all ${repoCount} repos, incl. ${privateRepoCount} private ones`,
+  `  * GitHub Repos\\ ........ ${repoCount} public repositories`,
   "  * Work History\\ ........ one file per role, newest first",
   "",
   "Click any file to open it in Notepad. Windows drag, resize,",

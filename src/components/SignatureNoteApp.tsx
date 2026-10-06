@@ -202,13 +202,13 @@ export function SignatureNoteApp({ onContinue }: { onContinue: () => void }) {
         </p>
       </div>
       <footer className="signature-note-actions">
-        <span>Signed by hand · replay anytime from the Start menu</span>
+        <span>Welcome to my desktop.</span>
         <div>
           <button className="xp-control" type="button" onClick={() => setRunId((value) => value + 1)}>
             Replay Signature
           </button>
           <button className="xp-control primary" type="button" onClick={onContinue}>
-            About Max
+            Selected work
           </button>
         </div>
       </footer>

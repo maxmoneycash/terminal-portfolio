@@ -4,6 +4,7 @@
  * WAAPI so a window finishes animating before the shell unmounts it, plus the
  * eight resize edges and keyboard snap shortcuts.
  */
+import type { LiveProject } from "../components/LiveProjectApp";
 import {
   useEffect,
   useLayoutEffect,
@@ -46,6 +47,7 @@ function taskbarDelta(element: HTMLElement | null, id: AppId) {
 
 export function WindowChrome({
   record,
+  browserProject,
   active,
   children,
   onFocus,
@@ -63,6 +65,7 @@ export function WindowChrome({
   onToggleCrt,
 }: {
   record: WindowRecord;
+  browserProject?: LiveProject | null;
   active: boolean;
   children: ReactNode;
   onFocus: (id: AppId) => void;
@@ -79,7 +82,8 @@ export function WindowChrome({
   crtEnabled: boolean;
   onToggleCrt: () => void;
 }) {
-  const app = appCatalog[record.id];
+  const app = browserProject ? { ...appCatalog[record.id], title: `${browserProject.name} - Internet Explorer` } : appCatalog[record.id];
+  const address = browserProject?.url ?? `maxxp://${record.id}`;
   const isNotepad = record.id === "signature";
   // Minesweeper renders its own Game menu; Display Properties is a dialog.
   // Neither gets browser chrome, like the real things.
@@ -393,7 +397,7 @@ export function WindowChrome({
             <button
               type="button"
               className="toolbar-icon-only"
-              onClick={() => openApp("signature")}
+              onClick={() => openApp("projects")}
               title="Home"
               aria-label="Home"
             >
@@ -423,13 +427,13 @@ export function WindowChrome({
             <span>Address</span>
             <div>
               <img src={app.icon} alt="" />
-              maxxp://{record.id}
+              <span className="window-address-text" title={address}>{address}</span>
             </div>
             <button
               type="button"
               className="address-go"
               onClick={() => openApp(record.id)}
-              title={`Go to maxxp://${record.id}`}
+              title={`Go to ${address}`}
             >
               <img src={`${xp}/gui/toolbar/go.webp`} alt="" />
               <span>Go</span>

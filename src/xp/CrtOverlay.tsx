@@ -5,26 +5,7 @@
  */
 import { useEffect } from "react";
 
-const STORAGE_KEY = "maxxp:crt";
-
-/** Read the saved CRT preference; defaults to on. */
-export function readCrtPreference() {
-  try {
-    return window.localStorage.getItem(STORAGE_KEY) !== "off";
-  } catch {
-    return true; // Storage is optional.
-  }
-}
-
 export function CrtOverlay({ enabled }: { enabled: boolean }) {
-  useEffect(() => {
-    try {
-      window.localStorage.setItem(STORAGE_KEY, enabled ? "on" : "off");
-    } catch {
-      // Storage is optional; the toggle still works for this visit.
-    }
-  }, [enabled]);
-
   // The shell keys off this class for its own CRT-dependent styling.
   useEffect(() => {
     document.documentElement.classList.toggle("crt-on", enabled);
