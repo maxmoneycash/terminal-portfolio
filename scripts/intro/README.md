@@ -1,47 +1,57 @@
 # Intro editing
 
-The intro stays 28.5 seconds, with 21 windows. The opening leads with
-Aptos vs MegaETH, Sol2Move, Block Machine, and NipahScan. Globe and Temper
-appear later. Alternate takes remain available in the Demo Reel.
-`highlights.json` records a
-five-second select for each project and the short moment used in the intro.
-`start` and `intro` are seconds into the input file; `duration` is the select's
-length. `crop`, when present, is `[x, y, width, height]` in source pixels.
+The intro is 28.5 seconds: twelve chapters of large XP windows, followed by
+an animated login directly into the live desktop. All 24 approved Demo Reel
+entries appear, across 27 views. Aptos vs MegaETH, Sol2Move, Block Machine,
+and NipahScan lead; Temper and the validator globe appear near the end.
 
-Most inputs are the cropped, content-hashed clips in `public/videos/reels`.
-Temper uses a new five-second extract from 13:59–14:04 of the original
-14-minute recording. Its source pattern, timestamp and filter are saved in
-the manifest; the extract is kept under `sources` so builds do not require
-the original recording. It is a build input, not a browser download.
+`showcase.json` is the edit. Each shot names an **original recording**, its
+start time, a source-pixel crop, and optional orientation-specific layouts.
+`reel` maps additional views to their Demo Reel entry. The compositor checks
+that every current entry is represented and rejects missing or unexpected
+entries. Cash Clicker, DeepSurge, and the leverage-slider recording are absent.
 
-Review selects before rendering:
+The sources are discovered in `~/Screenshots`, the iCloud Screenshots folder,
+or `~/Downloads`. They are build inputs, never copied into the website. Keep
+crops within the approved app: several originals also contain terminals,
+server addresses, browser sidebars, or other private desktop content. The
+commits.sh view includes only its statistics panel. Original recordings with
+personal data remain subject to the user's approval for those recordings.
+
+Desktop views use large overlapping windows. Phone views stack app overviews
+and detail panels; `portraitCrop` selects a meaningful panel rather than
+shrinking an entire tall recording into a small second window. Window content
+keeps its source aspect ratio. The camera holds a nearly fixed position until
+the login, with depth of field, motion blur, bloom, grain, and colour fringing
+disabled. The site also suspends its optional CRT overlay during playback.
+Both final cuts are 1080p, H.264 CRF 16, 30 fps.
+
+Preview individual compositions:
 
 ```sh
-python3 scripts/intro/review_highlights.py
-open .intro-build/highlights/index.html
+python3 scripts/intro/make_showcase.py --at 1.5,3.55,5.6
+/Applications/Blender.app/Contents/MacOS/Blender -b --factory-startup \
+  --python scripts/intro/scene.py -- --showcase --orient portrait \
+  --stills 46,107,169 --out .intro-build/showcase/review --samples 16
 ```
 
-The gallery shows the complete five-second selections and the portion each
-window plays. Change `intro` to position the action after the camera arrives;
-change `start` when the surrounding five-second selection also needs to move.
-Keep the entire window span inside the selection. The generator checks this.
+`npm run intro:build` creates compressed JPEG source caches and separate
+screen sequences for each orientation, renders, validates both MP4s, and
+only then updates the content-hashed public assets. It waits for AC power
+between render batches and checks disk headroom. A matching edit resumes
+existing frames; changed inputs discard generated render frames. Successful
+builds remove disposable caches unless `KEEP_INTRO_INTERMEDIATES=1` is set.
+`npm run intro:clean` also removes these generated directories without touching
+originals, review evidence, or public exports.
 
-`make_screen.py` controls window order and positioning; `scene.py` controls
-the camera. The camera keeps most of its distance between windows, with
-gentle following and more desktop visible. Screen detail takes priority over
-camera effects: motion blur, bloom, colour fringing, exposure pumping, and
-added grain are off. Both final videos retain the full 1080p render size at
-CRF 18; do not downsample the phone version to 720p.
+`login_ending.py` supplies the final tile click, Welcome screen, and matching
+Bliss background. The site hands off to its live desktop on video completion;
+it does not show a second login prompt. Explicit Log Off still opens XP login.
 
-`build.sh` regenerates screen frames, renders both orientations
-and encodes them. Keep the machine on AC power. A full render can take hours
-on a busy machine. Do not resume old render frames after changing the selects:
-the screen content and its lighting have changed.
+`make_screen.py` retains shared XP drawing helpers and the previous single-view
+edit. `highlights.json` documents that older edit's five-second selects;
+`showcase.json` is authoritative for the current intro.
 
-`recordings.json` accounts for all 25 original recordings requested for the
-portfolio. Twenty-one are represented in the Demo Reel; DeepSurge, Cash Clicker, and the
-leverage slider were removed at the user's request, and the remaining
-1.46-second recording shows a file picker followed by an upload-size error.
-Four previously omitted recordings are restored through the named jobs in
-`scripts/cut_reels.py`. Three Block Machine sources share one reel; alternate
-takes remain available there even when the intro uses another take.
+`recordings.json` accounts for the supplied files. All usable, approved
+recordings remain available through the Demo Reel. The 1.46-second file-picker
+and upload-error recording has no usable app interaction.

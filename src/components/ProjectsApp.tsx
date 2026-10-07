@@ -1,5 +1,5 @@
 /** Selected work first; the full repository archive is one click away. */
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import githubProjects from "../data/github-projects.json";
 import { portfolio, type Project } from "../data/portfolio";
 import { ScrollPane } from "../xp/ScrollPane";
@@ -29,6 +29,16 @@ function ProjectPreview({ project, playing, active, priority, onPlay, onOpenSite
   const resumeRef = useRef(false);
   const [started, setStarted] = useState(false);
   const [failed, setFailed] = useState(false);
+  const [expanded, setExpanded] = useState(false);
+  useLayoutEffect(() => {
+    const element = previewRef.current;
+    if (!expanded || !element) return;
+    element.showPopover();
+    element.querySelector<HTMLButtonElement>(".project-collapse")?.focus();
+    const escape = (event: KeyboardEvent) => { if (event.key === "Escape") setExpanded(false); };
+    window.addEventListener("keydown", escape);
+    return () => { if (element.matches(":popover-open")) element.hidePopover(); window.removeEventListener("keydown", escape); };
+  }, [expanded]);
 
   useEffect(() => {
     const element = videoRef.current;
@@ -56,13 +66,15 @@ function ProjectPreview({ project, playing, active, priority, onPlay, onOpenSite
   const play = () => { setStarted(true); onPlay(); void videoRef.current?.play().catch(() => {}); };
   const enlarge = () => {
     play();
-    if (previewRef.current?.requestFullscreen) void previewRef.current.requestFullscreen().catch(() => {});
-    else (videoRef.current as HTMLVideoElement & { webkitEnterFullscreen?: () => void } | null)?.webkitEnterFullscreen?.();
+    if (previewRef.current?.requestFullscreen) void previewRef.current.requestFullscreen().catch(() => setExpanded(true));
+    else if ((videoRef.current as HTMLVideoElement & { webkitEnterFullscreen?: () => void } | null)?.webkitEnterFullscreen) {
+      (videoRef.current as HTMLVideoElement & { webkitEnterFullscreen: () => void }).webkitEnterFullscreen();
+    } else setExpanded(true);
   };
 
   if (!video) return project.poster ? <div className="project-preview"><button type="button" onClick={() => project.link && onOpenSite({ name: project.name, url: project.link })} aria-label={`Try ${project.name}`}><img src={project.poster} width="1440" height="900" alt={`${project.name} running on the T-Deck`} loading={priority ? "eager" : "lazy"} fetchPriority={priority ? "high" : "auto"} /><span className="project-play">Try app →</span></button></div> : null;
   return (
-    <div className="project-preview" ref={previewRef}>
+    <div className="project-preview" ref={previewRef} popover={expanded ? "manual" : undefined}>
       {started ? (
         <video
           ref={videoRef}
@@ -84,7 +96,7 @@ function ProjectPreview({ project, playing, active, priority, onPlay, onOpenSite
           <span className="project-play"><span aria-hidden="true">▶</span> Watch demo</span>
         </button>
       )}
-      <div className="project-media-actions"><button type="button" onClick={enlarge} aria-label={`Enlarge ${project.name} demo`}>⛶ Enlarge</button><a href={video.sources[0].src} target="_blank" rel="noreferrer">Full recording ↗</a></div>
+      <div className="project-media-actions">{expanded ? <button type="button" className="project-collapse" onClick={() => setExpanded(false)}>Close enlarged view</button> : <button type="button" onClick={enlarge} aria-label={`Enlarge ${project.name} demo`}>⛶ Enlarge</button>}<a href={video.sources[0].src} target="_blank" rel="noreferrer">Full recording ↗</a></div>
       {failed && playing ? <a className="project-video-fallback" href={video.sources[0].src}>Open recording ↗</a> : null}
     </div>
   );

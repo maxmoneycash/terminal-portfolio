@@ -65,8 +65,8 @@
     "recording": "Screen Recording 2026-02-23 at 11.30.34 PM.mov",
     "status": "included",
     "reel": "aptos-block-machine",
-    "intro": false,
-    "note": "Combined into the Block Machine reel. The intro uses the Feb 19 profiling moment."
+    "intro": true,
+    "note": "Included in the intro alongside another view of the same app."
   },
   {
     "recording": "Screen Recording 2026-02-21 at 10.57.13 PM.mov",
@@ -86,8 +86,8 @@
     "recording": "Screen Recording 2026-02-11 at 8.45.18 PM.mov",
     "status": "included",
     "reel": "aptos-block-machine",
-    "intro": false,
-    "note": "Combined into the Block Machine reel. The intro uses the Feb 19 profiling moment."
+    "intro": true,
+    "note": "Included in the intro alongside another view of the same app."
   },
   {
     "recording": "Screen Recording 2026-02-03 at 8.59.08 PM.mov",
@@ -100,8 +100,8 @@
     "recording": "Screen Recording 2026-01-29 at 6.46.53 PM.mov",
     "status": "included",
     "reel": "aptos-testnet-nodes",
-    "intro": false,
-    "note": "Alternate take; the intro shows the same project through another recording."
+    "intro": true,
+    "note": "Included in the intro alongside another view of the same app."
   },
   {
     "recording": "Screen Recording 2026-01-29 at 2.58.21 AM.mov",
@@ -167,6 +167,41 @@
     "recording": "Screen Recording 2024-02-06 at 9.34.51 AM.mov",
     "status": "included",
     "reel": "seam-dex",
+    "intro": true,
+    "note": ""
+  },
+  {
+    "recording": "best_1.mov",
+    "status": "included",
+    "reel": "aptos-vs-megaeth",
+    "intro": true,
+    "note": ""
+  },
+  {
+    "recording": "Screen Recording 2026-01-31 at 1.11.09 AM.mov",
+    "status": "included",
+    "reel": "aptos-vs-megaeth-rerun",
+    "intro": true,
+    "note": ""
+  },
+  {
+    "recording": "Screen Recording 2026-02-24 at 3.11.59 PM.mov",
+    "status": "included",
+    "reel": "sol2move-first-run",
+    "intro": true,
+    "note": ""
+  },
+  {
+    "recording": "Screen Recording 2025-12-01 at 9.38.09 PM.mov",
+    "status": "included",
+    "reel": "decibrrr-live",
+    "intro": true,
+    "note": ""
+  },
+  {
+    "recording": "Screen Recording 2025-12-22 at 1.13.01 AM.mov",
+    "status": "included",
+    "reel": "aptos-velociraptr",
     "intro": true,
     "note": ""
   }

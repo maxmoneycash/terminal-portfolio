@@ -1,71 +1,80 @@
 #!/usr/bin/env python3
-"""MaxXP intro, final step: encode the Blender renders for the web.
-
-Turns .intro-build/render/{portrait,landscape}/*.png into full-resolution
-H.264 MP4s without grain or softening filters, writes a
-poster frame for each, names both by content hash (/videos is served as
-immutable), and points src/xp/IntroVideo.tsx at the new files.
-
-  python3 scripts/intro/encode.py
-"""
+"""Validate and encode both 1080p intro cuts before publishing either asset."""
 from __future__ import annotations
-
-import glob
 import hashlib
+import json
 import os
+from pathlib import Path
 import re
 import subprocess
+from PIL import Image
 
-ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
-BUILD = os.path.join(ROOT, ".intro-build")
-OUT = os.path.join(ROOT, "public", "videos", "intro")
-COMPONENT = os.path.join(ROOT, "src", "xp", "IntroVideo.tsx")
-INDEX = os.path.join(ROOT, "index.html")  # preloads the poster frames
-FPS = 30
-
-TARGETS = {
-    # orient: (output size, crf)
-    "portrait": ((1080, 1920), 18),
-    "landscape": ((1920, 1080), 18),
-}
+ROOT = Path(__file__).resolve().parents[2]
+BUILD = ROOT / '.intro-build'
+OUT = ROOT / 'public/videos/intro'
+COMPONENT = ROOT / 'src/xp/IntroVideo.tsx'
+INDEX = ROOT / 'index.html'
+FPS, FRAMES = 30, 855
+TARGETS = {'portrait': (1080, 1920), 'landscape': (1920, 1080)}
 
 
-def encode(orient: str) -> tuple[str, str]:
-    (w, h), crf = TARGETS[orient]
-    frames = sorted(glob.glob(os.path.join(BUILD, "render", orient, "*.png")))
-    if not frames:
-        raise SystemExit(f"no renders for {orient}; run scene.py first")
-    tmp = os.path.join(BUILD, f"intro-{orient}.mp4")
+def prepare(orient, size):
+    folder = BUILD / 'render' / orient
+    expected = [folder / f'{i:04d}.png' for i in range(1, FRAMES + 1)]
+    if any(not p.is_file() or p.stat().st_size == 0 for p in expected):
+        raise ValueError(f'{orient}: missing or empty render frames')
+    for frame in expected:
+        with Image.open(frame) as image:
+            if image.size != size:
+                raise ValueError(f'{orient}: wrong render dimensions in {frame.name}')
+            image.verify()
+    tmp = BUILD / f'intro-{orient}.mp4'
     subprocess.run([
-        "ffmpeg", "-v", "error", "-y", "-framerate", str(FPS), "-i", os.path.join(BUILD, "render", orient, "%04d.png"),
-        "-vf", f"scale={w}:{h}:flags=lanczos,format=yuv420p",
-        "-c:v", "libx264", "-preset", "slow", "-crf", str(crf), "-profile:v", "high",
-        "-g", "60", "-movflags", "+faststart", "-an", tmp,
+        'ffmpeg', '-v', 'error', '-xerror', '-y', '-framerate', str(FPS),
+        '-start_number', '1', '-i', str(folder / '%04d.png'), '-frames:v', str(FRAMES),
+        '-vf', f'scale={size[0]}:{size[1]}:flags=lanczos,format=yuv420p',
+        '-c:v', 'libx264', '-threads', '4', '-preset', 'medium', '-crf', '16',
+        '-profile:v', 'high', '-g', '60', '-movflags', '+faststart', '-an', str(tmp),
     ], check=True)
-    digest = hashlib.sha1(open(tmp, "rb").read()).hexdigest()[:8]
-    os.makedirs(OUT, exist_ok=True)
-    for old in glob.glob(os.path.join(OUT, f"intro-{orient}-*")):
-        os.remove(old)
-    video = os.path.join(OUT, f"intro-{orient}-{digest}.mp4")
-    os.replace(tmp, video)
-    poster = os.path.join(OUT, f"intro-{orient}-{digest}.jpg")
-    subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", video, "-frames:v", "1", "-q:v", "4", poster], check=True)
-    print(f"{orient:<9} {w}x{h}  {os.path.getsize(video) / 1e6:5.2f} MB  poster {os.path.getsize(poster) / 1e3:.0f} KB")
-    return f"/videos/intro/{os.path.basename(video)}", f"/videos/intro/{os.path.basename(poster)}"
+    stream = json.loads(subprocess.check_output([
+        'ffprobe', '-v', 'error', '-show_streams', '-of', 'json', str(tmp)
+    ]))['streams'][0]
+    if int(stream['nb_frames']) != FRAMES or (stream['width'], stream['height']) != size:
+        raise ValueError(f'{orient}: invalid frame count or dimensions')
+    subprocess.run(['ffmpeg', '-v', 'error', '-xerror', '-i', str(tmp), '-f', 'null', '-'], check=True)
+    digest = hashlib.sha1(tmp.read_bytes()).hexdigest()[:8]
+    poster = BUILD / f'intro-{orient}.jpg'
+    # Start with actual work in the poster instead of an empty desktop.
+    subprocess.run(['ffmpeg', '-v', 'error', '-y', '-ss', '0.8', '-i', str(tmp), '-frames:v', '1', '-q:v', '2', str(poster)], check=True)
+    return orient, digest, tmp, poster
+
+
+def publish(prepared):
+    """Publish a complete pair after both orientations have been validated."""
+    if {item[0] for item in prepared} != set(TARGETS):
+        raise ValueError("Both orientations are required before publishing")
+    OUT.mkdir(parents=True, exist_ok=True)
+    src, index = COMPONENT.read_text(), INDEX.read_text()
+    for orient, digest, video, poster in prepared:
+        for path in [video, poster]:
+            destination = OUT / f'intro-{orient}-{digest}{path.suffix}'
+            os.replace(path, destination)
+            pattern = rf'"/videos/intro/intro-{orient}-[^"/]+\{path.suffix}"'
+            replacement = f'"/videos/intro/{destination.name}"'
+            src = re.sub(pattern, replacement, src)
+            index = re.sub(pattern, replacement, index)
+        print(f'{orient}: {FRAMES} frames, 28.5s, {digest}', flush=True)
+    COMPONENT.write_text(src)
+    INDEX.write_text(index)
+    for orient, digest, *_ in prepared:
+        for old in OUT.glob(f'intro-{orient}-*'):
+            if f'-{digest}.' not in old.name:
+                old.unlink()
 
 
 def main():
-    src = open(COMPONENT).read()
-    index = open(INDEX).read()
-    for orient in TARGETS:
-        video, poster = encode(orient)
-        src = re.sub(rf'"/videos/intro/intro-{orient}-[^"]+\.mp4"', f'"{video}"', src)
-        src = re.sub(rf'"/videos/intro/intro-{orient}-[^"]+\.jpg"', f'"{poster}"', src)
-        index = re.sub(rf'"/videos/intro/intro-{orient}-[^"]+\.jpg"', f'"{poster}"', index)
-    open(COMPONENT, "w").write(src)
-    open(INDEX, "w").write(index)
-    print("updated", os.path.relpath(COMPONENT, ROOT), "and", os.path.relpath(INDEX, ROOT))
+    publish([prepare(orient, size) for orient, size in TARGETS.items()])
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

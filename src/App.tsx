@@ -43,8 +43,8 @@ function createProjectsWindow(z = 2): WindowRecord {
   const dimensions = appCatalog.projects.dimensions;
   const viewportWidth = typeof window === "undefined" ? 1280 : window.innerWidth;
   const viewportHeight = typeof window === "undefined" ? 800 : window.innerHeight;
-  const width = Math.min(dimensions.width, viewportWidth - 32);
-  const height = Math.min(dimensions.height, viewportHeight - TASKBAR_HEIGHT - 48);
+  const width = Math.min(Math.max(dimensions.width, viewportWidth * 0.86), viewportWidth - 32);
+  const height = Math.min(Math.max(dimensions.height, viewportHeight * 0.88), viewportHeight - TASKBAR_HEIGHT - 48);
   return {
     id: "projects",
     x: Math.max(16, Math.round((viewportWidth - width) / 2)),
@@ -143,8 +143,9 @@ function App() {
         );
       }
       const app = appCatalog[id];
-      const width = Math.min(app.dimensions.width, window.innerWidth - 16);
-      const height = Math.min(app.dimensions.height, window.innerHeight - TASKBAR_HEIGHT - 16);
+      const roomy = id === "projects" || id === "browser" || id === "demos";
+      const width = Math.min(Math.max(app.dimensions.width, roomy ? window.innerWidth * 0.86 : 0), window.innerWidth - 16);
+      const height = Math.min(Math.max(app.dimensions.height, roomy ? window.innerHeight * 0.88 : 0), window.innerHeight - TASKBAR_HEIGHT - 16);
       const offset = current.length * 26;
       const x = Math.max(8, Math.min(150 + offset, window.innerWidth - width - 8));
       const y = Math.max(8, Math.min(72 + offset, window.innerHeight - height - TASKBAR_HEIGHT - 8));

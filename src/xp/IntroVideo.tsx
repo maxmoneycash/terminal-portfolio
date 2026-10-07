@@ -3,7 +3,7 @@
  * playing a project from the demo reel. It stands in for the boot screen and
  * logs in on film, then hands off directly to the interactive desktop.
  *
- * Rendered by scripts/intro (make_screen.py, then scene.py in Blender).
+ * Rendered by scripts/intro (make_showcase.py, then scene.py in Blender).
  */
 import { useCallback, useEffect, useRef, useState } from "react";
 import { cn } from "../lib/cn";
@@ -11,13 +11,13 @@ import { cn } from "../lib/cn";
 const INTRO = {
   portrait: {
     orient: "portrait",
-    src: "/videos/intro/intro-portrait-c8fd597d.mp4",
-    poster: "/videos/intro/intro-portrait-c8fd597d.jpg",
+    src: "/videos/intro/intro-portrait-139bb3e8.mp4",
+    poster: "/videos/intro/intro-portrait-139bb3e8.jpg",
   },
   landscape: {
     orient: "landscape",
-    src: "/videos/intro/intro-landscape-b741768c.mp4",
-    poster: "/videos/intro/intro-landscape-b741768c.jpg",
+    src: "/videos/intro/intro-landscape-548b1e6e.mp4",
+    poster: "/videos/intro/intro-landscape-548b1e6e.jpg",
   },
 };
 

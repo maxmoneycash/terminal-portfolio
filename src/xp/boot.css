@@ -50,8 +50,8 @@
   .intro.is-fading-skipped { transition: none; }
 }
 
-/* Fill the viewport. The camera centers each project window, leaving
-   surrounding desktop to crop as the viewport's proportions change. */
+/* Each orientation has its own large-window composition. Fill the viewport;
+   the surrounding desktop absorbs small aspect-ratio differences. */
 .intro-video {
   position: absolute;
   inset: 0;
