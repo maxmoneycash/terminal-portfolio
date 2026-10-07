@@ -151,6 +151,9 @@ function ResumeApp() {
 }
 
 function ContactApp() {
+  const email = portfolio.links.email.replace(/^mailto:/, "");
+  const [copied, setCopied] = useState(false);
+  const [copyFailed, setCopyFailed] = useState(false);
   return (
     <ScrollPane>
       <section className="contact-app">
@@ -158,20 +161,15 @@ function ContactApp() {
           <span>To:</span>
           <a href={portfolio.links.email}>maxwell.mohammadi@gmail.com</a>
         </div>
-        <div className="mail-header">
-          <span>Subject:</span>
-          <strong>Aptos product / agent infrastructure</strong>
-        </div>
-        <textarea
-          readOnly
-          value={
-            "Have a project in mind? Send me a note."
-          }
-        />
+        <p className="contact-invitation">Have a project in mind?</p>
         <div className="contact-actions">
           <a className="xp-control primary" href={portfolio.links.email}>
-            Send Message
+            Email Max ↗
           </a>
+          <button className="xp-control" type="button" onClick={async () => {
+            try { await navigator.clipboard.writeText(email); setCopied(true); setCopyFailed(false); }
+            catch { setCopyFailed(true); }
+          }}>{copied ? "Copied" : "Copy email"}</button>
           <a className="xp-control" href={portfolio.links.github} target="_blank" rel="noreferrer">
             GitHub
           </a>
@@ -179,6 +177,7 @@ function ContactApp() {
             LinkedIn
           </a>
         </div>
+        <p className="contact-feedback" role="status">{copyFailed ? "Select the email address above to copy it." : copied ? "Email copied." : ""}</p>
       </section>
     </ScrollPane>
   );

@@ -5,8 +5,10 @@ const publicRepo = (owner: string, name: string) => githubProjects.repositories.
 );
 const cashTrading = publicRepo("SeamMoney", "cash.trading");
 const txComposer = publicRepo("SeamMoney", "tx-composer");
+const lilyshark = publicRepo("maxmoneycash", "lilyshark");
 
 export type Project = {
+  id?: string;
   name: string;
   stack: string;
   summary: string;
@@ -14,6 +16,9 @@ export type Project = {
   code?: string;
   demoId?: string;
   category?: string;
+  featured?: boolean;
+  poster?: string;
+  contribution?: string;
   details?: Array<{ label: string; text: string }>;
 };
 
@@ -64,30 +69,53 @@ export const portfolio = {
     resume: "/Max_Mohammadi_Resume.pdf",
   },
   projects: [
+    ...(lilyshark ? [{
+      id: "lilyshark",
+      name: "Lilyshark",
+      featured: true,
+      category: "Radio & hardware",
+      stack: "C++ · LoRa · TypeScript · Swift",
+      summary: "A handheld radio analyzer, from firmware to interface.",
+      contribution: "Firmware, web analyzer, and native clients.",
+      link: lilyshark.homepage || undefined,
+      code: lilyshark.url,
+      poster: "/projects/lilyshark.png",
+      details: [
+        { label: "Built", text: "LoRa packet capture and decoding on the T-Deck, with a browser analyzer for inspecting frames and radio measurements." },
+        { label: "Try it", text: "The analyzer includes labeled sample captures; no radio is needed to explore them." },
+      ],
+    }] : []),
     {
+      id: "aptos-vs-megaeth",
       name: "Aptos vs MegaETH",
       category: "Trading & benchmarks",
       stack: "Move · React · trading bots",
       summary: "A prediction market with live, side-by-side chain benchmarks.",
       link: "https://aptos-polymarket.vercel.app/",
       demoId: "aptos-vs-megaeth",
+      featured: true,
+      contribution: "Prediction-market UI and chain benchmark tooling.",
       details: [
         { label: "Demo", text: "The recording compares Aptos and MegaETH activity through block heatmaps, latency, and transaction throughput." },
         { label: "Context", text: "A benchmark demo for evaluating the Aptos stack. The displayed rates describe the recorded run." },
       ],
     },
     {
+      id: "sol2move",
       name: "Sol2Move",
       category: "Compiler tooling",
       stack: "Solidity AST · Move v2 · differential fuzzing",
       summary: "Solidity contracts translated into Aptos Move, with validation.",
       link: undefined,
       demoId: "sol2move-boringvault",
+      featured: true,
+      contribution: "Contract translation and validation tooling.",
       details: [
         { label: "Demo", text: "Veda’s BoringVault: a pipeline run, per-contract analysis, generated code, and a quality scorecard." },
       ],
     },
     {
+      id: "cash-trading",
       name: "cash.trading",
       category: "Trading infrastructure",
       stack: "Decibel SDK · MCP · trading agents",
@@ -95,6 +123,8 @@ export const portfolio = {
       link: "https://cash.trading/",
       code: cashTrading?.url,
       demoId: "decibrrr-live",
+      featured: true,
+      contribution: "Trading strategies, SDK integrations, and MCP tools.",
       details: [
         { label: "Built", text: "Custom Decibel SDK paths, TWAP and market-maker strategies, and delegation-based trading." },
         { label: "Agents", text: "MCP workflows expose trading tools to coding agents. Shelby integrations support content rewards." },

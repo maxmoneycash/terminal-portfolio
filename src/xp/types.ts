@@ -105,7 +105,7 @@ export const appCatalog: Record<AppId, AppCatalogEntry> = {
     shortTitle: "Contact Me",
     icon: `${xp}/gui/desktop/contact.webp`,
     desktopLabel: "Contact Me",
-    status: "Compose a message to Max",
+    status: "Email · GitHub · LinkedIn",
     dimensions: { width: 560, height: 390, minWidth: 420, minHeight: 300 },
   },
   stats: {

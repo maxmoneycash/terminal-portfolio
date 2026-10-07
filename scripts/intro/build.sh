@@ -12,15 +12,23 @@ cd "$(dirname "$0")/../.."
 BLENDER="${BLENDER:-/Applications/Blender.app/Contents/MacOS/Blender}"
 
 free_gib=$(df -k . | awk 'NR==2{printf "%d", $4/1048576}')
-if [ "$free_gib" -lt 8 ]; then
-  echo "Only ${free_gib} GiB free; the build needs ~4 GiB of frames plus swap headroom." >&2
+if [ "$free_gib" -lt 20 ]; then
+  echo "Only ${free_gib} GiB free; allow 20 GiB for decoded clips, frames, and swap. Run npm run intro:clean to remove old intermediates." >&2
   exit 1
 fi
 
 rm -rf .intro-build/screen .intro-build/render
 python3 scripts/intro/make_screen.py
+python3 scripts/intro/login_ending.py
 for orient in portrait landscape; do
   caffeinate -i -s "$BLENDER" -b --factory-startup --python scripts/intro/scene.py -- \
-    --orient "$orient" --out "$PWD/.intro-build/render/$orient" > ".intro-build/render_$orient.log" 2>&1
+    --orient "$orient" --end 783 --out "$PWD/.intro-build/render/$orient" > ".intro-build/render_$orient.log" 2>&1
+  caffeinate -i -s "$BLENDER" -b --factory-startup --python scripts/intro/scene.py -- \
+    --orient "$orient" --login-ending --start 784 --out "$PWD/.intro-build/render/$orient" >> ".intro-build/render_$orient.log" 2>&1
 done
 python3 scripts/intro/encode.py
+# Successful exports live in public/videos/intro. Keep intermediates only when
+# explicitly requested for further editing; a failed build retains resumable frames.
+if [ "${KEEP_INTRO_INTERMEDIATES:-0}" != "1" ]; then
+  node scripts/clean-intro.mjs
+fi

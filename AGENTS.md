@@ -7,7 +7,7 @@ MaxXP is a single-page portfolio app (Vite + React 19 + TypeScript) themed as a 
 ### Services / commands
 
 - Dev server: `npm run dev` (Vite, binds `0.0.0.0:5173`). This is the primary way to run the app while developing.
-- Build (also the only type-check gate): `npm run build` refreshes anonymous public GitHub metadata, then runs `tsc -b && vite build`. The refresh needs network access and fails the build rather than publishing an unverified catalogue. There is **no ESLint config**. `npm run build` validates compilation and types; `node --test scripts/github-projects.test.mjs` checks the public-data privacy boundary.
+- Build (also the only type-check gate): `npm run build` refreshes anonymous public GitHub metadata, checks curated deployment links, then runs `tsc -b && vite build`. The refresh needs network access and fails the build rather than publishing an unverified catalogue. There is **no ESLint config**. `node --test scripts/github-projects.test.mjs scripts/live-apps.test.mjs` checks the public-data boundary and deployment fallbacks.
 - Preview a production build: `npm run preview` (binds `0.0.0.0`).
 
 ### Non-obvious notes
@@ -16,3 +16,5 @@ MaxXP is a single-page portfolio app (Vite + React 19 + TypeScript) themed as a 
 - Vite dev-server proxies `/cm/*` to `https://commits.sh/api/*` (see `vite.config.ts`); `vercel.json` does the same rewrite in production. The "Dev Stats" window and other live panels fetch real GitHub / commits.sh data at runtime. The desktop boots and is fully interactive **without** network access — only the live-telemetry panels degrade when outbound network is unavailable.
 - Clicking a project inside the "My Projects" explorer opens the real GitHub repo in a new browser tab; that is expected behavior, not a crash.
 - Optional maintenance scripts are not needed to run the app: `npm run projects:refresh` (anonymous public GitHub API only; never pass a token, see `scripts/fetch-github-projects.mjs`), `npm run reels:cut` (re-cuts Demo Reel clips from the raw screen recordings; requires `ffmpeg` and the recordings), and `npm run resume:build` (requires a LaTeX `pdflatex` toolchain).
+- `npm run intro:clean` removes only reproducible render frames and decoded caches. Successful `intro:build` runs clean these automatically; set `KEEP_INTRO_INTERMEDIATES=1` to retain them for editing. Original recordings and published videos are never removed.
+- `.github/workflows/refresh-public-projects.yml` refreshes public GitHub data and deployment checks every six hours. GitHub archive metadata remains exact; the live app showcase is an editorial selection. Keep Cash Clicker out of the showcase.

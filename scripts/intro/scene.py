@@ -35,6 +35,7 @@ ap.add_argument("--scale", type=int, default=100, help="resolution percentage")
 ap.add_argument("--view", default="Standard", help="view transform: Standard or AgX")
 ap.add_argument("--emission", type=float, default=1.0, help="screen brightness")
 ap.add_argument("--bloom", type=float, default=0.0, help="optional bloom strength; off to preserve screen detail")
+ap.add_argument("--login-ending", action="store_true", help="film the generated login / desktop ending")
 args = ap.parse_args(argv)
 
 timeline = json.load(open(os.path.join(BUILD, "timeline.json")))
@@ -121,7 +122,8 @@ bsdf = nt.nodes["Principled BSDF"]
 bsdf.inputs["Base Color"].default_value = (0.004, 0.004, 0.005, 1)
 bsdf.inputs["Roughness"].default_value = 0.22
 bsdf.inputs["Specular IOR Level"].default_value = 0.35
-img = bpy.data.images.load(os.path.join(BUILD, "screen", "0001.jpg"))
+screen_dir = os.path.join(BUILD, "ending", "screen", args.orient) if args.login_ending else os.path.join(BUILD, "screen")
+img = bpy.data.images.load(os.path.join(screen_dir, "0001.jpg"))
 img.source = "SEQUENCE"
 img.colorspace_settings.name = "sRGB"
 tex = nt.nodes.new("ShaderNodeTexImage")
@@ -275,17 +277,28 @@ cy = np.clip(cy, np.minimum(vis_h / 2 - 6, LH / 2), np.maximum(LH - vis_h / 2 + 
 # distance that shows vis_h (portrait: the sensor spans the height) or vis_w
 dist = (vis_h if portrait else vis_w) * M_PER_PX / 2 * cam_data.lens / (cam_data.sensor_width / 2)
 
+def enter_screen(time):
+    u = np.clip((time - 26.72) / (28.10 - 26.72), 0, 1) if args.login_ending else 0
+    return u * u * u * (u * (u * 6 - 15) + 10)
+
+
+# The handheld camera settles square to the glass as Welcome appears. Its
+# final crop is filled by the same orientation-specific Bliss as the website.
+final_h = 870 if portrait else 790
+final_dist = (final_h if portrait else final_h * aspect) * M_PER_PX * cam_data.lens / cam_data.sensor_width
+
 for i in range(FRAMES):
-    tx = (cx[i] - LW / 2) * M_PER_PX
-    tz = ZC - (cy[i] - LH / 2) * M_PER_PX
+    enter = enter_screen(t[i])
+    tx = (cx[i] - LW / 2) * M_PER_PX * (1 - enter)
+    tz = ZC - (cy[i] - LH / 2) * M_PER_PX * (1 - enter)
     target.location = (tx, 0.0, tz)
     target.keyframe_insert("location", frame=i + 1)
     # never quite square to the glass: a little off to the side and below
     off_x = dist[i] * (0.10 * math.sin(0.41 * t[i] + 1.1) + 0.04 * math.sin(0.93 * t[i]))
     off_z = dist[i] * (-0.07 + 0.05 * math.sin(0.33 * t[i] + 2.0))
-    rig.location = (tx + off_x, -dist[i], tz + off_z)
+    rig.location = (tx + off_x * (1 - enter), -(dist[i] * (1 - enter) + final_dist * enter), tz + off_z * (1 - enter))
     rig.keyframe_insert("location", frame=i + 1)
-    cam.rotation_euler = (0.0, 0.0, math.radians(1.1 * math.sin(0.37 * t[i] + 0.7)))
+    cam.rotation_euler = (0.0, 0.0, math.radians(1.1 * math.sin(0.37 * t[i] + 0.7)) * (1 - enter))
     cam.keyframe_insert("rotation_euler", index=2, frame=i + 1)
 
 
@@ -297,6 +310,10 @@ def shake(ob, path, strength, scale, phase):
         n = c.modifiers.new("NOISE")
         n.strength, n.scale, n.phase = strength, scale, phase + c.array_index * 17.3
         n.blend_in = n.blend_out = 0
+        if args.login_ending:
+            n.use_restricted_range = True
+            n.frame_start, n.frame_end = 1, 28.1 * FPS + 1
+            n.blend_out = (28.1 - 26.72) * FPS
 
 
 shake(rig, "location", 0.0011, 38, 3.0)   # restrained hand drift

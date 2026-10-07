@@ -103,7 +103,20 @@ export function shouldAnimateWallpaper(pref: WallpaperMotion) {
   return connection?.saveData !== true;
 }
 
-export function Wallpaper() {
+export function Wallpaper({ active = true }: { active?: boolean }) {
+  const [visible, setVisible] = useState(!document.hidden);
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    const sync = () => setVisible(!document.hidden);
+    document.addEventListener("visibilitychange", sync);
+    return () => document.removeEventListener("visibilitychange", sync);
+  }, []);
+  useEffect(() => {
+    setReady(false);
+    if (!active || !visible) return;
+    const timer = window.setTimeout(() => setReady(true), 2000);
+    return () => window.clearTimeout(timer);
+  }, [active, visible]);
   const [portrait, setPortrait] = useState(
     () => typeof window !== "undefined" && window.matchMedia("(orientation: portrait)").matches,
   );
@@ -132,8 +145,8 @@ export function Wallpaper() {
   }, [pref]);
 
   useEffect(() => {
-    if (!animate) setLoopReady(false);
-  }, [animate]);
+    if (!animate || !ready || !active || !visible) setLoopReady(false);
+  }, [animate, ready, active, visible]);
 
   const still = portrait ? STILL_PORTRAIT : STILL_LANDSCAPE;
   const loop = portrait ? LOOP_PORTRAIT : LOOP_LANDSCAPE;
@@ -149,8 +162,8 @@ export function Wallpaper() {
 
   return (
     <div className="xp-wallpaper" aria-hidden="true">
-      <img className="xp-wallpaper-still" src={still} alt="" decoding="async" fetchPriority="high" />
-      {animate ? (
+      <img className="xp-wallpaper-still" src={still} alt="" decoding="async" />
+      {animate && ready && active && visible ? (
         <video
           key={loop}
           className={`xp-wallpaper-loop${loopReady ? " is-ready" : ""}`}

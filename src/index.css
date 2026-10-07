@@ -4693,3 +4693,45 @@ button.login-footer-left:focus-visible {
     display: none;
   }
 }
+
+/* Work takes the foreground; Luna remains the frame. */
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+.projects-panel { min-height: 0; height: 100%; }
+.projects-panel[hidden] { display: none; }
+.project-copy h2 a { color: inherit; text-decoration: none; }
+.project-media-actions, .reel-actions { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
+.project-media-actions { padding: 7px 9px; background: var(--xp-window-subtle); border-top: 1px solid var(--xp-divider); font-size: 11px; }
+.project-media-actions button, .reel-actions button, .copy-link button { width: auto; color: var(--xp-link); padding: 0; border: 0; background: none; cursor: pointer; font: inherit; }
+.copy-link { display: inline-flex; gap: 5px; min-width: 0; }
+.copy-link input { width: 130px; min-width: 0; }
+.reel-actions { margin-top: 8px; font-size: 12px; }
+.project-preview:fullscreen { display: grid; place-content: center; background: #000; border: 0; width: 100%; height: 100%; }
+.project-preview:fullscreen video { width: 100vw; height: calc(100dvh - 44px); object-fit: contain; aspect-ratio: auto; }
+.project-preview:fullscreen .project-media-actions { min-height: 44px; justify-content: center; }
+.contact-app { display: flex; flex-direction: column; gap: 20px; padding: 22px; }
+.contact-app .mail-header { padding: 0; border: 0; overflow-wrap: anywhere; }
+.contact-invitation { font-size: 15px; }
+.contact-feedback { min-height: 18px; font-size: 12px; color: var(--xp-muted); }
+.contact-actions { flex-wrap: wrap; }
+@media (max-width: 900px) {
+  .has-open-window .desktop-icons { visibility: hidden; pointer-events: none; }
+  .has-open-window .xp-window,
+  .has-open-window .xp-window.is-maximized { inset: max(6px, env(safe-area-inset-top)) 6px calc(var(--taskbar-height) + env(safe-area-inset-bottom) + 6px) 6px !important; }
+}
+@container (max-width: 600px) {
+  .projects-header { padding: 12px 14px 10px; }
+  .projects-header-links { flex-direction: row; align-items: center; gap: 12px; }
+  .projects-header h1 { font-size: 16px; }
+  .projects-header p { font-size: 11px; margin-top: 3px; }
+  .projects-activity { margin: 0 14px 10px; }
+  .projects-views { padding-inline: 14px; gap: 2px; }
+  .projects-views button { padding-inline: 10px; }
+  .selected-work { padding-inline: 14px; }
+  .selected-project { padding: 16px 0; gap: 12px; }
+  .project-copy h2 { font-size: 20px; }
+}
+@media (pointer: coarse) {
+  .project-media-actions :is(a,button), .copy-link button, .reel-actions button { min-height: 44px; display: inline-flex; align-items: center; }
+  .projects-header { flex-wrap: wrap; }
+  .projects-header-links :is(a,button) { min-height: 44px; }
+}

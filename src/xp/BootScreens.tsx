@@ -1,6 +1,6 @@
 /**
  * MaxXP boot subsystem: pre-boot overlay, the intro video (which stands in for
- * the boot screen), intro→login crossfade, login screen (with welcome +
+ * the boot screen), intro→desktop handoff, login screen (with welcome +
  * shutdown states), and the log off / turn off confirmation dialog.
  *
  * Visual metrics and timings follow the Windows XP (Luna) design language;
@@ -32,13 +32,15 @@ const BOOT_PRELOAD_IMAGES = [
   `${xp}/gui/taskbar/start-button.webp`,
   `${xp}/gui/taskbar/taskbar-bg.webp`,
   `${xp}/gui/taskbar/system-tray-bg.webp`,
+  `${xp}/gui/bgs/bliss-desktop.webp`,
+  `${xp}/gui/bgs/bliss-mobile.webp`,
+  "/projects/lilyshark.png",
 ];
 
 // Boot timeline (ms), measured from boot-flow start.
 const PREBOOT_MS = 400; // black pre-boot beat before the intro
-// The intro ends on the login screen, so a finished intro holds that frame until the
-// live login has faded in, then dissolves onto it; a skipped one just fades out.
-const INTRO_HANDOFF_MS = { ended: 1200, skipped: 500 } as const;
+// Login happens in the film. Reveal the already-warmed desktop immediately.
+const INTRO_HANDOFF_MS = 220;
 
 // Login timeline (ms), measured from the user-tile click.
 const LOGIN_FADE_MS = 160; // tile active → login chrome starts fading (0.3s)
@@ -110,7 +112,7 @@ export function useBootFlow(callbacks: {
   const [initial] = useState(resolveInitialBoot);
   const [stage, setStage] = useState<Stage>(initial.stage);
   const [bootRun, setBootRun] = useState(0);
-  /** The intro stays mounted over the login screen while it dissolves. */
+  /** The intro stays mounted over the live desktop during the short handoff. */
   const [introFading, setIntroFading] = useState<IntroEnd | null>(null);
   /** Login chrome (center columns + corners) fades out 160ms after tile click. */
   const [loginChromeFading, setLoginChromeFading] = useState(false);
@@ -177,11 +179,15 @@ export function useBootFlow(callbacks: {
 
   const finishIntro = useCallback(
     (how: IntroEnd) => {
-      setStage((current) => (current === "boot" ? "login" : current));
+      try {
+        window.sessionStorage.setItem("logged_in", "true");
+      } catch { /* Storage is optional. */ }
+      notifyLoginComplete();
+      setStage("desktop");
       setIntroFading(how);
-      schedule(() => setIntroFading(null), INTRO_HANDOFF_MS[how]);
+      schedule(() => setIntroFading(null), INTRO_HANDOFF_MS);
     },
-    [schedule],
+    [schedule, notifyLoginComplete],
   );
 
   // User tile click → welcome → desktop.
@@ -344,7 +350,7 @@ function UserAvatar() {
 export function BootScreens({ flow }: { flow: BootFlow }): JSX.Element | null {
   const { view, logoffDialog } = flow;
 
-  if (view.stage === "desktop" && !logoffDialog) return null;
+  if (view.stage === "desktop" && !view.introFading && !logoffDialog) return null;
 
   const showIntro = view.stage === "boot" || view.introFading !== null;
   const showLogin =

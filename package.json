@@ -5,12 +5,14 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
-    "build": "node scripts/fetch-github-projects.mjs && tsc -b && vite build",
+    "build": "node scripts/fetch-github-projects.mjs && node scripts/check-live-apps.mjs && tsc -b && vite build",
     "preview": "vite preview --host 0.0.0.0",
     "reels:cut": "python3 scripts/cut_reels.py",
     "intro:build": "bash scripts/intro/build.sh",
     "projects:refresh": "node scripts/fetch-github-projects.mjs",
-    "resume:build": "cd resume && pdflatex -interaction=nonstopmode Max_Mohammadi_Resume.tex && pdflatex -interaction=nonstopmode Max_Mohammadi_Resume_Engineering.tex && pdflatex -interaction=nonstopmode Max_Mohammadi_Resume_Whop.tex && cp Max_Mohammadi_Resume.pdf ../public/Max_Mohammadi_Resume_ATS.pdf && cp Max_Mohammadi_Resume_Engineering.pdf ../public/Max_Mohammadi_Resume_Engineering.pdf && cp Max_Mohammadi_Resume_Whop.pdf ../public/Max_Mohammadi_Resume_Whop.pdf"
+    "resume:build": "cd resume && pdflatex -interaction=nonstopmode Max_Mohammadi_Resume.tex && pdflatex -interaction=nonstopmode Max_Mohammadi_Resume_Engineering.tex && pdflatex -interaction=nonstopmode Max_Mohammadi_Resume_Whop.tex && cp Max_Mohammadi_Resume.pdf ../public/Max_Mohammadi_Resume_ATS.pdf && cp Max_Mohammadi_Resume_Engineering.pdf ../public/Max_Mohammadi_Resume_Engineering.pdf && cp Max_Mohammadi_Resume_Whop.pdf ../public/Max_Mohammadi_Resume_Whop.pdf",
+    "intro:clean": "node scripts/clean-intro.mjs",
+    "projects:check-links": "node scripts/check-live-apps.mjs"
   },
   "dependencies": {
     "@chenglou/pretext": "^0.0.6",

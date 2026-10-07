@@ -1,0 +1,95 @@
+{
+  "checkedAt": "2026-10-07T03:35:27.840Z",
+  "apps": [
+    {
+      "id": "maxmoneycash/lilyshark",
+      "url": "https://lilyshark.com/",
+      "available": true,
+      "mode": "embed"
+    },
+    {
+      "id": "maxmoneycash/orbital-works",
+      "url": "https://orbital-works.vercel.app/",
+      "available": true,
+      "mode": "embed"
+    },
+    {
+      "id": "SeamMoney/cash.trading",
+      "url": "https://cash.trading/",
+      "available": true,
+      "mode": "external"
+    },
+    {
+      "id": "maxmoneycash/polar-browser-themes",
+      "url": "https://maxmoneycash.github.io/polar-browser-themes/",
+      "available": true,
+      "mode": "embed"
+    },
+    {
+      "id": "maxmoneycash/stock-game",
+      "url": "https://stock-game-ten.vercel.app/",
+      "available": true,
+      "mode": "embed"
+    },
+    {
+      "id": "maxmoneycash/market-scout",
+      "url": "https://market-scout-rose.vercel.app/discover",
+      "available": true,
+      "mode": "embed"
+    },
+    {
+      "id": "maxmoneycash/spectra",
+      "url": "https://spectra-one.vercel.app/",
+      "available": true,
+      "mode": "embed"
+    },
+    {
+      "id": "maxmoneycash/tend",
+      "url": "https://tend-zionbet.vercel.app/",
+      "available": true,
+      "mode": "embed"
+    },
+    {
+      "id": "maxmoneycash/loom-reach",
+      "url": "https://loom-reach.vercel.app/",
+      "available": true,
+      "mode": "embed"
+    },
+    {
+      "id": "SeamMoney/sui-options",
+      "url": "https://wick-markets.vercel.app/",
+      "available": true,
+      "mode": "embed"
+    },
+    {
+      "id": "maxmoneycash/options-payoff-motion",
+      "url": "https://cipher-payoff-atlas.vercel.app/",
+      "available": true,
+      "mode": "embed"
+    },
+    {
+      "id": "maxmoneycash/ohlone-unicode",
+      "url": "https://ohlone-unicode.vercel.app/",
+      "available": true,
+      "mode": "embed"
+    },
+    {
+      "id": "SeamMoney/zionbets_frontend",
+      "url": "https://zionbets-frontend.vercel.app/",
+      "available": true,
+      "mode": "embed"
+    },
+    {
+      "id": "maxmoneycash/datacenter-globe",
+      "url": "https://datacenter-globe.vercel.app/",
+      "available": true,
+      "mode": "external"
+    },
+    {
+      "id": "maxmoneycash/NIPAHSCAN",
+      "url": "https://nipahscan.vercel.app/",
+      "available": false,
+      "mode": "embed"
+    }
+  ]
+}

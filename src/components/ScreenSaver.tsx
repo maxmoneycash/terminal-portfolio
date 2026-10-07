@@ -14,7 +14,7 @@ export type SaverSettings = {
 };
 
 const SETTINGS_KEY = "maxxp:screensaver";
-const DEFAULT_SETTINGS: SaverSettings = { saver: "mystify", waitMinutes: 5 };
+const DEFAULT_SETTINGS: SaverSettings = { saver: "none", waitMinutes: 5 };
 const PREVIEW_EVENT = "maxxp:screensaver-preview";
 
 let settings = readSettings();

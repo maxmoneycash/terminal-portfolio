@@ -12,7 +12,7 @@ import { getCrtEnabled, subscribeCrt, toggleCrtEnabled } from "./xp/crtStore";
 import { ScreenSaverOverlay } from "./components/ScreenSaver";
 import { BootScreens, useBootFlow } from "./xp/BootScreens";
 import type { LiveProject } from "./components/LiveProjectApp";
-import { IntroVideo } from "./xp/IntroVideo";
+import { IntroVideo, type IntroEnd } from "./xp/IntroVideo";
 import { CrtOverlay } from "./xp/CrtOverlay";
 import { DesktopIcons } from "./xp/DesktopIcons";
 import { Taskbar } from "./xp/Taskbar";
@@ -20,6 +20,8 @@ import { StartMenu } from "./xp/StartMenu";
 import { WindowChrome, type ResizeEdge } from "./xp/WindowChrome";
 import { prefetchWindowApps, WindowContent } from "./xp/content";
 import { Wallpaper } from "./xp/Wallpaper";
+import { navigate, navigateApp, useRoute } from "./lib/navigation";
+import { siteForId, siteForUrl } from "./data/liveApps";
 
 type DragState =
   | { mode: "move"; id: AppId; startX: number; startY: number; originX: number; originY: number }
@@ -56,21 +58,18 @@ function createProjectsWindow(z = 2): WindowRecord {
 }
 
 function App() {
+  const route = useRoute();
   const [windows, setWindows] = useState<WindowRecord[]>(() => [createProjectsWindow()]);
   const [activeWindow, setActiveWindow] = useState<AppId | null>("projects");
   const [browserProject, setBrowserProject] = useState<LiveProject | null>(null);
   const [introOpen, setIntroOpen] = useState(false);
+  const [introFading, setIntroFading] = useState<IntroEnd | null>(null);
   const introTriggerRef = useRef<HTMLElement | null>(null);
   const [startOpen, setStartOpen] = useState(false);
   // Mirrors the CRT store so Display Properties and the shell stay in sync.
   const [crtEnabled, setCrtEnabledState] = useState(getCrtEnabled);
   const [balloonVisible, setBalloonVisible] = useState(false);
   const [drag, setDrag] = useState<DragState | null>(null);
-  // Focus history powers the toolbar's Back/Forward, like a browser's session
-  // history but over the apps visited in this session.
-  const [history, setHistory] = useState<AppId[]>(["projects"]);
-  const [historyIndex, setHistoryIndex] = useState(0);
-  const suppressHistoryRef = useRef(false);
   const zRef = useRef(3);
 
   useEffect(() => {
@@ -78,6 +77,16 @@ function App() {
   }, []);
 
   useEffect(() => subscribeCrt(setCrtEnabledState), []);
+
+  useEffect(() => {
+    if (!introFading) return;
+    const timer = window.setTimeout(() => {
+      setIntroOpen(false);
+      setIntroFading(null);
+      requestAnimationFrame(() => introTriggerRef.current?.focus({ preventScroll: true }));
+    }, 220);
+    return () => window.clearTimeout(timer);
+  }, [introFading]);
 
   /* ------------------------------------------------------------------ */
   /* Boot flow                                                           */
@@ -114,29 +123,15 @@ function App() {
   /* Window manager                                                      */
   /* ------------------------------------------------------------------ */
 
-  const pushHistory = useCallback((id: AppId) => {
-    if (suppressHistoryRef.current) {
-      suppressHistoryRef.current = false;
-      return;
-    }
-    setHistory((current) => {
-      const trimmed = current.slice(0, historyIndex + 1);
-      if (trimmed[trimmed.length - 1] === id) return current;
-      const next = [...trimmed, id].slice(-24);
-      setHistoryIndex(next.length - 1);
-      return next;
-    });
-  }, [historyIndex]);
-
   const focusWindow = useCallback((id: AppId) => {
-    pushHistory(id);
+    navigateApp(id);
     setActiveWindow(id);
     setWindows((current) =>
       current.map((record) =>
         record.id === id ? { ...record, z: ++zRef.current, minimized: false } : record,
       ),
     );
-  }, [pushHistory]);
+  }, []);
 
   const openApp = useCallback((id: AppId) => {
     setStartOpen(false);
@@ -168,14 +163,23 @@ function App() {
       ];
     });
     setActiveWindow(id);
-    pushHistory(id);
-  }, [pushHistory]);
+    navigateApp(id);
+  }, []);
+
+  useEffect(() => {
+    if (flow.phase !== "desktop") return;
+    if (route.app === "browser") setBrowserProject(siteForId(route.site) ?? null);
+    openApp(route.app);
+  }, [route.app, route.site, flow.phase, openApp]);
 
   const openSite = useCallback((project: LiveProject) => {
     try {
       const url = new URL(project.url);
       if (!["https:", "http:"].includes(url.protocol)) return;
-      setBrowserProject({ name: project.name, url: url.href });
+      const site = siteForUrl(url.href);
+      if (!site) { window.open(url.href, "_blank", "noopener,noreferrer"); return; }
+      setBrowserProject(site);
+      navigate({ app: "browser", site: site.id });
       openApp("browser");
     } catch {
       // Malformed external URLs cannot navigate the shell.
@@ -204,6 +208,7 @@ function App() {
   }, []);
 
   const maximizeWindow = useCallback((id: AppId) => {
+    navigateApp(id);
     setWindows((current) =>
       current.map((record) =>
         record.id === id ? { ...record, maximized: !record.maximized, z: ++zRef.current } : record,
@@ -211,19 +216,6 @@ function App() {
     );
     setActiveWindow(id);
   }, []);
-
-  /** Step through the visited-app history without re-recording the jump. */
-  const navigateHistory = useCallback(
-    (delta: -1 | 1) => {
-      const target = historyIndex + delta;
-      const id = history[target];
-      if (!id) return;
-      setHistoryIndex(target);
-      suppressHistoryRef.current = true;
-      openApp(id);
-    },
-    [history, historyIndex, openApp],
-  );
 
   const showDesktop = useCallback(() => {
     setWindows((current) => current.map((record) => ({ ...record, minimized: true })));
@@ -366,6 +358,7 @@ function App() {
     if (activeWindow && windows.some((record) => record.id === activeWindow && !record.minimized)) return;
     const next = [...windows].filter((record) => !record.minimized).sort((a, b) => b.z - a.z)[0];
     setActiveWindow(next?.id ?? null);
+    if (next) navigateApp(next.id);
   }, [activeWindow, windows]);
 
   /* ------------------------------------------------------------------ */
@@ -377,11 +370,11 @@ function App() {
   return (
     <>
       <main
-        className={cn("xp-desktop", !desktopVisible && "is-hidden")}
+        className={cn("xp-desktop", !desktopVisible && "is-hidden", windows.some(record => !record.minimized) && "has-open-window")}
         aria-hidden={!desktopVisible || introOpen}
         inert={!desktopVisible || introOpen}
       >
-        <Wallpaper />
+        <Wallpaper active={desktopVisible && !introOpen && !windows.some(record => !record.minimized)} />
 
         <DesktopIcons
           openApp={openApp}
@@ -410,9 +403,6 @@ function App() {
                   onResizeStart={startResize}
                   onSnapRequest={handleSnapRequest}
                   openApp={openApp}
-                  onNavigate={navigateHistory}
-                  canGoBack={historyIndex > 0}
-                  canGoForward={historyIndex < history.length - 1}
                 >
                   <WindowContent
                     record={record}
@@ -452,12 +442,9 @@ function App() {
       </main>
 
       <BootScreens flow={flow} />
-      {introOpen ? <IntroVideo fading={null} onFinish={() => {
-        setIntroOpen(false);
-        requestAnimationFrame(() => introTriggerRef.current?.focus({ preventScroll: true }));
-      }} /> : null}
+      {introOpen ? <IntroVideo fading={introFading} onFinish={setIntroFading} /> : null}
       <CrtOverlay enabled={crtEnabled} />
-      <ScreenSaverOverlay desktopVisible={desktopVisible && !introOpen} />
+      <ScreenSaverOverlay desktopVisible={desktopVisible && !introOpen && !activeWindow} />
     </>
   );
 }

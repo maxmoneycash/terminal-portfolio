@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
-
-export type LiveProject = { name: string; url: string };
+import type { LiveProject } from "../data/liveApps";
+import { CopyLink } from "./CopyLink";
+import { routeHash } from "../lib/navigation";
+export type { LiveProject } from "../data/liveApps";
 
 // These public deployments explicitly deny framing. Respect their policies
 // instead of presenting Chromium's blank "refused to connect" document.
-const externalOnlyHosts = new Set(["cash.trading", "commits.sh", "github.com"]);
+const externalOnlyHosts = new Set(["cash.trading", "commits.sh", "github.com", "tokenmaxxing.sh", "datacenter-globe.vercel.app", "eliza.army", "explorer.aptoslabs.com"]);
 
 export function LiveProjectApp({ project }: { project: LiveProject | null }) {
   const [reload, setReload] = useState(0);
@@ -18,12 +20,13 @@ export function LiveProjectApp({ project }: { project: LiveProject | null }) {
   }, [frameKey]);
   if (!project) return <div className="live-project-empty">Choose an app from My Projects.</div>;
   const url = new URL(project.url);
-  const externalOnly = url.protocol !== "https:" || externalOnlyHosts.has(url.hostname.replace(/^www\./, ""));
+  const externalOnly = project.mode !== "embed" || url.protocol !== "https:" || externalOnlyHosts.has(url.hostname.replace(/^www\./, ""));
   return (
     <div className="live-project-app">
       <div className="live-project-toolbar">
         <span title={project.url}>{new URL(project.url).hostname}</span>
-        <button type="button" onClick={() => setReload((value) => value + 1)}>Refresh</button>
+        {!externalOnly ? <button type="button" onClick={() => setReload((value) => value + 1)}>Refresh</button> : null}
+        {project.id ? <CopyLink href={routeHash({ app: "browser", site: project.id })} /> : null}
         <a href={project.url} target="_blank" rel="noreferrer">Open in new tab ↗</a>
       </div>
       {externalOnly ? (

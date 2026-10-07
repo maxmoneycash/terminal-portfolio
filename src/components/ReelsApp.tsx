@@ -1,5 +1,6 @@
 import {
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -10,6 +11,8 @@ import {
 import { portfolio, type PortfolioVideo } from "../data/portfolio";
 import { cn } from "../lib/cn";
 import { Tooltip } from "./Tooltip";
+import { navigate, readRoute, routeHash, useRoute } from "../lib/navigation";
+import { CopyLink } from "./CopyLink";
 
 const featuredVideoId = "aptos-vs-megaeth";
 
@@ -40,19 +43,29 @@ function formatDuration(seconds?: number) {
 }
 
 export function ReelsApp({ active = true }: { active?: boolean }) {
+  const route = useRoute();
   const videos = useMemo<PortfolioVideo[]>(() => {
     const featured = portfolio.videos.find((video) => video.id === featuredVideoId);
     const rest = portfolio.videos.filter((video) => video.id !== featuredVideoId);
     return featured ? [featured, ...rest] : portfolio.videos;
   }, []);
   const [preferHls, setPreferHls] = useState(false);
-  const [activeIndex, setActiveIndex] = useState(0);
+  const [activeIndex, setActiveIndex] = useState(() => Math.max(0, videos.findIndex(video => video.id === route.video)));
   const [muted, setMuted] = useState(true);
   const [playing, setPlaying] = useState(false);
   const feedRef = useRef<HTMLDivElement | null>(null);
   const scrubberRef = useRef<HTMLDivElement | null>(null);
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
+  const positions = useRef(new Map<string, number>());
   const lastIndex = videos.length - 1;
+  useLayoutEffect(() => {
+    if (route.app !== "demos" || !route.video) return;
+    const index = videos.findIndex(video => video.id === route.video);
+    if (index >= 0) {
+      setActiveIndex(index);
+      feedRef.current?.querySelector(`[data-reel-index="${index}"]`)?.scrollIntoView({ behavior: "instant", block: "start" });
+    }
+  }, [route.app, route.video, videos]);
 
   useEffect(() => {
     const userAgent = navigator.userAgent;
@@ -70,14 +83,16 @@ export function ReelsApp({ active = true }: { active?: boolean }) {
       (entries) => {
         entries.forEach((entry) => {
           if (!entry.isIntersecting) return;
-          setActiveIndex(Number((entry.target as HTMLElement).dataset.reelIndex));
+          const index = Number((entry.target as HTMLElement).dataset.reelIndex);
+          setActiveIndex(index);
+          if (readRoute().app === "demos") navigate({ app: "demos", video: videos[index].id }, true);
         });
       },
       { root: feed, threshold: 0.6 },
     );
     slides.forEach((slide) => observer.observe(slide));
     return () => observer.disconnect();
-  }, []);
+  }, [videos]);
 
   // Only the active clip plays; neighbours stay mounted (buffered) but paused.
   useEffect(() => {
@@ -199,6 +214,8 @@ export function ReelsApp({ active = true }: { active?: boolean }) {
                     preload={index === activeIndex ? "auto" : "metadata"}
                     poster={video.poster}
                     onClick={() => togglePlayback(index)}
+                    onTimeUpdate={event => positions.current.set(video.id, event.currentTarget.currentTime)}
+                    onLoadedMetadata={event => { event.currentTarget.currentTime = positions.current.get(video.id) ?? 0; }}
                     onPlay={() => {
                       if (index === activeIndex) setPlaying(true);
                     }}
@@ -221,6 +238,14 @@ export function ReelsApp({ active = true }: { active?: boolean }) {
                 </p>
                 <strong>{video.title}</strong>
                 <p>{video.summary}</p>
+                <div className="reel-actions">
+                  <button type="button" onClick={() => {
+                    const element = videoRefs.current[index] as HTMLVideoElement & { webkitEnterFullscreen?: () => void } | null;
+                    if (element?.requestFullscreen) void element.requestFullscreen().catch(() => {});
+                    else element?.webkitEnterFullscreen?.();
+                  }}>⛶ Full screen</button>
+                  <CopyLink href={routeHash({ app: "demos", video: video.id })} />
+                </div>
                 {video.link ? (
                   <a className="reel-link" href={video.link} target="_blank" rel="noreferrer">
                     {linkLabel(video.link)} ↗

@@ -1,7 +1,7 @@
 /**
  * Boot, login, welcome, and log-off dialog styling for the MaxXP shell.
  *
- * The intro video stands in for the boot screen and dissolves into the login.
+ * The intro video logs in on film and dissolves into the live desktop.
  * Metrics follow the Windows XP originals: the Luna login screen (navy bands,
  * gold hairlines, hero gradient, user tile) and the modal "Log Off Windows"
  * dialog.
@@ -20,7 +20,7 @@
 }
 
 /* ------------------------------------------------------------------ */
-/* Intro: stands in for the boot screen, dissolves into the login     */
+/* Intro: finishes on Bliss and reveals the live desktop               */
 /* ------------------------------------------------------------------ */
 
 .intro {
@@ -39,14 +39,15 @@
   pointer-events: none;
 }
 
-/* Hold the last frame (the login screen on the monitor) while the live login
-   screen fades in underneath, then dissolve onto it. */
-.intro.is-fading-ended {
-  transition: opacity 650ms ease 540ms;
+/* No held login frame, extra prompt, or delayed dissolve. */
+.intro.is-fading-ended,
+.intro.is-fading-skipped {
+  transition: opacity 200ms ease;
 }
 
-.intro.is-fading-skipped {
-  transition: opacity 450ms ease;
+@media (prefers-reduced-motion: reduce) {
+  .intro.is-fading-ended,
+  .intro.is-fading-skipped { transition: none; }
 }
 
 /* Fill the viewport. The camera centers each project window, leaving

@@ -1,0 +1,30 @@
+name: Refresh public projects
+on:
+  schedule:
+    - cron: '17 */6 * * *'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: public-project-refresh
+  cancel-in-progress: false
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node scripts/fetch-github-projects.mjs
+      - run: node scripts/check-live-apps.mjs
+      - run: node --test scripts/github-projects.test.mjs scripts/live-apps.test.mjs
+      - name: Publish refreshed public data
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/data/github-projects.json src/data/live-apps.json
+          if ! git diff --cached --quiet; then
+            git commit -m "Refresh anonymous public portfolio data"
+            git push
+          fi

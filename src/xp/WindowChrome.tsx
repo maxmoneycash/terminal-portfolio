@@ -58,9 +58,6 @@ export function WindowChrome({
   onResizeStart,
   onSnapRequest,
   openApp,
-  onNavigate,
-  canGoBack,
-  canGoForward,
   crtEnabled,
   onToggleCrt,
 }: {
@@ -76,9 +73,6 @@ export function WindowChrome({
   onResizeStart: (event: ReactPointerEvent, record: WindowRecord, edge: ResizeEdge) => void;
   onSnapRequest: (id: AppId, half: "left" | "right" | "maximize") => void;
   openApp: (id: AppId) => void;
-  onNavigate: (delta: -1 | 1) => void;
-  canGoBack: boolean;
-  canGoForward: boolean;
   crtEnabled: boolean;
   onToggleCrt: () => void;
 }) {
@@ -286,7 +280,6 @@ export function WindowChrome({
         {
           label: "File",
           items: [
-            { label: "New Window", disabled: true },
             {
               label: "Open Resume PDF",
               onSelect: () => {
@@ -302,7 +295,6 @@ export function WindowChrome({
           label: "Edit",
           items: [
             { label: "Copy Email Address", onSelect: copyEmail },
-            { label: "Select All", disabled: true },
           ],
         },
         viewMenu,
@@ -373,44 +365,9 @@ export function WindowChrome({
       {!isNotepad && !isGame ? (
         <>
           <div className="window-toolbar">
-            <button
-              type="button"
-              className="toolbar-nav"
-              disabled={!canGoBack}
-              onClick={() => onNavigate(-1)}
-              title="Back"
-            >
-              <img src={`${xp}/gui/toolbar/back.webp`} alt="" />
-              <span>Back</span>
-            </button>
-            <button
-              type="button"
-              className="toolbar-nav toolbar-icon-only"
-              disabled={!canGoForward}
-              onClick={() => onNavigate(1)}
-              title="Forward"
-              aria-label="Forward"
-            >
-              <img src={`${xp}/gui/toolbar/forward.webp`} alt="" />
-            </button>
-            <span className="toolbar-divider" aria-hidden="true" />
-            <button
-              type="button"
-              className="toolbar-icon-only"
-              onClick={() => openApp("projects")}
-              title="Home"
-              aria-label="Home"
-            >
-              <img src={`${xp}/gui/toolbar/home.webp`} alt="" />
-            </button>
-            <button
-              type="button"
-              className="toolbar-icon-only"
-              onClick={() => openApp("projects")}
-              title="Projects"
-              aria-label="Projects"
-            >
+            <button type="button" className="toolbar-nav" onClick={() => openApp("projects")} title="My Projects">
               <img src={`${xp}/gui/toolbar/folder.webp`} alt="" />
+              <span>My Projects</span>
             </button>
             <button
               type="button"
@@ -429,15 +386,7 @@ export function WindowChrome({
               <img src={app.icon} alt="" />
               <span className="window-address-text" title={address}>{address}</span>
             </div>
-            <button
-              type="button"
-              className="address-go"
-              onClick={() => openApp(record.id)}
-              title={`Go to ${address}`}
-            >
-              <img src={`${xp}/gui/toolbar/go.webp`} alt="" />
-              <span>Go</span>
-            </button>
+
           </div>
         </>
       ) : null}
