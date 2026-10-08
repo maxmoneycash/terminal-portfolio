@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-08T13:35:21.866Z",
+  "generatedAt": "2026-10-08T23:23:36.043Z",
   "profile": {
     "login": "maxmoneycash",
     "name": "maxmoneycash",
@@ -13,13 +13,28 @@
   "repositories": [
     {
       "owner": "maxmoneycash",
+      "name": "maxmoneycash",
+      "description": "Terminal-rice profile: audited AI token telemetry across 6 coding agents, perps-style contribution charts, SF commit city — re-rendered daily",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "homepage": null,
+      "pushedAt": "2026-10-08T22:12:54Z",
+      "language": "Python",
+      "url": "https://github.com/maxmoneycash/maxmoneycash",
+      "license": null,
+      "stars": 1,
+      "forks": 0
+    },
+    {
+      "owner": "maxmoneycash",
       "name": "orbital-works-data",
       "description": "Automated CelesTrak + SatNOGS data mirror for Orbital Works.",
       "private": false,
       "fork": false,
       "archived": false,
       "homepage": null,
-      "pushedAt": "2026-10-08T12:40:28Z",
+      "pushedAt": "2026-10-08T19:37:29Z",
       "language": "JavaScript",
       "url": "https://github.com/maxmoneycash/orbital-works-data",
       "license": null,
@@ -27,18 +42,33 @@
       "forks": 0
     },
     {
-      "owner": "maxmoneycash",
-      "name": "maxmoneycash",
-      "description": "Terminal-rice profile: audited AI token telemetry across 6 coding agents, perps-style contribution charts, SF commit city — re-rendered daily",
+      "owner": "SeamMoney",
+      "name": ".github",
+      "description": null,
       "private": false,
       "fork": false,
       "archived": false,
       "homepage": null,
-      "pushedAt": "2026-10-08T09:10:03Z",
+      "pushedAt": "2026-10-08T13:56:59Z",
       "language": "Python",
-      "url": "https://github.com/maxmoneycash/maxmoneycash",
+      "url": "https://github.com/SeamMoney/.github",
       "license": null,
-      "stars": 1,
+      "stars": 0,
+      "forks": 0
+    },
+    {
+      "owner": "maxmoneycash",
+      "name": "terminal-portfolio",
+      "description": "Portfolio site that boots like a terminal",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "homepage": "https://terminal-portfolio-eight-chi.vercel.app/",
+      "pushedAt": "2026-10-08T13:35:32Z",
+      "language": "TypeScript",
+      "url": "https://github.com/maxmoneycash/terminal-portfolio",
+      "license": null,
+      "stars": 0,
       "forks": 0
     },
     {
@@ -53,36 +83,6 @@
       "language": "TypeScript",
       "url": "https://github.com/maxmoneycash/spectra",
       "license": "MIT",
-      "stars": 0,
-      "forks": 0
-    },
-    {
-      "owner": "maxmoneycash",
-      "name": "terminal-portfolio",
-      "description": "Portfolio site that boots like a terminal",
-      "private": false,
-      "fork": false,
-      "archived": false,
-      "homepage": "https://terminal-portfolio-eight-chi.vercel.app/",
-      "pushedAt": "2026-10-07T23:08:01Z",
-      "language": "TypeScript",
-      "url": "https://github.com/maxmoneycash/terminal-portfolio",
-      "license": null,
-      "stars": 0,
-      "forks": 0
-    },
-    {
-      "owner": "SeamMoney",
-      "name": ".github",
-      "description": null,
-      "private": false,
-      "fork": false,
-      "archived": false,
-      "homepage": null,
-      "pushedAt": "2026-10-07T13:49:37Z",
-      "language": "Python",
-      "url": "https://github.com/SeamMoney/.github",
-      "license": null,
       "stars": 0,
       "forks": 0
     },
@@ -188,7 +188,7 @@
       "language": "Swift",
       "url": "https://github.com/maxmoneycash/spectrecon-field",
       "license": "MIT",
-      "stars": 0,
+      "stars": 1,
       "forks": 0
     },
     {
