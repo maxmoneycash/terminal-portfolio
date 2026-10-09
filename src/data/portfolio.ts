@@ -6,6 +6,7 @@ const publicRepo = (owner: string, name: string) => githubProjects.repositories.
 const cashTrading = publicRepo("SeamMoney", "cash.trading");
 const txComposer = publicRepo("SeamMoney", "tx-composer");
 const lilyshark = publicRepo("maxmoneycash", "lilyshark");
+const nipahScan = publicRepo("maxmoneycash", "NIPAHSCAN");
 
 export type Project = {
   id?: string;
@@ -20,6 +21,12 @@ export type Project = {
   poster?: string;
   contribution?: string;
   details?: Array<{ label: string; text: string }>;
+  /** Filmstrip loop: the stretch of the demo recording that plays, in seconds. */
+  loop?: [start: number, end: number];
+  /** Filmstrip crop on narrow screens, as a CSS object-position. */
+  focus?: string;
+  /** A still's own phone crop, used on narrow screens and as its thumbnail. */
+  focusPoster?: string;
 };
 
 export type Role = {
@@ -80,6 +87,8 @@ export const portfolio = {
       link: lilyshark.homepage || undefined,
       code: lilyshark.url,
       poster: "/projects/lilyshark.png",
+      focusPoster: "/projects/lilyshark-focus.jpg",
+      focus: "50% 40%",
       details: [
         { label: "Built", text: "LoRa packet capture and decoding on the T-Deck, with a browser analyzer for inspecting frames and radio measurements." },
         { label: "Try it", text: "The analyzer includes labeled sample captures; no radio is needed to explore them." },
@@ -94,6 +103,8 @@ export const portfolio = {
       link: "https://aptos-polymarket.vercel.app/",
       demoId: "aptos-vs-megaeth",
       featured: true,
+      loop: [30, 40],
+      focus: "0% 50%",
       contribution: "Prediction-market UI and chain benchmark tooling.",
       details: [
         { label: "Demo", text: "The recording compares Aptos and MegaETH activity through block heatmaps, latency, and transaction throughput." },
@@ -109,6 +120,8 @@ export const portfolio = {
       link: undefined,
       demoId: "sol2move-boringvault",
       featured: true,
+      loop: [5, 14],
+      focus: "50% 40%",
       contribution: "Contract translation and validation tooling.",
       details: [
         { label: "Demo", text: "Veda’s BoringVault: a pipeline run, per-contract analysis, generated code, and a quality scorecard." },
@@ -124,6 +137,8 @@ export const portfolio = {
       code: cashTrading?.url,
       demoId: "decibrrr-live",
       featured: true,
+      loop: [10, 20],
+      focus: "40% 50%",
       contribution: "Trading strategies, SDK integrations, and MCP tools.",
       details: [
         { label: "Built", text: "Custom Decibel SDK paths, TWAP and market-maker strategies, and delegation-based trading." },
@@ -131,11 +146,36 @@ export const portfolio = {
         { label: "Demo", text: "A volume bot trading Decibel’s BTC/USD market, with progress tracked in the dashboard." },
       ],
     },
+    ...(nipahScan ? [{
+      id: "nipahscan",
+      name: "NipahScan",
+      featured: true,
+      category: "Disease surveillance",
+      stack: "Python · genomics · outbreak modeling",
+      summary: "Real-time monitoring of the Nipah virus.",
+      link: nipahScan.homepage || undefined,
+      code: nipahScan.url,
+      demoId: "nipahscan",
+      loop: [0, 9] as [number, number],
+      focus: "50% 50%",
+      details: [
+        { label: "Demo", text: "An environmental risk map, genome browser, variant analysis, vaccine design, and outbreak simulations." },
+      ],
+    }] : []),
     {
+      id: "commits-sh",
       name: "commits.sh",
+      featured: true,
+      category: "Developer telemetry",
       stack: "REST API · MCP · CLI",
       summary: "GitHub activity and coding-agent usage in one live dashboard.",
       link: "https://commits.sh",
+      demoId: "commits-sh-menubar",
+      loop: [0, 16],
+      focus: "50% 0%",
+      details: [
+        { label: "Demo", text: "The Mac menu-bar app streaming @maxmoneycash live, with the token counter and activity chart updating." },
+      ],
     },
     {
       name: "tx-composer",

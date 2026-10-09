@@ -32,9 +32,8 @@ export function CommitSummary({ active, onOpen }: { active: boolean; onOpen: () 
   }, [active]);
 
   return (
-    <div className="projects-activity">
-      <span>{activity ? <><strong>{activity.commits.toLocaleString("en-US")}</strong> commits / 52w <span aria-hidden="true">·</span> <strong>{activity.streak}d</strong> streak{unavailable ? " · last received" : ""}</> : unavailable ? "Activity unavailable" : "Loading activity…"}</span>
-      <button type="button" onClick={onOpen} aria-label="Open live commits.sh data">commits.sh →</button>
-    </div>
+    <button type="button" className="projects-commits" onClick={onOpen} aria-label="Open live commits.sh data">
+      {activity ? <><strong>{activity.commits.toLocaleString("en-US")}</strong> commits in 52 weeks{unavailable ? " (last received)" : ""}</> : unavailable ? "Activity unavailable" : "Loading activity…"}
+    </button>
   );
 }

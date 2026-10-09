@@ -35,6 +35,7 @@ const BOOT_PRELOAD_IMAGES = [
   `${xp}/gui/bgs/bliss-desktop.webp`,
   `${xp}/gui/bgs/bliss-mobile.webp`,
   "/projects/lilyshark.png",
+  "/projects/lilyshark-focus.jpg",
 ];
 
 // Boot timeline (ms), measured from boot-flow start.
@@ -96,13 +97,15 @@ function resolveInitialBoot(): InitialBoot {
       window.sessionStorage.removeItem("logged_in");
       return { stage: "preboot", restored: false };
     }
-    if (window.sessionStorage.getItem("logged_in") === "true") {
+    // Arriving on a shared link, or returning in the same tab: open the work directly.
+    if (url.hash.length > 1 || window.sessionStorage.getItem("logged_in") === "true") {
       return { stage: "desktop", restored: true };
     }
   } catch {
-    // Storage is optional; the work remains immediately accessible.
+    // Storage is optional; a first visit still gets the intro.
   }
-  return { stage: "desktop", restored: true };
+  // A first visit to the site plays the intro film, which hands off to the desktop.
+  return { stage: "preboot", restored: false };
 }
 
 export function useBootFlow(callbacks: {

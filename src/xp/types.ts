@@ -89,7 +89,7 @@ export const appCatalog: Record<AppId, AppCatalogEntry> = {
     shortTitle: "My Projects",
     icon: `${xp}/gui/desktop/projects.webp`,
     desktopLabel: "My Projects",
-    status: "Selected work · demos, code, and build notes",
+    status: "Arrow keys move through the filmstrip",
     dimensions: { width: 860, height: 710, minWidth: 520, minHeight: 420 },
   },
   demos: {
