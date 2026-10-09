@@ -4964,3 +4964,59 @@ button.login-footer-left:focus-visible {
   .filmstrip-properties { animation: none; }
 }
 
+/* KK6OQA radio and the quill: their own controls inside Luna windows. */
+.xp-window.is-radio .window-content,
+.xp-window.is-quill .window-content {
+  padding: 0;
+}
+
+.quill-app {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--xp-bevel-dark);
+  background: var(--xp-window-surface);
+  cursor: var(--xp-cursor-hand), pointer;
+}
+
+/* The signature canvas has wide margins and the ink sits low: scale past
+   the margins and lift it to the middle, like the welcome note. */
+.quill-app .signature-stage {
+  width: 136%;
+  max-width: none;
+  transform: translateY(-14%);
+}
+
+.quill-app .signature-quill-anchor img {
+  width: clamp(60px, 18cqw, 96px);
+}
+
+.quill-call {
+  position: absolute;
+  top: 6px;
+  right: 10px;
+  color: var(--xp-muted);
+  font: 700 10px Tahoma, sans-serif;
+  letter-spacing: 1px;
+}
+
+@media (max-width: 900px) {
+  .has-open-window .xp-window.is-quill,
+  .has-open-window .xp-window.is-quill.is-maximized {
+    inset: auto 10px calc(var(--taskbar-height) + env(safe-area-inset-bottom) + 10px) auto !important;
+    width: min(300px, calc(100vw - 20px)) !important;
+    height: 150px !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+  }
+
+  .xp-window.is-radio,
+  .xp-window.is-quill {
+    grid-template-rows: 29px minmax(0, 1fr);
+  }
+}
+

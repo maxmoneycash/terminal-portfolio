@@ -19,6 +19,8 @@ import { LiveProjectApp, type LiveProject } from "../components/LiveProjectApp";
 const loadProjectsApp = () => import("../components/ProjectsApp");
 const loadSignatureNoteApp = () => import("../components/SignatureNoteApp");
 const ProjectsApp = lazy(() => loadProjectsApp().then((m) => ({ default: m.ProjectsApp })));
+const RadioApp = lazy(() => import("../radio/RadioApp").then((m) => ({ default: m.RadioApp })));
+const QuillApp = lazy(() => import("../components/QuillApp").then((m) => ({ default: m.QuillApp })));
 const SignatureNoteApp = lazy(() => loadSignatureNoteApp().then((m) => ({ default: m.SignatureNoteApp })));
 
 /** Starts downloading the on-demand apps so they are ready when a window opens. */
@@ -232,5 +234,17 @@ export function WindowContent({
       return <RecycleBinApp />;
     case "display":
       return <DisplayPropertiesApp />;
+    case "radio":
+      return (
+        <Suspense fallback={null}>
+          <RadioApp active={active} greet />
+        </Suspense>
+      );
+    case "quill":
+      return (
+        <Suspense fallback={null}>
+          <QuillApp />
+        </Suspense>
+      );
   }
 }

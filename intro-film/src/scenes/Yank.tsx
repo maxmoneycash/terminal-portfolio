@@ -1,6 +1,7 @@
 import { Img, useCurrentFrame } from "remotion";
+import { beats } from "../beat";
 import { easeInOut, easeOut, progress } from "../lib";
-import { asset, Camera, Clip, Cursor, Desktop, Sfx, useOrientation, Window } from "../xp";
+import { asset, Camera, Clip, Cursor, Desktop, Sfx, shotOf, useOrientation, wide, Window } from "../xp";
 
 const CLIP = 3372 / 1988;
 
@@ -44,30 +45,30 @@ function MessengerToast({ x, y, w, rise }: { x: number; y: number; w: number; ri
 export function Yank() {
   const frame = useCurrentFrame();
   const { W, H, portrait } = useOrientation();
-  const CLICK = 22;
-  const OPEN = CLICK + 2;
-  const APART = 60;
+  const OPEN = beats(1);
+  const CLICK = OPEN - 2;
+  const APART = beats(5);
 
   const tw = portrait ? 250 : 236;
   const toast = { x: W - tw - 6, y: H - 30 - 104 };
-  const rise = progress(frame, 2, 9, easeOut);
+  const rise = progress(frame, 0, 5, easeOut);
 
   const one = portrait
     ? { x: 6, y: 200, w: W - 12, h: Math.round((W - 18) / CLIP) + 79 }
     : { x: 16, y: 10, w: 900, h: Math.round(894 / CLIP) + 79 };
   const two = portrait
     ? { x: 18, y: one.y + 230, w: W - 36, h: Math.round((W - 42) / CLIP) + 33 }
-    : { x: 400, y: 150, w: 860, h: Math.round(854 / CLIP) + 33 };
+    : { x: 456, y: 150, w: 800, h: Math.round(794 / CLIP) + 33 };
 
   return (
     <Camera
       keys={[
-        { f: 0, v: { x: toast.x + tw / 2, y: toast.y + 40, z: portrait ? 1.4 : 1.7 } },
-        { f: OPEN, v: { x: toast.x + tw / 2, y: toast.y + 40, z: portrait ? 1.4 : 1.7 } },
-        { f: OPEN + 14, v: { x: W / 2, y: H / 2, z: 1 }, ease: easeOut },
-        { f: APART - 2, v: { x: one.x + one.w * 0.55, y: one.y + one.h * 0.5, z: portrait ? 1.15 : 1.12 }, ease: easeInOut },
-        { f: APART + 16, v: { x: two.x + two.w * 0.45, y: two.y + two.h * 0.5, z: portrait ? 1.2 : 1.32 }, ease: easeOut },
-        { f: 118, v: { x: two.x + two.w * 0.45, y: two.y + two.h * 0.5, z: portrait ? 1.24 : 1.38 } },
+        { f: 0, v: shotOf({ x: toast.x - 300, y: toast.y - 200, w: tw + 300, h: 330 }, W, H, portrait) },
+        { f: OPEN, v: shotOf({ x: toast.x - 300, y: toast.y - 200, w: tw + 300, h: 330 }, W, H, portrait) },
+        { f: OPEN + 10, v: shotOf(one, W, H, portrait), ease: easeOut },
+        { f: APART, v: shotOf(one, W, H, portrait), ease: easeInOut },
+        { f: APART + 10, v: shotOf(two, W, H, portrait), ease: easeOut },
+        { f: beats(8), v: wide(W, H), ease: easeInOut },
       ]}
     >
       <Desktop
@@ -79,6 +80,7 @@ export function Yank() {
         {frame >= OPEN ? (
           <Window
             {...one}
+            appear={OPEN}
             title="getone.one - yank - MaxXP Internet Explorer"
             icon={asset("desktop/projects.webp")}
             active={frame < APART}
@@ -89,19 +91,19 @@ export function Yank() {
           </Window>
         ) : null}
         {frame >= APART ? (
-          <Window {...two} title="getone.one - Pulling the page apart - yank" icon={asset("desktop/projects.webp")} bodyStyle={{ background: "#3b6fd0" }}>
+          <Window {...two} appear={APART} title="getone.one - Pulling the page apart - yank" icon={asset("desktop/projects.webp")} bodyStyle={{ background: "#3b6fd0" }}>
             <Clip id="yank-apart" from={0.3} />
           </Window>
         ) : null}
         {frame < OPEN + 2 ? <MessengerToast {...toast} w={tw} rise={rise} /> : null}
-        <Sfx at={2} name="messenger" volume={0.6} />
+        <Sfx at={0} name="messenger" volume={0.6} />
         <Sfx at={CLICK} name="start" volume={0.7} />
         <Sfx at={APART} name="restore" volume={0.4} />
         <Cursor
           path={[
             { f: 0, v: { x: W * 0.55, y: H * 0.55 } },
             { f: CLICK - 4, v: { x: toast.x + tw * 0.45, y: toast.y + 66 } },
-            { f: 118, v: { x: W * 0.7, y: H * 0.35 } },
+            { f: beats(8), v: { x: W * 0.7, y: H * 0.35 } },
           ]}
           clicks={[CLICK]}
         />

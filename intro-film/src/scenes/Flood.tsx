@@ -1,4 +1,5 @@
 import { Img, useCurrentFrame } from "remotion";
+import { beats } from "../beat";
 import { caretVisible, easeIn, easeOut, progress, typed, typingLength } from "../lib";
 import { asset, Camera, Clip, Cursor, Desktop, Sfx, useOrientation, Window, WindowStamp, XPButton } from "../xp";
 
@@ -45,22 +46,23 @@ const LINE = "Close all your windows";
 export function Flood() {
   const frame = useCurrentFrame();
   const { W, H, portrait } = useOrientation();
-  const OK = 20;
+  const OK = beats(1) - 4;
   const dialogOpen = frame < OK + 3;
 
-  // Windows open with accelerating rhythm: 5 frames apart, down to 1.
+  // From beat 1, windows open with an accelerating rhythm.
   const opens: number[] = [];
-  let t = OK + 4;
+  let t = beats(1);
   for (let i = 0; i < ALL_DEMOS.length; i += 1) {
     opens.push(Math.round(t));
-    t += Math.max(1, 5 - i * 0.22);
+    t += Math.max(0.8, 2.4 - i * 0.08);
   }
   const allOpen = opens[opens.length - 1];
-  const TITLE = allOpen + 8;
-  const typedLine = typed(LINE, frame, TITLE + 4, 18);
-  const CURSOR_IN = TITLE + 4 + typingLength(LINE, 18) + 2;
-  const CLICK = CURSOR_IN + 16;
-  const closeStep = 0.55; // frames per window while closing
+  const TITLE = allOpen + 2;
+  const typedLine = typed(LINE, frame, TITLE + 2, 40);
+  const CURSOR_IN = TITLE + 2 + typingLength(LINE, 40) + 1;
+  // The giant cursor closes everything on beat 6.
+  const CLICK = beats(6);
+  const closeStep = 0.4; // frames per window while closing
   const closedAll = CLICK + 3 + ALL_DEMOS.length * closeStep;
 
   const ww = portrait ? 380 : 620;
@@ -175,6 +177,3 @@ export function Flood() {
     </Camera>
   );
 }
-
-/** Frames the Flood scene needs (dialog, flood, title, click, close). */
-export const FLOOD_FRAMES = 200;

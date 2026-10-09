@@ -39,6 +39,38 @@ type DragState =
 
 const TASKBAR_HEIGHT = 30;
 
+/**
+ * The desktop at login: My Projects, with the KK6OQA radio in front greeting
+ * in CW and the quill writing the name beside it. A shared link opens its
+ * own app instead.
+ */
+function createLoginWindows(z: number): WindowRecord[] {
+  const projects = createProjectsWindow(z);
+  if (typeof window === "undefined" || window.location.hash.length > 1) return [projects];
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  const radio = appCatalog.radio.dimensions;
+  const quill = appCatalog.quill.dimensions;
+  const width = Math.min(radio.width, vw - 16);
+  const height = Math.min(radio.height, vh - TASKBAR_HEIGHT - 16);
+  const x = Math.max(8, Math.round((vw - width - 16 - quill.width) / 2));
+  const y = Math.max(8, Math.round((vh - TASKBAR_HEIGHT - height) / 2) - 12);
+  return [
+    projects,
+    { id: "radio", x, y, width, height, z: z + 1, minimized: false, maximized: false },
+    {
+      id: "quill",
+      x: Math.max(8, Math.min(vw - quill.width - 8, x + width + 16)),
+      y: Math.min(y + 24, vh - TASKBAR_HEIGHT - quill.height - 8),
+      width: quill.width,
+      height: quill.height,
+      z: z + 2,
+      minimized: false,
+      maximized: false,
+    },
+  ];
+}
+
 function createProjectsWindow(z = 2): WindowRecord {
   const dimensions = appCatalog.projects.dimensions;
   const viewportWidth = typeof window === "undefined" ? 1280 : window.innerWidth;
@@ -93,8 +125,10 @@ function App() {
   /* ------------------------------------------------------------------ */
 
   const resetSessionWindows = useCallback(() => {
-    setWindows([createProjectsWindow(++zRef.current)]);
-    setActiveWindow("projects");
+    const opened = createLoginWindows(zRef.current + 1);
+    zRef.current += opened.length;
+    setWindows(opened);
+    setActiveWindow(opened.some((record) => record.id === "radio") ? "radio" : "projects");
     setStartOpen(false);
   }, []);
 
@@ -169,6 +203,8 @@ function App() {
 
   useEffect(() => {
     if (flow.phase !== "desktop") return;
+    // No link to follow: keep the login layout (the radio stays in front).
+    if (!window.location.hash) return;
     if (route.app === "browser") setBrowserProject(siteForId(route.site) ?? null);
     openApp(route.app);
   }, [route.app, route.site, flow.phase, openApp]);

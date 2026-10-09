@@ -12,13 +12,13 @@ import { getSystemVolume } from "./audio";
 const INTRO = {
   portrait: {
     orient: "portrait",
-    src: "/videos/intro/intro-portrait-fd3151d6.mp4",
-    poster: "/videos/intro/intro-portrait-fd3151d6.jpg",
+    src: "/videos/intro/intro-portrait-97e3668c.mp4",
+    poster: "/videos/intro/intro-portrait-97e3668c.jpg",
   },
   landscape: {
     orient: "landscape",
-    src: "/videos/intro/intro-landscape-8b520101.mp4",
-    poster: "/videos/intro/intro-landscape-8b520101.jpg",
+    src: "/videos/intro/intro-landscape-91531726.mp4",
+    poster: "/videos/intro/intro-landscape-91531726.jpg",
   },
 };
 

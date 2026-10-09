@@ -35,7 +35,15 @@ function fingerprint(options = picture) {
     }
   };
   walk(path.join(here, "src"));
-  files.push(path.join(here, "clips.json"), path.join(here, "remotion.config.ts"));
+  // The radio and the signature come from the site, the beat grid from score.json.
+  walk(path.join(here, "../src/radio"));
+  files.push(
+    path.join(here, "../src/lib/signatureInk.ts"),
+    path.join(here, "clips.json"),
+    path.join(here, "stills.json"),
+    path.join(here, "score.json"),
+    path.join(here, "remotion.config.ts"),
+  );
   for (const file of files.sort()) hash.update(file).update(fs.readFileSync(file));
   for (const name of fs.readdirSync(path.join(publicDir, "clips")).sort()) {
     hash.update(name).update(String(fs.statSync(path.join(publicDir, "clips", name)).size));

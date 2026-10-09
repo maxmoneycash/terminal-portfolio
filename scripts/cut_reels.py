@@ -24,6 +24,7 @@ SEARCH = [
     os.path.expanduser("~/Screenshots"),
     os.path.expanduser("~/Library/Mobile Documents/com~apple~CloudDocs/Screenshots"),
     os.path.expanduser("~/Downloads"),
+    os.path.expanduser("~/Movies/Orbital Works"),
 ]
 
 # crop is (x, y, w, h) in source pixels. keep lists (start, end) seconds of the

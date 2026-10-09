@@ -1,0 +1,47 @@
+{
+  "framesPerBeat": 14,
+  "sections": [
+    {
+      "name": "intro",
+      "bars": 4
+    },
+    {
+      "name": "drop1",
+      "bars": 8
+    },
+    {
+      "name": "break",
+      "bars": 4
+    },
+    {
+      "name": "drop2",
+      "bars": 8
+    },
+    {
+      "name": "space",
+      "bars": 4
+    },
+    {
+      "name": "drop3",
+      "bars": 8
+    }
+  ],
+  "morse": [
+    {
+      "id": "boot",
+      "text": "KK6OQA",
+      "start": 14,
+      "framesPerUnit": 1.75,
+      "pitch": 622.25,
+      "gainDb": -17
+    },
+    {
+      "id": "station",
+      "text": "DE KK6OQA",
+      "start": 224,
+      "framesPerUnit": 1.75,
+      "pitch": 622.25,
+      "gainDb": -10
+    }
+  ]
+}

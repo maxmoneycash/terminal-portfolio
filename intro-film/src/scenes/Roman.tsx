@@ -1,12 +1,16 @@
 import { AbsoluteFill, random, useCurrentFrame } from "remotion";
+import { beats } from "../beat";
 import { easeInOut, easeOut, progress } from "../lib";
-import { asset, Cursor, Desktop, Sfx, Still, useOrientation, Window, XPButton } from "../xp";
+import { asset, Clip, Cursor, Desktop, Sfx, useOrientation, Window, XPButton } from "../xp";
 
-const PREVIEW = 34; // the cursor presses Preview
+const SAVER = beats(2); // the screen saver starts on beat 2
+const PREVIEW = SAVER - 2; // the cursor presses Preview just before
+/** Shots from the Orbital Works film, cut on the beat. */
 const SHOTS = [
-  { id: "roman-parts", at: PREVIEW + 4, x: "50%" },
-  { id: "roman-now", at: PREVIEW + 40, x: "58%" },
-  { id: "roman-see", at: PREVIEW + 76, x: "52%" },
+  { id: "roman-closeup", at: beats(2) },
+  { id: "roman-earth", at: beats(6) },
+  { id: "roman-apart", at: beats(10) },
+  { id: "roman-wheel", at: beats(13) },
 ] as const;
 
 /** XP's Starfield screen saver, behind Orbital Works' telescope. */
@@ -58,7 +62,7 @@ function Monitor({ w }: { w: number }) {
     <div style={{ display: "grid", justifyItems: "center" }}>
       <div style={{ width: w, padding: 10, borderRadius: 8, background: "linear-gradient(180deg, #e8e6dc, #c9c5b4)", border: "1px solid #8c887a" }}>
         <div style={{ position: "relative", width: sw, height: Math.round(sw * 0.62), background: "#000", border: "2px solid #6d6a5f", overflow: "hidden" }}>
-          <Still id="roman-parts" fit="cover" position="50% 45%" />
+          <Clip id="roman-earth" thumb fit="cover" />
         </div>
       </div>
       <div style={{ width: w * 0.22, height: 10, background: "linear-gradient(180deg, #c9c5b4, #a9a596)" }} />
@@ -80,7 +84,7 @@ export function Roman() {
   const dy = portrait ? 150 : (H - 30 - dh) / 2;
   const previewBtn = { x: dx + dw - 70, y: dy + 268 };
 
-  if (frame < PREVIEW + 3) {
+  if (frame < SAVER) {
     return (
       <Desktop tasks={[{ title: "Display Properties", icon: asset("desktop/display.png"), active: true }]}>
         <Window
@@ -88,11 +92,11 @@ export function Roman() {
           y={dy}
           w={dw}
           h={dh}
+          appear={0}
           title="Display Properties"
           icon={asset("desktop/display.png")}
           buttons="close"
           bodyStyle={{ background: "#ece9d8", padding: "8px 8px 0", fontSize: 11 }}
-          style={{ opacity: progress(frame, 0, 3) }}
         >
           <Tabs active="Screen Saver" />
           <div style={{ border: "1px solid #919b9c", background: "#fcfcfe", padding: "14px 12px", height: 382 }}>
@@ -107,7 +111,7 @@ export function Roman() {
                   </span>
                 </span>
                 <XPButton>Settings</XPButton>
-                <XPButton state={frame >= PREVIEW ? "pressed" : frame >= PREVIEW - 10 ? "hot" : undefined}>Preview</XPButton>
+                <XPButton state={frame >= PREVIEW ? "pressed" : frame >= PREVIEW - 8 ? "hot" : undefined}>Preview</XPButton>
               </div>
               <div style={{ marginTop: 9 }}>Wait: <span style={{ border: "1px solid #7f9db9", padding: "1px 6px", background: "#fff" }}>1</span> minutes</div>
             </fieldset>
@@ -130,41 +134,42 @@ export function Roman() {
     );
   }
 
-  const caption = progress(frame, PREVIEW + 14, 10, easeOut);
+  // The film is 16:9: it fills a landscape frame exactly; on a phone it spans
+  // the width with the starfield above and the caption below.
+  const filmH = portrait ? Math.round(W / (16 / 9)) : H;
+  const filmY = portrait ? Math.round((H - filmH) / 2) - 60 : 0;
+  const caption = progress(frame, SAVER + 8, 10, easeOut);
   return (
     <AbsoluteFill className="film" style={{ background: "#000", overflow: "hidden" }}>
       <Starfield frame={frame} W={W} H={H} />
       {SHOTS.map((shot, i) => {
         const next = SHOTS[i + 1]?.at ?? 1e9;
-        if (frame < shot.at || frame >= next + 8) return null;
-        const t = progress(frame, shot.at, 48, easeInOut);
-        const fadeIn = progress(frame, shot.at, 8);
-        const fadeOut = 1 - progress(frame, next, 8);
+        if (frame < shot.at || frame >= next + 4) return null;
+        const t = progress(frame, shot.at, next === 1e9 ? beats(3) : next - shot.at, easeInOut);
+        const fadeIn = i === 0 ? progress(frame, shot.at, 6) : 1;
         return (
-          <AbsoluteFill key={shot.id} style={{ opacity: Math.min(fadeIn, fadeOut), transform: `scale(${1.02 + 0.07 * t})`, mixBlendMode: "screen" }}>
-            <Still id={shot.id} fit="cover" position={portrait ? `${shot.x} 50%` : "50% 50%"} />
-          </AbsoluteFill>
+          <div key={shot.id} style={{ position: "absolute", left: 0, top: filmY, width: W, height: filmH, overflow: "hidden", opacity: fadeIn }}>
+            <div style={{ position: "absolute", inset: 0, transform: `scale(${1 + 0.03 * t})` }}>
+              <Clip id={shot.id} />
+            </div>
+          </div>
         );
       })}
-      {/* A lower third over the screenshots' own captions. */}
-      <div style={{ position: "absolute", left: 0, right: 0, bottom: 0, height: "34%", opacity: caption, background: "linear-gradient(0deg, rgb(0 0 0 / 0.92) 0%, rgb(0 0 0 / 0.75) 45%, transparent 100%)" }} />
       <div
         style={{
           position: "absolute",
           left: 0,
           right: 0,
-          bottom: portrait ? 70 : 46,
+          ...(portrait ? { top: filmY + filmH + 34 } : { bottom: 26 }),
           textAlign: "center",
           color: "#fff",
           opacity: caption,
           textShadow: "0 2px 8px #000",
         }}
       >
-        <div style={{ font: `700 ${portrait ? 24 : 30}px "Trebuchet MS", sans-serif`, letterSpacing: 0.3 }}>Nancy Grace Roman Space Telescope</div>
-        <div className="mono" style={{ marginTop: 6, fontSize: portrait ? 13 : 15, color: "#9df58c" }}>orbital works · 1,374,306 km from Earth · signal delay 4.58 s</div>
+        <div style={{ font: `700 ${portrait ? 24 : 26}px "Trebuchet MS", sans-serif`, letterSpacing: 0.3 }}>Nancy Grace Roman Space Telescope</div>
+        <div className="mono" style={{ marginTop: 6, fontSize: portrait ? 13 : 14, color: "#9df58c" }}>orbital works · 1,374,306 km from Earth · signal delay 4.58 s</div>
       </div>
     </AbsoluteFill>
   );
 }
-
-export const ROMAN_FRAMES = PREVIEW + 4 + 36 * 3 + 6;

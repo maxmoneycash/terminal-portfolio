@@ -1,27 +1,34 @@
 import { useCurrentFrame } from "remotion";
-import { caretVisible, easeOut, typed } from "../lib";
-import { asset, Camera, Desktop, useOrientation, Window } from "../xp";
+import { beats } from "../beat";
+import { caretVisible, easeInOut, typed } from "../lib";
+import { asset, Camera, Desktop, shotOf, useOrientation, wide, Window } from "../xp";
 
 export const NOTEPAD_LINES = "make it faster\nno, the other chain\nship it";
+/** Each line starts on a beat. */
+const LINE_BEATS = [0, 3, 6];
 
-/** The film's lyric sheet: a late-night Notepad, typed while the camera leans in. */
+/** The film's lyric sheet: a late-night Notepad, one line per phrase of the breakdown. */
 export function Notepad() {
   const frame = useCurrentFrame();
   const { W, H, portrait } = useOrientation();
-  const text = typed(NOTEPAD_LINES, frame, 10, 15);
+  const text = NOTEPAD_LINES.split("\n")
+    .map((line, i) => typed(line, frame, beats(LINE_BEATS[i]) + 2, 24))
+    .filter((line, i) => i === 0 || frame >= beats(LINE_BEATS[i]))
+    .join("\n");
   const box = portrait ? { x: 14, y: 120, w: W - 28, h: 600 } : { x: 150, y: 60, w: 980, h: 540 };
   const fontSize = portrait ? 25 : 34;
 
   return (
     <Camera
       keys={[
-        { f: 0, v: { x: W / 2, y: H / 2, z: 1 } },
-        { f: 110, v: { x: box.x + box.w * 0.42, y: box.y + box.h * 0.34, z: portrait ? 1.28 : 1.45 }, ease: easeOut },
+        { f: 0, v: wide(W, H) },
+        { f: beats(8), v: shotOf(box, W, H, portrait, 30), ease: easeInOut },
       ]}
     >
       <Desktop tasks={[{ title: "we shipped every night.txt - Notepad", icon: asset("start-menu/notepad.webp"), active: true }]}>
         <Window
           {...box}
+          appear={0}
           title="we shipped every night.txt - Notepad"
           icon={asset("start-menu/notepad.webp")}
           chrome={{ menu: ["File", "Edit", "Format", "View", "Help"] }}

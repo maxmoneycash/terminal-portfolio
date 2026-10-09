@@ -1,25 +1,26 @@
 import { useCurrentFrame } from "remotion";
-import { easeInOut, easeOut, progress } from "../lib";
-import { Balloon, Camera, ClipWindow, Desktop, Sfx, useOrientation } from "../xp";
+import { beats } from "../beat";
+import { easeOut, progress } from "../lib";
+import { Balloon, Camera, ClipWindow, Desktop, Sfx, useOrientation, wide } from "../xp";
 
-/** Aptos tools open one after another while the tray reports the connection. */
+/** Aptos tools open on the eighth notes while the tray reports the connection. Each window takes its recording's shape. */
 export function Mainnet() {
   const frame = useCurrentFrame();
   const { W, H, portrait } = useOrientation();
-  const BALLOON = 30;
+  const BALLOON = beats(2);
 
   const wins = portrait
     ? [
-        { id: "aptos-block-machine", title: "Block Machine - Aptos mainnet", x: 6, y: 14, w: W - 12, h: 330, at: 0 },
-        { id: "aptos-velociraptr", title: "Velociraptr", x: W - 252, y: 300, w: 246, h: 430, at: 7 },
-        { id: "aptos-validator-globe", title: "Aptos validators", x: 6, y: 372, w: 300, h: 300, at: 14 },
-        { id: "block-machine-profile", title: "Transaction profile", x: 30, y: 640, w: 420, h: 200, at: 21 },
+        { id: "aptos-block-machine", title: "Block Machine - Aptos mainnet", x: 6, y: 14, w: W - 12, at: 0 },
+        { id: "aptos-velociraptr", title: "Velociraptr", x: W - 226, y: 300, w: 220, at: 7 },
+        { id: "aptos-validator-globe", title: "Aptos validators", x: 6, y: 372, w: 300, at: 14 },
+        { id: "block-machine-profile", title: "Transaction profile", x: 20, y: 650, w: 440, at: 21 },
       ]
     : [
-        { id: "aptos-block-machine", title: "Block Machine - Aptos mainnet", x: 18, y: 14, w: 830, h: 470, at: 0 },
-        { id: "aptos-velociraptr", title: "Velociraptr - consensus, live", x: 868, y: 10, w: 392, h: 640, at: 7 },
-        { id: "aptos-validator-globe", title: "Aptos validators", x: 446, y: 268, w: 520, h: 392, at: 14 },
-        { id: "block-machine-profile", title: "Transaction profile", x: 36, y: 420, w: 560, h: 240, at: 21 },
+        { id: "aptos-block-machine", title: "Block Machine - Aptos mainnet", x: 18, y: 14, w: 830, at: 0 },
+        { id: "aptos-velociraptr", title: "Velociraptr - consensus, live", x: 939, y: 10, w: 327, at: 7 },
+        { id: "aptos-validator-globe", title: "Aptos validators", x: 446, y: 280, w: 480, at: 14 },
+        { id: "block-machine-profile", title: "Transaction profile", x: 36, y: 418, w: 560, at: 21 },
       ];
   const last = wins.length - 1;
 
@@ -30,11 +31,8 @@ export function Mainnet() {
   return (
     <Camera
       keys={[
-        // Start inside Block Machine's live block grid, then pull back as
-        // the other Aptos tools open around it.
-        { f: 0, v: { x: portrait ? 200 : 300, y: portrait ? 120 : 150, z: portrait ? 2.0 : 2.1 } },
-        { f: 26, v: { x: W / 2, y: H / 2, z: 1.0 }, ease: easeOut },
-        { f: 96, v: { x: portrait ? W / 2 : W * 0.6, y: portrait ? H * 0.62 : H * 0.6, z: portrait ? 1.1 : 1.16 }, ease: easeInOut },
+        { f: 0, v: { x: W * 0.45, y: H * 0.42, z: 1.1 } },
+        { f: beats(2), v: wide(W, H), ease: easeOut },
       ]}
     >
       <Desktop tasks={wins.slice(0, 3).map((w, i) => ({ title: w.title, active: i === last }))}>
@@ -44,7 +42,7 @@ export function Mainnet() {
         {wins.map((w) => <Sfx key={`s-${w.id}`} at={w.at} name="restore" volume={0.35} />)}
         <Sfx at={BALLOON} name="balloon" volume={0.6} />
         {frame >= BALLOON ? (
-          <Balloon x={bx} y={by} w={bw} title="Aptos Mainnet is now connected" tailX={bw - 58} scale={1.2} style={{ opacity: progress(frame, BALLOON, 5) }}>
+          <Balloon x={bx} y={by} w={bw} title="Aptos Mainnet is now connected" tailX={bw - 58} scale={1.2} style={{ opacity: progress(frame, BALLOON, 3), transform: `scale(${0.9 + 0.1 * progress(frame, BALLOON, 5, easeOut)})`, transformOrigin: `${bw - 58}px 100%` }}>
             <div style={{ fontSize: 13 }}>Speed: every block</div>
             <div style={{ fontSize: 13 }}>Signal Strength: Excellent</div>
           </Balloon>

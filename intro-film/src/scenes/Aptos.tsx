@@ -1,46 +1,41 @@
 import { useCurrentFrame } from "remotion";
-import { caretVisible, easeInOut, easeOut, progress, typed } from "../lib";
-import { asset, Camera, Clip, Desktop, Sfx, useOrientation, Window } from "../xp";
+import { beats } from "../beat";
+import { caretVisible, easeInOut, progress, typed } from "../lib";
+import { asset, Camera, Clip, clipRatio, Desktop, Sfx, shotOf, useOrientation, wide, Window } from "../xp";
 
 const URL = "aptos-polymarket.vercel.app";
+// IE chrome: title 30 + menu 21 + toolbar 38 + address 25 + status 21 + frame 3.
+const CHROME = 138;
 
 /**
- * Extreme close-up on the address bar as the URL is typed, then a pull back
- * to the benchmark filling the whole screen.
+ * The URL is typed into Internet Explorer and Enter lands on beat 2: the
+ * benchmark fills a window shaped like the recording, the desktop around it.
  */
 export function Aptos() {
   const frame = useCurrentFrame();
   const { W, H, portrait } = useOrientation();
-  const ENTER = 30;
-  const loaded = frame >= ENTER + 2;
-  // The page paints once the camera has pulled back out of the close-up:
-  // a full-size recording under a 3x zoom is the heaviest frame in the film.
-  const painted = frame >= ENTER + 6;
-  const address = typed(URL, frame, 3, 34);
-  // The address field sits below the title bar, toolbar and menu.
-  const fieldY = 30 + 21 + 38 + 12;
-  // Left edge of the typed URL; the close-up keeps it in view as it grows.
-  const textX = 80;
-  const pan = progress(frame, ENTER + 6, 110, easeInOut);
+  const ENTER = beats(2);
+  const loaded = frame >= ENTER;
+  const address = typed(URL, frame, 2, 45);
+
+  const body = portrait
+    ? { w: W - 18, h: Math.round((W - 18) / clipRatio("aptos-vs-megaeth")) }
+    : { h: H - 30 - 16 - CHROME, w: Math.round((H - 30 - 16 - CHROME) * clipRatio("aptos-vs-megaeth")) };
+  const win = { x: Math.round((W - body.w - 6) / 2), y: portrait ? 200 : 8, w: body.w + 6, h: body.h + CHROME };
 
   return (
     <Camera
       keys={[
-        { f: 0, v: { x: textX + (portrait ? 70 : 105), y: fieldY, z: portrait ? 2.5 : 3.3 } },
-        { f: ENTER - 2, v: { x: textX + (portrait ? 140 : 150), y: fieldY, z: portrait ? 2.4 : 3.0 } },
-        { f: ENTER + 22, v: { x: W / 2, y: H / 2, z: 1 }, ease: easeOut },
-        { f: 126, v: { x: portrait ? W / 2 : W * 0.4, y: H * 0.48, z: portrait ? 1.02 : 1.12 } },
+        { f: 0, v: shotOf(win, W, H, portrait) },
+        { f: beats(6), v: shotOf(win, W, H, portrait) },
+        { f: beats(8), v: wide(W, H), ease: easeInOut },
       ]}
     >
       <Desktop tasks={[{ title: loaded ? "Aptos vs MegaETH" : "about:blank", icon: asset("desktop/projects.webp"), active: true }]}>
-        <Sfx at={ENTER} name="start" volume={0.7} />
+        <Sfx at={ENTER - 2} name="start" volume={0.7} />
         <Window
-          x={0}
-          y={0}
-          w={W}
-          h={H - 30}
-          style={{ borderRadius: 0 }}
-          titleStyle={{ borderRadius: 0 }}
+          {...win}
+          appear={0}
           title={loaded ? "Aptos vs MegaETH - MaxXP Internet Explorer" : "about:blank - MaxXP Internet Explorer"}
           icon={asset("desktop/projects.webp")}
           chrome={{
@@ -59,15 +54,9 @@ export function Aptos() {
               </span>
             ),
           }}
+          bodyStyle={{ background: loaded ? "#0b0d12" : "#fff" }}
         >
-          {painted ? (
-            <Clip
-              id="aptos-vs-megaeth"
-              from={0.4}
-              position={portrait ? `${pan * 100}% 0%` : "50% 0%"}
-              style={{ opacity: progress(frame, ENTER + 6, 4) }}
-            />
-          ) : null}
+          {loaded ? <Clip id="aptos-vs-megaeth" from={0.4} style={{ opacity: progress(frame, ENTER, 3) }} /> : null}
         </Window>
       </Desktop>
     </Camera>

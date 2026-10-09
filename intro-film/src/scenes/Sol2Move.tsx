@@ -1,6 +1,7 @@
 import { Img, useCurrentFrame } from "remotion";
-import { easeOut, progress } from "../lib";
-import { asset, Camera, Clip, Cursor, Desktop, Sfx, useOrientation, Window, XPButton } from "../xp";
+import { beats } from "../beat";
+import { easeInOut } from "../lib";
+import { asset, Camera, Clip, clipRatio, Cursor, Desktop, Sfx, shotOf, useOrientation, wide, Window, XPButton } from "../xp";
 
 function FileRow({ name, detail, icon }: { name: string; detail: string; icon: string }) {
   return (
@@ -21,12 +22,15 @@ function FileRow({ name, detail, icon }: { name: string; detail: string; icon: s
 export function Sol2Move() {
   const frame = useCurrentFrame();
   const { W, H, portrait } = useOrientation();
-  const DIALOG = 22;
-  const CLICK = 74;
+  const DIALOG = beats(1);
+  const CLICK = beats(5);
   const dialogOpen = frame >= DIALOG && frame < CLICK + 4;
   const replaced = frame >= CLICK + 4;
 
-  const win = portrait ? { x: 8, y: 14, w: W - 16, h: H - 30 - 28 } : { x: 40, y: 20, w: W - 80, h: H - 30 - 40 };
+  // The window takes the recording's shape, so the whole app stays in view.
+  const ratio = clipRatio("sol2move-first-run");
+  const body = portrait ? { w: W - 18, h: Math.round((W - 18) / ratio) } : { h: H - 30 - 16 - 33, w: Math.round((H - 30 - 16 - 33) * ratio) };
+  const win = { x: Math.round((W - body.w - 6) / 2), y: portrait ? 150 : 8, w: body.w + 6, h: body.h + 33 };
   const dw = portrait ? 470 : 470;
   const dh = 286;
   const dx = (W - dw) / 2;
@@ -36,22 +40,20 @@ export function Sol2Move() {
   return (
     <Camera
       keys={[
-        { f: 0, v: { x: W / 2, y: H / 2, z: 1.06 } },
-        { f: DIALOG + 10, v: { x: dx + dw / 2, y: dy + dh / 2, z: portrait ? 1.1 : 1.32 }, ease: easeOut },
-        { f: CLICK, v: { x: dx + dw / 2, y: dy + dh / 2 + 10, z: portrait ? 1.14 : 1.4 } },
-        { f: CLICK + 16, v: { x: W / 2, y: H / 2, z: 1.04 }, ease: easeOut },
-        { f: 132, v: { x: portrait ? W / 2 : W * 0.42, y: portrait ? H * 0.4 : H * 0.42, z: portrait ? 1.12 : 1.16 } },
+        { f: 0, v: shotOf(win, W, H, portrait) },
+        { f: beats(8), v: wide(W, H), ease: easeInOut },
       ]}
     >
       <Desktop tasks={[{ title: replaced ? "BoringVault.move - Sol2Move" : "Sol2Move", icon: asset("start-menu/cmd.webp"), active: true }]}>
         <Window
           {...win}
+          appear={0}
           title={replaced ? "BoringVault.move - Sol2Move" : "Sol2Move - Solidity to Move"}
           icon={asset("start-menu/cmd.webp")}
           active={!dialogOpen}
           bodyStyle={{ background: "#141414" }}
         >
-          {replaced ? <Clip id="sol2move-generated-code" from={0.2} position="0% 0%" /> : <Clip id="sol2move-first-run" from={0.3} position="0% 0%" />}
+          {replaced ? <Clip id="sol2move-generated-code" from={0.2} /> : <Clip id="sol2move-first-run" from={0.3} />}
         </Window>
         <Sfx at={DIALOG} name="exclamation" volume={0.55} />
         <Sfx at={CLICK} name="start" volume={0.7} />
@@ -64,7 +66,7 @@ export function Sol2Move() {
             title="Confirm File Replace"
             buttons="close"
             bodyStyle={{ background: "#ece9d8", padding: "12px 14px", fontSize: 12 }}
-            style={{ opacity: progress(frame, DIALOG, 3) }}
+            appear={DIALOG}
           >
             <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
               <Img src={asset("toolbar/folder.webp")} style={{ width: 30, height: 30 }} />
@@ -87,7 +89,7 @@ export function Sol2Move() {
             { f: 0, v: { x: W * 0.8, y: H * 0.86 } },
             { f: DIALOG + 8, v: { x: W * 0.7, y: dy + dh + 40 } },
             { f: CLICK - 6, v: { x: yesAll.x + 10, y: yesAll.y + 4 } },
-            { f: CLICK + 30, v: { x: yesAll.x + 40, y: yesAll.y + 70 } },
+            { f: beats(8), v: { x: yesAll.x + 40, y: yesAll.y + 70 } },
           ]}
           clicks={[CLICK]}
         />

@@ -1,5 +1,6 @@
 import { AbsoluteFill, Img, useCurrentFrame } from "remotion";
 import { progress } from "../lib";
+import { cueAt } from "../morseCue";
 import { asset, useOrientation } from "../xp";
 
 /** The "Max xp" wordmark, set like XP's boot logo. */
@@ -28,6 +29,8 @@ export function Boot() {
   const appear = progress(frame, 4, 8);
   // Three blue blocks sweep through the bar, as on XP's boot screen.
   const cycle = (frame * 2.4) % 150;
+  // The callsign goes out in Morse over the boot screen; the lamp keys with it.
+  const morse = cueAt("boot", frame);
   return (
     <AbsoluteFill className="film" style={{ background: "#000", color: "#fff" }}>
       <AbsoluteFill style={{ display: "grid", placeItems: "center", opacity: appear }}>
@@ -58,6 +61,18 @@ export function Boot() {
                 }}
               />
             ))}
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: portrait ? -44 : -36, opacity: progress(frame, 10, 6) }}>
+            <span
+              style={{
+                width: 9,
+                height: 9,
+                borderRadius: "50%",
+                background: morse.key ? "#ff3b2f" : "#3a1512",
+                boxShadow: morse.key ? "0 0 10px 2px rgb(255 60 40 / 0.85)" : "none",
+              }}
+            />
+            <span style={{ font: '700 15px "Trebuchet MS", sans-serif', letterSpacing: 5, color: "#d8dcff" }}>KK6OQA</span>
           </div>
         </div>
       </AbsoluteFill>

@@ -1,4 +1,5 @@
 import { AbsoluteFill, useCurrentFrame } from "remotion";
+import { BEAT, beats } from "../beat";
 import { easeOut, progress } from "../lib";
 import { Cursor, Sfx, useOrientation } from "../xp";
 import { Wordmark } from "./Boot";
@@ -133,7 +134,9 @@ function UserRow({ glyph, name, detail, size, selected, sky, x, y, w }: {
 export function Login() {
   const frame = useCurrentFrame();
   const { W, H, portrait } = useOrientation();
-  const CLICK = 30;
+  // On the beat grid: click on beat 4, "welcome" on 6, "back." on 7; the drop follows.
+  const CLICK = beats(4);
+  const WORDS = beats(6);
   const picked = frame >= CLICK;
   const otherFade = 1 - progress(frame, CLICK + 2, 8);
   const loading = picked ? "Loading your personal settings..." : `${ALL_DEMOS.length} programs running`;
@@ -151,13 +154,14 @@ export function Login() {
           <UserRow glyph="🐤" name="You" detail="Guest" size={tile} selected={false} x={56} y={372} w={430} />
         </div>
         <UserRow glyph="🚀" name="Max" detail={loading} size={picked ? 112 : tile} selected={picked} sky="#7fc0ff" x={56} y={picked ? 470 : 488} w={430} />
-        <WelcomeWords words={["welcome", "back."]} at={CLICK + 10} size={56} align="center" style={{ position: "absolute", left: 0, right: 0, top: 690 }} />
+        <WelcomeWords words={["welcome", "back."]} at={WORDS} every={BEAT} size={56} align="center" style={{ position: "absolute", left: 0, right: 0, top: 690 }} />
         <TurnOff portrait />
         <Sfx at={CLICK} name="start" volume={0.7} />
+        <Sfx at={CLICK + 2} name="login" volume={0.9} />
         <Cursor
           path={[
             { f: 0, v: { x: 420, y: 820 } },
-            { f: 24, v: { x: 120, y: 528 } },
+            { f: CLICK - 8, v: { x: 120, y: 528 } },
           ]}
           clicks={[CLICK]}
         />
@@ -173,7 +177,7 @@ export function Login() {
         <Wordmark size={0.95} />
         <span style={{ fontSize: 19, marginTop: 6 }}>To begin, click your user name</span>
       </div>
-      <WelcomeWords words={["welcome", "back."]} at={CLICK + 10} size={66} align="right" style={{ position: "absolute", right: W / 2 + 34, top: 386 }} />
+      <WelcomeWords words={["welcome", "back."]} at={WORDS} every={BEAT} size={66} align="right" style={{ position: "absolute", right: W / 2 + 34, top: 386 }} />
       <div style={{ opacity: otherFade }}>
         <UserRow glyph="🐤" name="You" detail="Guest" size={tile} selected={false} x={W / 2 + 30} y={214} w={520} />
       </div>
@@ -190,11 +194,12 @@ export function Login() {
       />
       <TurnOff portrait={false} />
       <Sfx at={CLICK} name="start" volume={0.7} />
+      <Sfx at={CLICK + 2} name="login" volume={0.9} />
       <Cursor
         path={[
           { f: 0, v: { x: 1010, y: 640 } },
-          { f: 24, v: { x: W / 2 + 92, y: 372 } },
-          { f: 40, v: { x: W / 2 + 140, y: 300 } },
+          { f: CLICK - 8, v: { x: W / 2 + 92, y: 372 } },
+          { f: CLICK + 16, v: { x: W / 2 + 140, y: 300 } },
         ]}
         clicks={[CLICK]}
       />

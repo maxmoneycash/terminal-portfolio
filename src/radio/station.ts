@@ -1,0 +1,12 @@
+/** KK6OQA's station: what the radio shows and sends when you log in. */
+export const CALLSIGN = "KK6OQA";
+export const OPERATOR = "Max";
+/** The CW greeting, sent at login: a CQ, a hello, and 73. */
+export const GREETING = "CQ DE KK6OQA <BT> HI, WELCOME TO MY SITE <BT> 73 DE MAX <SK>";
+export const WPM = 25;
+/** Sidetone pitch: the usual CW offset. */
+export const PITCH_HZ = 600;
+/** 20 m CW: where a CQ like this would go out. */
+export const VFO_A = 14.025;
+export const VFO_B = 14.025;
+export const BAND_LABEL = "20M CW Sub-Band";

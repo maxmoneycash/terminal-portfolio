@@ -1,5 +1,6 @@
 import { Img, staticFile, useCurrentFrame } from "remotion";
 import stillManifest from "../../stills.json";
+import { BEAT, beats } from "../beat";
 import { easeOut, progress } from "../lib";
 import { asset, Camera, Cursor, Desktop, Sfx, Still, useOrientation, Window } from "../xp";
 
@@ -20,11 +21,10 @@ const SHOW: StillId[] = [
   "tend-app",
   "cash-trading-aapl",
   "whop-finance-sdk",
-  "commits-sh-home",
 ];
 const THUMBS = Object.keys(STILLS) as StillId[];
-const OPEN = 44; // the viewer opens
-const EVERY = 9; // frames per picture
+const OPEN = beats(2); // the viewer opens on beat 2
+const EVERY = BEAT / 2; // one picture per eighth note
 
 /** Windows Picture and Fax Viewer's bottom bar of round buttons. */
 export function ViewerToolbar({ small = false, pressed = -1 }: { small?: boolean; pressed?: number }) {
@@ -91,9 +91,9 @@ export function Pictures() {
   const gridX = pane + 14;
   const gridY = 12;
   const viewerOpen = frame >= OPEN;
-  const shown = Math.min(SHOW.length - 1, Math.max(0, Math.floor((frame - OPEN - 4) / EVERY)));
+  const shown = Math.min(SHOW.length - 1, Math.max(0, Math.floor((frame - OPEN) / EVERY)));
   const id = SHOW[shown];
-  const local = frame - OPEN - 4 - shown * EVERY;
+  const local = frame - OPEN - shown * EVERY;
   const pop = progress(local, 0, 3, easeOut);
 
   // "View as a slide show" link in the task pane (landscape), or the first thumbnail.
@@ -103,13 +103,9 @@ export function Pictures() {
     : { x: 40, y: chromeTop + 14 + 30 };
 
   return (
-    <Camera
-      keys={[
-        { f: 0, v: { x: W / 2, y: H / 2, z: 1.04 } },
-        { f: OPEN, v: { x: W / 2, y: H / 2, z: 1 } },
-        { f: 170, v: { x: W / 2, y: H / 2 - 10, z: 1.06 }, ease: easeOut },
-      ]}
-    >
+    // Both windows are maximized, so the camera holds at 1x: any push-in
+    // would crop the title bar and taskbar. The pictures carry the motion.
+    <Camera keys={[{ f: 0, v: { x: W / 2, y: H / 2, z: 1 } }]}>
       <Desktop tasks={[{ title: viewerOpen ? "Windows Picture and Fax Viewer" : "My Pictures", icon: asset(viewerOpen ? "start-menu/photos.webp" : "toolbar/folder.webp"), active: true }]}>
         {!viewerOpen ? (
           <Window
@@ -135,7 +131,7 @@ export function Pictures() {
               </div>
             ) : null}
             {THUMBS.map((still, i) => {
-              const at = 3 + i * 1.6;
+              const at = 1 + i * 0.9;
               if (frame < at) return null;
               const x = gridX + (i % cols) * cellW;
               const y = gridY + Math.floor(i / cols) * cellH;
@@ -164,27 +160,25 @@ export function Pictures() {
             icon={asset("start-menu/photos.webp")}
             bodyStyle={{ background: "#fff", display: "flex", flexDirection: "column" }}
           >
-            <div style={{ position: "relative", flex: 1, margin: portrait ? 0 : 14, transform: `scale(${0.97 + 0.03 * pop})`, opacity: 0.75 + 0.25 * pop }}>
-              {/* Phones fill the tall viewer, keeping each app's left-hand headline. */}
-              <Still id={id} fit={portrait ? "cover" : "contain"} position={portrait ? "22% 50%" : "50% 50%"} />
+            <div style={{ position: "relative", flex: 1, margin: portrait ? 0 : 14, transform: `scale(${0.94 + 0.06 * pop})`, opacity: 0.7 + 0.3 * pop }}>
+              {/* The whole screenshot, never cropped. */}
+              <Still id={id} />
             </div>
             <ViewerToolbar pressed={local < 3 && shown > 0 ? 1 : -1} small={portrait} />
           </Window>
         )}
-        {SHOW.map((_, i) => (i > 0 ? <Sfx key={i} at={OPEN + 4 + i * EVERY} name="menu" volume={0.35} /> : null))}
-        <Sfx at={OPEN - 4} name="start" volume={0.6} />
+        {SHOW.map((_, i) => (i > 0 ? <Sfx key={i} at={OPEN + i * EVERY} name="menu" volume={0.3} /> : null))}
+        <Sfx at={OPEN - 3} name="start" volume={0.6} />
         {!viewerOpen ? (
           <Cursor
             path={[
               { f: 0, v: { x: W * 0.7, y: H * 0.7 } },
-              { f: 34, v: { x: target.x + 30, y: target.y + 4 } },
+              { f: OPEN - 8, v: { x: target.x + 30, y: target.y + 4 } },
             ]}
-            clicks={[OPEN - 4]}
+            clicks={[OPEN - 3]}
           />
         ) : null}
       </Desktop>
     </Camera>
   );
 }
-
-export const PICTURES_FRAMES = OPEN + 4 + SHOW.length * EVERY + 6;

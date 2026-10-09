@@ -14,7 +14,7 @@
    "width": 2400
   },
   "aptos-vs-megaeth-rerun": {
-   "title": "MegaETH \u2014 another run",
+   "title": "MegaETH — another run",
    "recording": "Screen Recording 2026-01-31 at 1.11*",
    "start": 12,
    "duration": 6.0,
@@ -27,7 +27,7 @@
    "width": 1080
   },
   "sol2move-first-run": {
-   "title": "Sol2Move \u2014 complete",
+   "title": "Sol2Move — complete",
    "recording": "Screen Recording 2026-02-24 at 3.11*",
    "start": 24,
    "duration": 6.0,
@@ -40,7 +40,7 @@
    "width": 2400
   },
   "sol2move-boringvault": {
-   "title": "Sol2Move \u2014 compiler results",
+   "title": "Sol2Move — compiler results",
    "recording": "veda-transpiler.mp4",
    "start": 54,
    "duration": 6.0,
@@ -66,7 +66,7 @@
    "width": 2330
   },
   "aptos-block-machine": {
-   "title": "Block Machine \u2014 blocks",
+   "title": "Block Machine — blocks",
    "recording": "Screen Recording 2026-02-11 at 8.45*",
    "start": 8,
    "duration": 6.0,
@@ -131,7 +131,7 @@
    "width": 2400
   },
   "decibrrr-live": {
-   "title": "Decibrrr \u2014 live orders",
+   "title": "Decibrrr — live orders",
    "recording": "Screen Recording 2025-12-01 at 9.38*",
    "start": 146,
    "duration": 6.0,
@@ -144,7 +144,7 @@
    "width": 2400
   },
   "decibrrr-points": {
-   "title": "Decibrrr \u2014 portfolio",
+   "title": "Decibrrr — portfolio",
    "recording": "Screen Recording 2026-02-03 at 8.59*",
    "start": 16.4,
    "duration": 6.0,
@@ -157,7 +157,7 @@
    "width": 900
   },
   "aptos-velociraptr": {
-   "title": "Velociraptr \u2014 consensus",
+   "title": "Velociraptr — consensus",
    "recording": "Screen Recording 2025-12-22 at 1.13*",
    "start": 33,
    "duration": 6.0,
@@ -183,7 +183,7 @@
    "width": 1210
   },
   "aptos-hft-demo": {
-   "title": "Aptos \u2014 trade stream",
+   "title": "Aptos — trade stream",
    "recording": "Screen Recording 2026-01-06 at 5.16*",
    "start": 17,
    "duration": 6.0,
@@ -196,7 +196,7 @@
    "width": 1228
   },
   "aptos-load-test": {
-   "title": "Aptos \u2014 load test",
+   "title": "Aptos — load test",
    "recording": "Screen Recording 2026-01-29 at 2.58*",
    "start": 17,
    "duration": 6.0,
@@ -209,7 +209,7 @@
    "width": 1028
   },
   "aptos-testnet-nodes": {
-   "title": "Aptos \u2014 testnet nodes",
+   "title": "Aptos — testnet nodes",
    "recording": "Screen Recording 2026-01-29 at 6.46*",
    "start": 0.5,
    "duration": 2.79,
@@ -222,7 +222,7 @@
    "width": 932
   },
   "seam-dex": {
-   "title": "Seam \u2014 liquidity range",
+   "title": "Seam — liquidity range",
    "recording": "Screen Recording 2024-02-06 at 9.34*",
    "start": 29,
    "duration": 6.0,
@@ -235,7 +235,7 @@
    "width": 2400
   },
   "shelby-pulse": {
-   "title": "Shelby Pulse \u2014 latency",
+   "title": "Shelby Pulse — latency",
    "recording": "Screen Recording 2025-12-09 at 7.17*",
    "start": 219,
    "duration": 6.0,
@@ -261,7 +261,7 @@
    "width": 2400
   },
   "peptide-tracker": {
-   "title": "Peptide Tracker \u2014 site rotation",
+   "title": "Peptide Tracker — site rotation",
    "recording": "Screen Recording 2026-06-15 at 10.11*",
    "start": 14,
    "duration": 6.0,
@@ -313,7 +313,7 @@
    "width": 2400
   },
   "maxxp-desktop": {
-   "title": "MaxXP \u2014 Dev Stats",
+   "title": "MaxXP — Dev Stats",
    "recording": "Screen Recording 2026-08-05 at 9.44*",
    "start": 67.8,
    "duration": 6.0,
@@ -429,6 +429,58 @@
     2148
    ],
    "width": 2400
+  },
+  "roman-closeup": {
+   "title": "Roman - solar array close-up",
+   "recording": "roman-film.mp4",
+   "start": 0.3,
+   "duration": 2.4,
+   "crop": [
+    0,
+    0,
+    1920,
+    1080
+   ],
+   "width": 1920
+  },
+  "roman-earth": {
+   "title": "Roman - unfolding over Earth",
+   "recording": "roman-film.mp4",
+   "start": 8.4,
+   "duration": 2.6,
+   "crop": [
+    0,
+    0,
+    1920,
+    1080
+   ],
+   "width": 1920
+  },
+  "roman-apart": {
+   "title": "Roman - taken apart",
+   "recording": "roman-film.mp4",
+   "start": 34.0,
+   "duration": 2.6,
+   "crop": [
+    0,
+    0,
+    1920,
+    1080
+   ],
+   "width": 1920
+  },
+  "roman-wheel": {
+   "title": "Roman - filter wheel",
+   "recording": "roman-film.mp4",
+   "start": 65.5,
+   "duration": 2.0,
+   "crop": [
+    0,
+    0,
+    1920,
+    1080
+   ],
+   "width": 1920
   }
  }
 }

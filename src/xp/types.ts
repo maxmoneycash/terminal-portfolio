@@ -9,6 +9,8 @@ export const xp = "/xp";
 
 export type AppId =
   | "signature"
+  | "radio"
+  | "quill"
   | "about"
   | "files"
   | "resume"
@@ -51,6 +53,22 @@ export const appCatalog: Record<AppId, AppCatalogEntry> = {
     desktopLabel: "Internet Explorer",
     status: "Internet",
     dimensions: { width: 1100, height: 780, minWidth: 440, minHeight: 380 },
+  },
+  radio: {
+    title: "KK6OQA Radio",
+    shortTitle: "KK6OQA Radio",
+    icon: `${xp}/gui/desktop/radio.svg`,
+    desktopLabel: "KK6OQA Radio",
+    status: "KK6OQA · 20 m CW · 73 de Max",
+    dimensions: { width: 812, height: 530, minWidth: 360, minHeight: 360 },
+  },
+  quill: {
+    title: "signature.bmp - Paint",
+    shortTitle: "signature.bmp",
+    icon: `${xp}/gui/start-menu/paint.webp`,
+    desktopLabel: "Signature",
+    status: "Click to write it again",
+    dimensions: { width: 430, height: 210, minWidth: 260, minHeight: 150 },
   },
   signature: {
     title: "welcome.txt - Notepad",
@@ -143,7 +161,7 @@ export const appCatalog: Record<AppId, AppCatalogEntry> = {
 };
 
 /** Icons shown on the desktop, top-to-bottom. */
-export const desktopApps: AppId[] = ["projects", "demos", "about", "resume", "contact", "files", "recycle"];
+export const desktopApps: AppId[] = ["projects", "radio", "demos", "about", "resume", "contact", "files", "recycle"];
 
 export function externalLabel(url?: string) {
   if (!url) return "";

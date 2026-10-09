@@ -1,7 +1,8 @@
 import { random, useCurrentFrame } from "remotion";
 import stats from "../stats.json";
-import { easeInOut, easeOut } from "../lib";
-import { asset, Camera, ClipWindow, Desktop, Sfx, useOrientation, Window, XPButton } from "../xp";
+import { beats } from "../beat";
+import { easeInOut, easeOut, progress } from "../lib";
+import { asset, Balloon, Camera, ClipWindow, Desktop, Sfx, shotOf, useOrientation, wide, Window, XPButton } from "../xp";
 
 const PROCESSES = [
   ["lilyshark.exe", 412880],
@@ -38,7 +39,7 @@ function cpu(frame: number) {
 
 /**
  * XP Task Manager, where "Commit Charge" finally means commits: the real
- * 52-week count from commits.sh. The camera ends on the status bar.
+ * 52-week count from commits.sh, called out by a balloon on beat 1.
  */
 export function TaskManager() {
   const frame = useCurrentFrame();
@@ -48,28 +49,34 @@ export function TaskManager() {
   const commits = stats.commits52w.toLocaleString("en-US");
   const rows = portrait ? PROCESSES.slice(0, 18) : PROCESSES;
   const statusY = tm.y + tm.h - 17;
+  const BALLOON = beats(1);
+  // The "Commit Charge" cell of the status bar, which the balloon points at.
+  const cellX = tm.x + tm.w * (portrait ? 0.6 : 0.72);
+  const bw = portrait ? 300 : 330;
+  const tailX = bw - 70;
+  const bx = Math.min(W - bw - 8, cellX - tailX);
 
   return (
     <Camera
       keys={[
-        { f: 0, v: { x: W / 2, y: H / 2, z: 1 } },
-        { f: 50, v: { x: W / 2, y: H / 2, z: 1.03 } },
-        { f: 62, v: { x: tm.x + tm.w * 0.3, y: statusY - 6, z: portrait ? 2.6 : 3.2 }, ease: easeOut },
-        { f: 105, v: { x: tm.x + tm.w * 0.72, y: statusY - 6, z: portrait ? 2.7 : 3.3 }, ease: easeInOut },
+        { f: 0, v: wide(W, H) },
+        // Both windows stay whole: Task Manager and commits.sh beside it.
+        { f: beats(4), v: shotOf({ x: tm.x, y: tm.y, w: (portrait ? W - 6 : 1200) - tm.x, h: tm.h }, W, H, portrait), ease: easeInOut },
       ]}
     >
       <Desktop tasks={[{ title: "MaxXP Task Manager", icon: asset("start-menu/cmd.webp"), active: true }, { title: "commits.sh" }]}>
         <Sfx at={0} name="restore" volume={0.35} />
-        <Sfx at={60} name="ding" volume={0.4} />
+        <Sfx at={BALLOON} name="ding" volume={0.4} />
         <ClipWindow
           id="commits-sh-menubar"
           title="commits.sh - @maxmoneycash"
-          {...(portrait ? { x: 70, y: 540, w: 400, h: 350 } : { x: 790, y: 40, w: 440, h: 560 })}
+          {...(portrait ? { x: W - 266, y: 520, w: 260 } : { x: 800, y: 40, w: 400 })}
           active={false}
           from={0.2}
         />
         <Window
           {...tm}
+          appear={0}
           title="MaxXP Task Manager"
           icon={asset("start-menu/cmd.webp")}
           chrome={{ menu: ["File", "Options", "View", "Shut Down", "Help"] }}
@@ -146,6 +153,20 @@ export function TaskManager() {
             <span style={{ padding: "4px 6px" }}>Commit Charge: <b>{commits}</b> / 52 wk</span>
           </div>
         </Window>
+        {frame >= BALLOON ? (
+          <Balloon
+            x={bx}
+            y={statusY - 104}
+            w={bw}
+            title="Commit Charge"
+            tailX={cellX - bx}
+            scale={1.25}
+            style={{ opacity: progress(frame, BALLOON, 3), transform: `scale(${0.9 + 0.1 * progress(frame, BALLOON, 5, easeOut)})`, transformOrigin: `${cellX - bx}px 100%` }}
+          >
+            <div style={{ fontSize: 22, fontWeight: 700 }}>{commits} commits</div>
+            <div style={{ fontSize: 13 }}>in the last 52 weeks, live from commits.sh</div>
+          </Balloon>
+        ) : null}
       </Desktop>
     </Camera>
   );

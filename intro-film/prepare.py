@@ -124,9 +124,10 @@ def fetch_stats() -> None:
 def main() -> None:
     CLIPS.mkdir(parents=True, exist_ok=True)
     for name in XP_ASSETS:
-        target = PUBLIC / "xp" / name
-        if not target.exists():
-            shutil.copytree(ROOT / "public" / "xp" / name, target)
+        shutil.copytree(ROOT / "public" / "xp" / name, PUBLIC / "xp" / name, dirs_exist_ok=True)
+    # The signature and quill the radio's Paint window writes with.
+    for name in ("maxwell_mohammadi_signature_full_canvas.svg", "quill-pen-transparent.png"):
+        shutil.copy2(ROOT / "public" / name, PUBLIC / name)
     clips = json.loads((HERE / "clips.json").read_text())["clips"]
     only = set(sys.argv[1:])
     jobs = {k: v for k, v in clips.items() if not only or k in only}
@@ -144,6 +145,9 @@ def main() -> None:
             poster(clip_id)
         if not (CLIPS / f"{clip_id}.thumb.mp4").exists():
             thumb(clip_id)
+    # The soundtrack, arranged from GarageBand's loops on the film's beat grid.
+    if not only:
+        subprocess.run([sys.executable, str(HERE / "music.py")], check=True)
 
 
 if __name__ == "__main__":

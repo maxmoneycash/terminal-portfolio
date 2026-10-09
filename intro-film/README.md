@@ -18,12 +18,29 @@ XP's 96-DPI size (1280×720 landscape, 540×960 portrait); renders scale it to
 
 ```sh
 npm run intro:setup     # once: install Remotion in intro-film/
-npm run intro:prepare   # cut clips, wallpaper loop, sounds, commits.sh stats
+npm run intro:prepare   # cut clips, wallpaper loop, sounds, commits.sh stats, soundtrack
 npm run intro:render    # both orientations (~8 min each)
 npm run intro:publish   # web encode, validate, swap hashed assets into the site
 ```
 
 `npm run intro:build` runs all four and then `intro:clean`.
+
+## Music and the beat grid
+
+`score.json` is the film's beat grid: 128.57 BPM, so one beat is exactly 14
+frames at 30 fps, in sections (intro, three drops, a breakdown, a space break
+for Roman). Every scene in `src/Film.tsx` lasts whole beats and cuts on bar
+lines; `src/beat.ts` gives scenes `beats(n)` and drives the kick punch and drop
+flashes. `music.py` arranges the soundtrack on the same grid from GarageBand's
+Electro House loops (C minor; GarageBand's license allows them in your own
+soundtracks), adds synthesized impacts, risers and crashes, and keys the Morse
+cues in `score.json` (KK6OQA over the boot screen, DE KK6OQA on the first drop)
+as a sidetone. It needs GarageBand's loop library at
+`/Library/Audio/Apple Loops/Apple/02 Electro House`.
+
+The station scene imports the site's radio (`src/radio/`) and signature ink
+(`src/lib/signatureInk.ts`), so the film and the live app look the same; the
+render fingerprint covers those files too.
 
 The MP4s stay out of git. `intro:publish` records their SHA-256 in
 `published.json`; `npm run intro:upload` puts them on the repo's `intro-films`

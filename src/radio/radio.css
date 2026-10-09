@@ -1,0 +1,1336 @@
+/* KK6OQA radio: the SDR console (PowerSDR look) and the TS-2000 station
+   (HamStation look). Self-contained so the intro film can import it too. */
+
+.sdr {
+  --sdr-bg-top: #2c2f34;
+  --sdr-bg-bottom: #131417;
+  --sdr-text: #e8e9ec;
+  --sdr-dim: #6d7177;
+  --sdr-line: #8a9097;
+  --sdr-led: #1ab6f0;
+  --sdr-led-off: #6a6e74;
+  --sdr-yellow: #ece52f;
+  --sdr-green: #2fd04a;
+  position: relative;
+  color: var(--sdr-text);
+  /* PowerSDR used MS Sans Serif 8.25 pt; Arial keeps its widths. */
+  font: 10px "Microsoft Sans Serif", Arial, Helvetica, sans-serif;
+  background: linear-gradient(180deg, var(--sdr-bg-top), var(--sdr-bg-bottom));
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.sdr-stage {
+  width: 800px;
+  height: 451px;
+  overflow: hidden;
+}
+
+.sdr-btn {
+  position: relative;
+  display: grid;
+  place-items: center;
+  padding: 0 0 4px;
+  border: 1px solid #0a0a0b;
+  border-radius: 2px;
+  background: linear-gradient(180deg, #6f747a 0%, #464a50 44%, #26292d 50%, #2c2f33 100%);
+  box-shadow: inset 0 1px rgb(255 255 255 / 0.18), 0 1px rgb(255 255 255 / 0.06);
+  color: #fff;
+  font: 700 11px Arial, Helvetica, sans-serif;
+  letter-spacing: 0.1px;
+  text-shadow: 0 1px 1px #000;
+  white-space: nowrap;
+  cursor: default;
+}
+
+.sdr-btn > span {
+  line-height: 1;
+}
+
+.sdr-btn > i {
+  position: absolute;
+  left: 18%;
+  right: 18%;
+  bottom: 2px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--sdr-led-off);
+}
+
+.sdr-btn.is-on > i {
+  background: var(--sdr-led);
+  box-shadow: 0 0 4px rgb(26 182 240 / 0.8);
+}
+
+.sdr-btn.is-dim {
+  color: var(--sdr-dim);
+  text-shadow: none;
+}
+
+.sdr-btn[tabindex="0"] {
+  cursor: pointer;
+}
+
+.sdr-btn[tabindex="0"]:active {
+  background: linear-gradient(180deg, #2a2d31, #3d4146 60%, #5a5f65);
+}
+
+.sdr-btn:focus-visible {
+  outline: 1px dotted #fff;
+  outline-offset: -3px;
+}
+
+.sdr-rec {
+  display: block;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 35%, #ff6a5c, #e1100b 60%, #9c0805);
+}
+
+.sdr-play {
+  display: block;
+  width: 0;
+  height: 0;
+  border-top: 6px solid transparent;
+  border-bottom: 6px solid transparent;
+  border-left: 11px solid #22c021;
+  filter: drop-shadow(0 0 1px #0a5);
+}
+
+.sdr-group {
+  border: 1px solid var(--sdr-line);
+  border-radius: 4px;
+}
+
+.sdr-group-label {
+  position: absolute;
+  top: -2px;
+  left: 6px;
+  padding: 0 2px;
+  color: #cfd3d8;
+  font-size: 11px;
+  line-height: 1;
+  background: #2b2e33;
+}
+
+.sdr-label {
+  color: var(--sdr-text);
+  white-space: nowrap;
+}
+
+.sdr-label-small {
+  color: #cfd3d8;
+  font-size: 10px;
+}
+
+.sdr-label-bold {
+  font-weight: 700;
+}
+
+.sdr-label-2 {
+  line-height: 1.25;
+  color: #d4d7dc;
+}
+
+.sdr-slider {
+  border: 1px solid #555a60;
+  border-radius: 1px;
+  background: linear-gradient(180deg, #1b1c1f, #2a2c30);
+  box-shadow: inset 0 1px #000;
+}
+
+.sdr-slider-track {
+  position: absolute;
+  left: 6px;
+  right: 6px;
+  top: 50%;
+  height: 3px;
+  margin-top: -1px;
+  background: #050506;
+  border-bottom: 1px solid #4a4d52;
+}
+
+.sdr-slider.is-vertical .sdr-slider-track {
+  left: 50%;
+  right: auto;
+  top: 6px;
+  bottom: 6px;
+  width: 3px;
+  height: auto;
+  margin: 0 0 0 -1px;
+}
+
+.sdr-slider-thumb {
+  position: absolute;
+  top: 1px;
+  bottom: 1px;
+  width: 9px;
+  margin-left: -4px;
+  border-radius: 1px;
+  background: linear-gradient(90deg, #6d7177, #f2f2f2 45%, #8e9298);
+  box-shadow: 0 0 0 1px #111;
+}
+
+.sdr-slider.is-vertical .sdr-slider-thumb {
+  left: 2px;
+  right: 2px;
+  top: auto;
+  bottom: auto;
+  width: auto;
+  height: 7px;
+  margin: -3px 0 0;
+  background: linear-gradient(180deg, #6d7177, #f2f2f2 45%, #8e9298);
+}
+
+.sdr-slider-bar {
+  position: absolute;
+  left: 8px;
+  bottom: 1px;
+  height: 3px;
+  background: linear-gradient(90deg, #23b33a 0 82%, #e01b1b 82%);
+}
+
+.sdr-select,
+.sdr-spin {
+  display: flex;
+  align-items: center;
+  border: 1px solid #7f9db9;
+  background: #fff;
+  color: #000;
+  font-size: 11px;
+  line-height: 1;
+  overflow: hidden;
+}
+
+.sdr-select > span,
+.sdr-spin > span {
+  flex: 1;
+  min-width: 0;
+  padding-left: 3px;
+  white-space: nowrap;
+}
+
+.sdr-select > i {
+  align-self: stretch;
+  width: 14px;
+  background: linear-gradient(180deg, #c6d7fb, #9db9f2);
+  border-left: 1px solid #b0c4f0;
+  position: relative;
+}
+
+.sdr-select > i::after {
+  content: "";
+  position: absolute;
+  left: 3px;
+  top: 50%;
+  width: 6px;
+  height: 6px;
+  margin-top: -5px;
+  border-right: 2px solid #4d6185;
+  border-bottom: 2px solid #4d6185;
+  transform: rotate(45deg) scale(0.75);
+}
+
+.sdr-spin > i {
+  align-self: stretch;
+  width: 12px;
+  background: linear-gradient(180deg, #e8eefc 0 48%, #b9c9ec 48% 52%, #e8eefc 52%);
+  border-left: 1px solid #b0c4f0;
+}
+
+.sdr-spin.is-dim {
+  background: #3a3c40;
+  border-color: #55585d;
+  color: #9a9da2;
+}
+
+.sdr-spin.is-dim > i {
+  background: #4b4e53;
+  border-color: #55585d;
+}
+
+.sdr-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 5px;
+  color: var(--sdr-text);
+  line-height: 1.2;
+}
+
+.sdr-check > i {
+  flex: none;
+  width: 13px;
+  height: 13px;
+  border: 1px solid #1c5180;
+  background: linear-gradient(135deg, #dcdcd7, #fff);
+  position: relative;
+}
+
+.sdr-check > i.is-checked::after {
+  content: "";
+  position: absolute;
+  left: 3px;
+  top: 0;
+  width: 4px;
+  height: 8px;
+  border-right: 2px solid #21a121;
+  border-bottom: 2px solid #21a121;
+  transform: rotate(40deg);
+}
+
+.sdr-display {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 6px;
+  background: #fff;
+  border: 1px solid #5e636a;
+  color: #000;
+  font: 400 26px/1 Arial, Helvetica, sans-serif;
+  letter-spacing: 0.4px;
+  font-variant-numeric: tabular-nums;
+}
+
+.sdr-display.is-b {
+  color: #2fd6dc;
+}
+
+.sdr-status {
+  display: flex;
+  align-items: center;
+  padding: 0 7px;
+  overflow: hidden;
+  background: #101113;
+  border: 1px solid #3d4045;
+  color: var(--sdr-green);
+  font: 400 13px/1 Arial, Helvetica, sans-serif;
+  white-space: nowrap;
+}
+
+.sdr-status.is-dim {
+  color: #1d6a28;
+}
+
+.sdr-tx {
+  display: grid;
+  place-items: center;
+  border: 1px solid #f2b7b7;
+  background: #b1100f;
+  color: #fff;
+  font: 700 12px Arial, sans-serif;
+}
+
+.sdr-tx.is-keyed {
+  background: #ff1d1d;
+  box-shadow: 0 0 8px rgb(255 40 40 / 0.9);
+}
+
+.sdr-tx.is-off {
+  border-color: #9fa3a8;
+  background: #c9cdd2;
+  color: #eef0f2;
+}
+
+.sdr-field {
+  display: flex;
+  align-items: center;
+  padding-left: 4px;
+  background: #1a1b1e;
+  border: 1px solid #4a4d52;
+  color: #e7e7e7;
+  font-size: 11px;
+}
+
+.sdr-step {
+  display: flex;
+  align-items: center;
+  border: 1px solid #4a4d52;
+  background: #1a1b1e;
+  color: #fff;
+  font-size: 11px;
+}
+
+.sdr-step > i {
+  width: 14px;
+  text-align: center;
+  font-style: normal;
+}
+
+.sdr-step > span {
+  flex: 1;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  padding-left: 3px;
+  background: #24262a;
+  border-left: 1px solid #4a4d52;
+  border-right: 1px solid #4a4d52;
+}
+
+.sdr-readout {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 7px;
+  background: #000;
+  border: 1px solid #3d4045;
+  color: var(--sdr-yellow);
+  font: 400 20px/1 Arial, Helvetica, sans-serif;
+}
+
+.sdr-meter-label {
+  fill: #fff;
+  font: 9px Arial, sans-serif;
+}
+
+.sdr-meter-label.is-over {
+  fill: #ff2b2b;
+}
+
+.sdr-pan-axis {
+  fill: #d8d04a;
+  font: 10.5px Arial, sans-serif;
+}
+
+.sdr-pan-db {
+  fill: #e1d94c;
+  font: 10.5px Arial, sans-serif;
+}
+
+.sdr-pan-info {
+  display: flex;
+  justify-content: flex-end;
+  gap: 26px;
+  color: #3d86df;
+  font: 11px Arial, sans-serif;
+}
+
+.sdr-box {
+  display: grid;
+  place-items: center;
+  background: #3a3d42;
+  border: 1px solid #6e7379;
+  color: #e9eaec;
+  font-size: 11px;
+}
+
+/* Phones: the same parts in one column. */
+.sdr-compact {
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+  min-height: 100%;
+}
+
+.sdr-compact .sdr-btn {
+  min-height: 32px;
+  font-size: 12px;
+}
+
+.sdr-c-row {
+  display: flex;
+  gap: 6px;
+}
+
+.sdr-c-row > .sdr-btn {
+  flex: 1;
+}
+
+.sdr-c-vfo {
+  position: relative;
+  display: grid;
+  gap: 6px;
+  padding: 12px 8px 8px;
+}
+
+.sdr-c-vfo .sdr-display {
+  height: 44px;
+  font-size: 34px;
+}
+
+.sdr-c-status {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 30px;
+  gap: 5px;
+}
+
+.sdr-c-status .sdr-status {
+  height: 24px;
+}
+
+.sdr-c-meter {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 150px;
+  gap: 6px;
+  align-items: stretch;
+}
+
+.sdr-c-meter .sdr-readout {
+  font-size: 24px;
+}
+
+.sdr-c-pan {
+  border: 1px solid #3d4045;
+  overflow: hidden;
+}
+
+.sdr-c-pan svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.sdr-c-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.sdr-c-cw {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  padding: 12px 10px 8px;
+}
+
+.sdr-c-foot {
+  justify-content: space-between;
+}
+
+.sdr-c-foot > .sdr-box {
+  flex: 1;
+  height: 22px;
+}
+
+/* ---------------------------------------------------------------- */
+/* TS-2000 station (HamStation look): Windows Classic gray           */
+/* ---------------------------------------------------------------- */
+
+.hs {
+  --hs-face: #d4d0c8;
+  --hs-light: #fff;
+  --hs-shadow: #808080;
+  --hs-dark: #404040;
+  position: relative;
+  color: #000;
+  font: 12px Arial, Helvetica, sans-serif;
+  background: var(--hs-face);
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.hs-stage {
+  width: 900px;
+  height: 468px;
+  overflow: hidden;
+}
+
+.hs-btn {
+  display: grid;
+  place-items: center;
+  padding: 0 2px;
+  border: 0;
+  background: var(--hs-face);
+  box-shadow: inset -1px -1px var(--hs-dark), inset 1px 1px var(--hs-light), inset -2px -2px var(--hs-shadow), inset 2px 2px #e8e6e0;
+  color: #000;
+  font: 700 12px/1 Arial, Helvetica, sans-serif;
+  white-space: nowrap;
+  cursor: default;
+}
+
+.hs-btn.is-on {
+  background: #0a24d6;
+  color: #fff;
+  box-shadow: inset 1px 1px var(--hs-dark), inset -1px -1px var(--hs-light), inset 2px 2px #08178a;
+}
+
+.hs-btn.is-dim {
+  color: #a3a097;
+  text-shadow: 1px 1px #fff;
+}
+
+.hs-btn[tabindex="0"] {
+  cursor: pointer;
+}
+
+.hs-btn[tabindex="0"]:active {
+  box-shadow: inset 1px 1px var(--hs-dark), inset -1px -1px var(--hs-light), inset 2px 2px var(--hs-shadow);
+}
+
+.hs-btn:focus-visible {
+  outline: 1px dotted #000;
+  outline-offset: -4px;
+}
+
+.hs-pair {
+  display: flex;
+  gap: 0;
+}
+
+.hs-field {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+  overflow: hidden;
+  background: var(--hs-face);
+  box-shadow: inset 1px 1px var(--hs-shadow), inset -1px -1px var(--hs-light);
+  white-space: nowrap;
+  font-size: 13px;
+}
+
+.hs-field.is-black {
+  background: #000;
+  color: #fff;
+  box-shadow: inset 1px 1px #000, inset -1px -1px var(--hs-light);
+}
+
+.hs-field.is-white {
+  background: #fff;
+  justify-content: flex-start;
+  box-shadow: inset 1px 1px var(--hs-shadow), inset 2px 2px var(--hs-dark), inset -1px -1px var(--hs-light);
+}
+
+.hs-field.is-cyan {
+  background: #00ffff;
+  box-shadow: inset 1px 1px var(--hs-shadow), inset -1px -1px var(--hs-light);
+}
+
+.hs-rule {
+  display: block;
+  background: #1a1a1a;
+  border-bottom: 1px solid #fff;
+}
+
+.hs-label {
+  white-space: nowrap;
+  font-size: 12px;
+  line-height: 1.15;
+}
+
+.hs-label.is-center {
+  text-align: center;
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.hs-label.is-bold {
+  font-weight: 700;
+}
+
+.hs-label.is-big {
+  font-size: 13px;
+}
+
+.hs-panel {
+  background: #000;
+  box-shadow: inset 1px 1px var(--hs-shadow), inset -1px -1px var(--hs-light), inset 2px 2px #000;
+}
+
+.hs-sunits {
+  border: 2px solid #8c8c8c;
+  background: radial-gradient(circle at 60% 40%, #4a4a4a, #1a1a1a 70%);
+  box-shadow: 0 0 0 1px #000;
+}
+
+.hs-sunits-label {
+  position: absolute;
+  left: 7px;
+  top: 6px;
+  color: #c9c9c9;
+  font: 700 9px "Courier New", monospace;
+  letter-spacing: 0.5px;
+}
+
+.hs-sunits-over {
+  position: absolute;
+  right: 5px;
+  top: 6px;
+  color: #d23030;
+  font: 700 8px "Courier New", monospace;
+}
+
+.hs-sunits-bar {
+  position: absolute;
+  top: 30px;
+  height: 3px;
+}
+
+.hs-sunits-bar.is-white {
+  left: 8px;
+  width: 70px;
+  background: #f2f2f2;
+}
+
+.hs-sunits-bar.is-red {
+  left: 78px;
+  width: 34px;
+  background: #d32b2b;
+}
+
+.hs-sunits > b {
+  position: absolute;
+  top: 22px;
+  width: 5px;
+  height: 18px;
+  margin-left: -2px;
+  border-radius: 2px;
+}
+
+.hs-sunits-scale {
+  position: absolute;
+  left: 8px;
+  bottom: 6px;
+  color: #c9c9c9;
+  font: 700 8px "Courier New", monospace;
+  word-spacing: 1px;
+}
+
+.hs-sunits-scale em {
+  font-style: normal;
+  color: #d23030;
+}
+
+.hs-modecol {
+  display: grid;
+  gap: 0;
+  font: 700 12px/14px Arial, sans-serif;
+}
+
+.hs-modecol .is-green { color: #6fe830; }
+.hs-modecol .is-cyan { color: #1fd6ea; }
+.hs-modecol .is-magenta { color: #ea2ee0; }
+
+.hs-meters {
+  display: flex;
+  gap: 15px;
+}
+
+.hs-meters span {
+  display: grid;
+  justify-items: center;
+  font: 700 12px/13px Arial, sans-serif;
+}
+
+.hs-meters b { color: #f0ea2a; }
+.hs-meters em { color: #2fd6e6; font-style: normal; min-height: 13px; }
+
+.hs-bigfreq {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 8px;
+  background: #000;
+  border: 2px solid #b8b8b8;
+  color: #ec2ce6;
+  font: italic 400 44px/1 Arial, Helvetica, sans-serif;
+  letter-spacing: 1px;
+  font-variant-numeric: tabular-nums;
+}
+
+.hs-offset {
+  color: #c02cba;
+  font-size: 11px;
+}
+
+.hs-time {
+  color: #fff;
+  font: 700 12px Arial, sans-serif;
+}
+
+.hs-sig {
+  display: block;
+  border: 2px solid #c8c8c8;
+}
+
+.hs-sig.is-rx { background: #69691e; }
+.hs-sig.is-rx.is-lit { background: #c8c86a; }
+.hs-sig.is-tx { background: #5a0000; }
+.hs-sig.is-tx.is-lit { background: #ff2222; box-shadow: 0 0 10px #ff3030; }
+
+.hs-sig-label {
+  color: #f0ea2a;
+  font: 700 12px Arial, sans-serif;
+}
+
+.hs-logo {
+  color: #555;
+  font: italic 700 11px/1.1 Georgia, serif;
+  text-align: center;
+}
+
+.hs-ruler {
+  background: #000;
+  box-shadow: inset 1px 1px var(--hs-shadow), inset -1px -1px var(--hs-light);
+  overflow: hidden;
+}
+
+.hs-ruler > span {
+  position: absolute;
+  top: 1px;
+  margin-left: 2px;
+  color: #cfcfcf;
+  font: 10px Arial, sans-serif;
+}
+
+.hs-ruler-band,
+.hs-ruler-rest {
+  position: absolute;
+  bottom: 2px;
+  height: 7px;
+  left: 2px;
+  background: repeating-linear-gradient(90deg, #6f6d14 0 4px, #8a8818 4px 5px);
+}
+
+.hs-ruler-rest {
+  right: 2px;
+  width: auto;
+  background: repeating-linear-gradient(90deg, #1734c8 0 4px, #3354e8 4px 5px);
+}
+
+.hs-ruler > b {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: #e0221a;
+}
+
+.hs-scope-text {
+  fill: #e8f6e8;
+  color: #e8f6e8;
+  font: 11px Arial, sans-serif;
+}
+
+.hs-scope-text.is-faint {
+  fill: rgb(232 246 232 / 0.4);
+}
+
+.hs-mini-text {
+  position: absolute;
+  font-size: 11px;
+}
+
+.hs-vslider .hs-ticks,
+.hs-hslider .hs-ticks {
+  position: absolute;
+  background: repeating-linear-gradient(180deg, #1d1d1d 0 1px, transparent 1px 3px);
+}
+
+.hs-vslider .hs-ticks {
+  left: 2px;
+  top: 6px;
+  bottom: 6px;
+  width: 7px;
+}
+
+.hs-vslider .hs-rail {
+  position: absolute;
+  left: 15px;
+  top: 4px;
+  bottom: 4px;
+  width: 3px;
+  background: #fff;
+  box-shadow: inset 1px 0 var(--hs-shadow), inset -1px 0 var(--hs-light), 0 0 0 1px #9b9890;
+}
+
+.hs-vslider > b {
+  position: absolute;
+  left: 8px;
+  width: 18px;
+  height: 14px;
+  background: #8a8a8a;
+  box-shadow: inset 1px 1px #c8c8c8, inset -1px -1px #404040;
+}
+
+.hs-vslider > em {
+  position: absolute;
+  left: 13px;
+  bottom: -6px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #3a3a3a;
+}
+
+.hs-hslider .hs-ticks {
+  left: 26px;
+  right: 22px;
+  top: 4px;
+  height: 9px;
+  background: repeating-linear-gradient(90deg, #1d1d1d 0 1px, transparent 1px 3px);
+}
+
+.hs-hslider .hs-rail {
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  top: 24px;
+  height: 3px;
+  background: #fff;
+  box-shadow: 0 0 0 1px #9b9890;
+}
+
+.hs-hslider > b {
+  position: absolute;
+  top: 14px;
+  width: 14px;
+  height: 22px;
+  background: #8a8a8a;
+  box-shadow: inset 1px 1px #c8c8c8, inset -1px -1px #404040;
+}
+
+.hs-hslider > em {
+  position: absolute;
+  top: 21px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.hs-hslider > em.is-left { left: 2px; background: #fff; box-shadow: 0 0 0 1px #888; }
+.hs-hslider > em.is-right { right: 2px; background: #3a3a3a; }
+
+.hs-hslider.is-focus {
+  outline: 1px dotted #000;
+  outline-offset: -2px;
+}
+
+.hs-led {
+  display: block;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+}
+
+.hs-led.is-magenta { background: radial-gradient(circle at 35% 35%, #ffb0ff, #e000e0 55%, #600060); }
+.hs-led.is-blue { background: radial-gradient(circle at 35% 35%, #b0c8ff, #1030e0 55%, #001060); }
+
+.hs-dial-wrap {
+  border: 1px solid #000;
+  box-shadow: 0 0 0 1px #9b9890;
+}
+
+.hs-dial-num {
+  fill: #fff;
+  font: 700 13px "Courier New", monospace;
+}
+
+.hs-dial-num.is-small {
+  font-size: 12px;
+}
+
+.hs-dial-reading {
+  fill: #3ef03e;
+  font: italic 700 24px Arial, sans-serif;
+}
+
+.hs-dial-logo {
+  fill: #a3a345;
+  font: italic 700 15px "Brush Script MT", "Segoe Script", cursive;
+}
+
+.hs-group {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  box-shadow: inset 1px 1px var(--hs-shadow), inset -1px -1px var(--hs-light), inset 2px 2px var(--hs-light), inset -2px -2px var(--hs-shadow);
+}
+
+.hs-group > legend {
+  margin-left: 6px;
+  padding: 0 2px;
+  font-size: 13px;
+  line-height: 1;
+  transform: translateY(-1px);
+}
+
+.hs-group > legend.is-bold {
+  font-weight: 700;
+}
+
+.hs-inset {
+  display: block;
+  box-shadow: inset 1px 1px var(--hs-shadow), inset -1px -1px var(--hs-light);
+}
+
+.hs-check {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.hs-check > i {
+  width: 16px;
+  height: 16px;
+  background: #fff;
+  box-shadow: inset 1px 1px var(--hs-shadow), inset 2px 2px var(--hs-dark), inset -1px -1px var(--hs-light);
+}
+
+.hs-updown {
+  display: grid;
+  grid-template-rows: 1fr 1fr;
+}
+
+.hs-updown > i {
+  display: grid;
+  place-items: center;
+  font: 700 10px/1 Arial, sans-serif;
+  background: var(--hs-face);
+  box-shadow: inset -1px -1px var(--hs-dark), inset 1px 1px var(--hs-light);
+  font-style: normal;
+}
+
+.hs-note {
+  margin: 0;
+  font: 700 13px/1.35 Arial, sans-serif;
+}
+
+.hs-knob {
+  background: linear-gradient(180deg, #2e2e2e, #121212);
+  border: 1px solid #000;
+}
+
+.hs-screw {
+  position: absolute;
+  top: 6px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 40%, #d8d8d8, #555);
+}
+
+.hs-screw.is-l { left: 6px; }
+.hs-screw.is-r { right: 6px; }
+
+.hs-knob > b {
+  position: absolute;
+  left: 50%;
+  top: 18px;
+  width: 92px;
+  height: 92px;
+  margin-left: -46px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 46% 34%, #262626 0 9px, transparent 10px),
+    radial-gradient(circle at 50% 50%, #0d0d0d 0 33px, #8d8d8d 34px, #e8e8e8 39px, #6c6c6c 44px, #2a2a2a 46px);
+}
+
+/* Phones: the station's parts in one column. */
+.hs-compact {
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+  min-height: 100%;
+}
+
+.hs-c-row {
+  display: flex;
+  gap: 6px;
+}
+
+.hs-c-row > .hs-field {
+  height: 26px;
+}
+
+.hs-c-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  padding: 8px;
+  background: #000;
+  box-shadow: inset 1px 1px var(--hs-shadow), inset -1px -1px var(--hs-light);
+}
+
+.hs-c-vfo {
+  display: grid;
+  gap: 4px;
+}
+
+.hs-c-vfo .hs-bigfreq {
+  height: 52px;
+  font-size: 38px;
+}
+
+.hs-c-sub {
+  color: #2fd6e6;
+  font: 700 11px Arial, sans-serif;
+}
+
+.hs-c-sig {
+  display: grid;
+  grid-template-columns: 30px;
+  align-content: center;
+  gap: 3px;
+}
+
+.hs-c-sig .hs-sig {
+  height: 14px;
+}
+
+.hs-c-sig span {
+  color: #f0ea2a;
+  font: 700 10px Arial, sans-serif;
+}
+
+.hs-c-dial,
+.hs-c-scope {
+  overflow: hidden;
+  box-shadow: 0 0 0 1px #000;
+}
+
+.hs-c-dial svg,
+.hs-c-scope svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.hs-c-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.hs-c-grid .hs-btn {
+  min-height: 30px;
+}
+
+/* App shell inside the XP window */
+.radio-app {
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr);
+  height: 100%;
+  min-height: 0;
+  background: #1c1d20;
+}
+
+.radio-app > .window-menu {
+  min-height: 21px;
+  background: #ece9d8;
+  color: #000;
+}
+
+.radio-license {
+  padding: 2px 8px 3px;
+  background: #ece9d8;
+  border-bottom: 1px solid #c7c2a9;
+  color: #000;
+  font-size: 11px;
+}
+
+.radio-viewport {
+  min-height: 0;
+  overflow: auto;
+  display: grid;
+  place-items: start center;
+}
+
+.radio-app.is-compact .radio-viewport {
+  display: block;
+}
+
+.radio-stage {
+  overflow: hidden;
+}
+
+/* ---------------------------------------------------------------- */
+/* Fewer buttons, a sick spectrum: the trimmed SDR console           */
+/* ---------------------------------------------------------------- */
+
+.sdr-stage {
+  background:
+    radial-gradient(120% 60% at 50% 0%, rgb(60 90 160 / 0.18), transparent 60%),
+    linear-gradient(180deg, #23262c, #101114);
+}
+
+.sdr-btn.is-big {
+  font-size: 15px;
+  letter-spacing: 0.6px;
+}
+
+.sdr-btn.is-big > i {
+  height: 4px;
+  bottom: 4px;
+}
+
+.sdr-status {
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 12px;
+}
+
+.sdr-status-right {
+  color: #1f8f33;
+}
+
+.sdr-tx {
+  font-size: 16px;
+  letter-spacing: 1px;
+  border-radius: 3px;
+  background: #4a0d0c;
+  border-color: #7a2a28;
+  color: #e7b3b1;
+}
+
+.sdr-tx.is-keyed {
+  background: radial-gradient(circle at 50% 40%, #ff6a5c, #ff1d1d 60%, #b00d0d);
+  border-color: #ffd0cc;
+  color: #fff;
+  box-shadow: 0 0 14px 3px rgb(255 40 40 / 0.75), inset 0 0 6px rgb(255 255 255 / 0.6);
+  text-shadow: 0 0 6px #fff;
+}
+
+.sdr-readout {
+  font-size: 22px;
+  text-shadow: 0 0 10px rgb(236 229 47 / 0.45);
+}
+
+.rx-led {
+  display: flex;
+  gap: 2px;
+  height: 100%;
+  padding: 3px;
+  background: #050506;
+  border: 1px solid #3d4045;
+}
+
+.rx-led > i {
+  flex: 1;
+  border-radius: 1px;
+}
+
+.rx-led > i.is-green { background: #0d2a12; }
+.rx-led > i.is-red { background: #330b0b; }
+.rx-led > i.is-green.is-lit { background: linear-gradient(180deg, #8dff7a, #22c43a); box-shadow: 0 0 6px rgb(60 255 90 / 0.7); }
+.rx-led > i.is-red.is-lit { background: linear-gradient(180deg, #ff9a8a, #ff2a1d); box-shadow: 0 0 6px rgb(255 50 40 / 0.8); }
+
+.sdr-led-scale {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 4px;
+  color: #cfd3d8;
+  font: 10px Arial, sans-serif;
+}
+
+.sdr-led-scale .is-over { color: #ff4a3d; }
+
+.sdr-scope {
+  display: grid;
+  grid-template-rows: 150px 140px;
+  overflow: hidden;
+  border: 1px solid #2a3654;
+  box-shadow: 0 0 0 1px #000, 0 0 18px rgb(40 120 255 / 0.18);
+}
+
+.rx-pan,
+.rx-fall {
+  display: block;
+}
+
+.rx-pan-axis {
+  fill: #8fb4ff;
+  font: 10px "Lucida Console", Menlo, monospace;
+}
+
+.rx-pan-db {
+  fill: #5f78a8;
+  font: 9.5px "Lucida Console", Menlo, monospace;
+}
+
+.rx-pan-tag {
+  fill: #1a1400;
+  font: 700 10px "Lucida Console", Menlo, monospace;
+}
+
+.sdr-foot {
+  display: flex;
+  gap: 18px;
+  align-items: center;
+  color: #8d939b;
+  font: 10.5px Arial, sans-serif;
+}
+
+.sdr-decoder {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  padding: 0 10px;
+  overflow: hidden;
+  background: #020803;
+  border: 1px solid #1d3a22;
+  color: #4dff6a;
+  font: 700 16px/1 "Lucida Console", Menlo, monospace;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  text-shadow: 0 0 8px rgb(77 255 106 / 0.65);
+  box-shadow: inset 0 0 18px rgb(0 0 0 / 0.9);
+}
+
+.sdr-decoder > b {
+  display: inline-block;
+  width: 9px;
+  height: 16px;
+  margin-left: 3px;
+  background: #4dff6a;
+  box-shadow: 0 0 8px #4dff6a;
+}
+
+.sdr-decoder-idle {
+  color: #1f7a2e;
+  text-shadow: none;
+  font-weight: 400;
+}
+
+.sdr-compact .sdr-c-scope {
+  display: grid;
+  overflow: hidden;
+  border: 1px solid #2a3654;
+}
+
+.sdr-compact .sdr-c-scope svg,
+.sdr-compact .sdr-c-scope canvas {
+  display: block;
+  width: 100% !important;
+  height: auto;
+}
+
+.sdr-compact .sdr-c-scope canvas {
+  height: 150px !important;
+}
+
+.sdr-compact .sdr-decoder {
+  height: 40px;
+}
+
+.sdr-compact .sdr-c-meter {
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+}
+
+.sdr-compact .sdr-c-meter .rx-led {
+  height: 34px;
+}
+
+.sdr-c-grid.is-bands {
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+
+.sdr-c-grid.is-modes {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.sdr-compact .sdr-tx {
+  min-height: 32px;
+}
+
+/* Phones: room to scroll the decoder above the floating quill window. */
+@media (max-width: 900px) {
+  .radio-app.is-compact .sdr-compact,
+  .radio-app.is-compact .hs-compact {
+    padding-bottom: 176px;
+  }
+}

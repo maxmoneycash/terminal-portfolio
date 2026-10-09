@@ -144,6 +144,13 @@ export function bindAudioUnlockGestures() {
   document.addEventListener("keydown", handler, { capture: true, passive: true });
 }
 
+/** The shared AudioContext once a gesture has unlocked it, else null. */
+export function readyAudioContext(): AudioContext | null {
+  if (!ctx || !unlocked) return null;
+  if (ctx.state === "suspended") void ctx.resume().catch(() => {});
+  return ctx;
+}
+
 /** Fire-and-forget playback of a shell cue. */
 export function playSfx(id: SfxId) {
   const level = cueLevel(id);

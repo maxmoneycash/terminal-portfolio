@@ -2,7 +2,7 @@ import { createContext, useContext, type CSSProperties, type ReactNode } from "r
 import { AbsoluteFill, Audio, getInputProps, Img, Loop, OffthreadVideo, Sequence, staticFile, useCurrentFrame, useVideoConfig } from "remotion";
 import clipManifest from "../clips.json";
 import stillManifest from "../stills.json";
-import { caretVisible, easeInOut, keyed, keyedPoint, progress, type Key, type Point } from "./lib";
+import { caretVisible, easeInOut, easeOut, keyed, keyedPoint, progress, type Key, type Point } from "./lib";
 import "./xp.css";
 
 export const asset = (path: string) => staticFile(`xp/gui/${path}`);
@@ -29,7 +29,7 @@ export const clipRatio = (id: ClipId) => clipInfo(id).crop[2] / clipInfo(id).cro
  * One reviewed recording. `from` skips into the clip (seconds); short clips
  * loop so a scene can hold them as long as it needs.
  */
-export function Clip({ id, from = 0, fit = "cover", position = "50% 0%", style, thumb = false }: {
+export function Clip({ id, from = 0, fit = "contain", position = "50% 50%", style, thumb = false, rate = 1 }: {
   id: ClipId;
   from?: number;
   fit?: "cover" | "contain" | "fill";
@@ -37,6 +37,8 @@ export function Clip({ id, from = 0, fit = "cover", position = "50% 0%", style, 
   style?: CSSProperties;
   /** Use the 640-wide copy (small windows). */
   thumb?: boolean;
+  /** Playback speed (the timelapse runs a little faster on the beat grid). */
+  rate?: number;
 }) {
   const { fps } = useVideoConfig();
   if (AUDIO_ONLY) return null;
@@ -46,13 +48,14 @@ export function Clip({ id, from = 0, fit = "cover", position = "50% 0%", style, 
     <OffthreadVideo
       src={staticFile(`clips/${id}${thumb ? ".thumb" : ""}.mp4`)}
       trimBefore={trim}
+      playbackRate={rate}
       muted
       style={{ width: "100%", height: "100%", objectFit: fit, objectPosition: position, display: "block", ...style }}
     />
   );
   return (
     <AbsoluteFill style={{ background: "#000" }}>
-      <Loop durationInFrames={Math.max(1, length - trim)}>{video}</Loop>
+      <Loop durationInFrames={Math.max(1, Math.floor((length - trim) / rate))}>{video}</Loop>
     </AbsoluteFill>
   );
 }
@@ -92,7 +95,7 @@ export type WindowChrome = {
 };
 
 export function Window({
-  x, y, w, h, title, icon, active = true, chrome, children, bodyStyle, style, closeState, titleCaret, buttons = "all", titleStyle,
+  x, y, w, h, title, icon, active = true, chrome, children, bodyStyle, style, closeState, titleCaret, buttons = "all", titleStyle, appear,
 }: {
   x: number;
   y: number;
@@ -109,10 +112,14 @@ export function Window({
   titleCaret?: boolean;
   buttons?: "all" | "close";
   titleStyle?: CSSProperties;
+  /** Frame the window opened on: it zooms in from 92% over a few frames, as XP's did. */
+  appear?: number;
 }) {
   const frame = useCurrentFrame();
+  const open = appear === undefined ? 1 : progress(frame, appear, 5, easeOut);
+  const opening = open < 1 ? { opacity: 0.35 + 0.65 * open, transform: `scale(${0.92 + 0.08 * open})`, transformOrigin: "50% 40%" } : undefined;
   return (
-    <div className={`xpw${active ? "" : " is-inactive"}`} style={{ left: x, top: y, width: w, height: h, ...style }}>
+    <div className={`xpw${active ? "" : " is-inactive"}`} style={{ left: x, top: y, width: w, height: h, ...opening, ...style }}>
       <div className="xpw-title" style={titleStyle}>
         {icon ? <Img className="xpw-icon" src={icon} /> : null}
         <span className="xpw-title-text">
@@ -301,6 +308,7 @@ export function Bliss({ style }: { style?: CSSProperties }) {
 // Same icons, labels and order as the live MaxXP desktop (src/xp/types.ts).
 const DESKTOP_ICONS = [
   { label: "My Projects", src: "desktop/projects.webp" },
+  { label: "KK6OQA Radio", src: "desktop/radio.svg" },
   { label: "Demo Reel", src: "start-menu/mediaPlayer.webp" },
   { label: "About Me", src: "desktop/about.webp" },
   { label: "My Resume", src: "desktop/resume.webp" },
@@ -412,6 +420,19 @@ export function Cursor({ path, clicks = [], kind = "arrow", size = 32, shadow = 
 /* ------------------------------------------------------------------ */
 
 export type Shot = { x: number; y: number; z: number };
+export type Rect = { x: number; y: number; w: number; h: number };
+
+/** Closest the camera ever gets: the XP chrome and taskbar stay in view. */
+export const zoomCap = (portrait: boolean) => (portrait ? 1 : 1.14);
+
+/** A shot showing all of `rect` plus a margin, never closer than the cap. */
+export function shotOf(rect: Rect, W: number, H: number, portrait: boolean, margin = 24): Shot {
+  const z = Math.max(1, Math.min(zoomCap(portrait), W / (rect.w + 2 * margin), H / (rect.h + 2 * margin)));
+  return { x: rect.x + rect.w / 2, y: rect.y + rect.h / 2, z };
+}
+
+/** The whole screen. */
+export const wide = (W: number, H: number): Shot => ({ x: W / 2, y: H / 2, z: 1 });
 
 /**
  * Frames a W×H world. Each key names the world point at the frame's centre
@@ -425,8 +446,8 @@ export function Camera({ keys, children, shake = 0, clamp = true }: {
   clamp?: boolean;
 }) {
   const frame = useCurrentFrame();
-  const { W, H } = useOrientation();
-  const z = keyed(frame, keys.map((k) => ({ f: k.f, v: k.v.z, ease: k.ease ?? easeInOut })));
+  const { W, H, portrait } = useOrientation();
+  const z = Math.min(zoomCap(portrait), keyed(frame, keys.map((k) => ({ f: k.f, v: k.v.z, ease: k.ease ?? easeInOut }))));
   let x = keyed(frame, keys.map((k) => ({ f: k.f, v: k.v.x, ease: k.ease ?? easeInOut })));
   let y = keyed(frame, keys.map((k) => ({ f: k.f, v: k.v.y, ease: k.ease ?? easeInOut })));
   if (clamp && z >= 1) {
@@ -480,7 +501,8 @@ export function ClipWindow({ id, x, y, w, h, title, at = 0, from = 0, active = t
   x: number;
   y: number;
   w: number;
-  h: number;
+  /** Defaults to the recording's own shape, so nothing is letterboxed or cut. */
+  h?: number;
   title: string;
   at?: number;
   from?: number;
@@ -493,11 +515,14 @@ export function ClipWindow({ id, x, y, w, h, title, at = 0, from = 0, active = t
   const frame = useCurrentFrame();
   if (frame < at) return null;
   return (
-    <Window x={x} y={y} w={w} h={h} title={title} icon={icon ?? asset("desktop/projects.webp")} active={active} bodyStyle={{ background: "#111" }}>
+    <Window x={x} y={y} w={w} h={h ?? clipWindowHeight(id, w)} title={title} icon={icon ?? asset("desktop/projects.webp")} active={active} appear={at} bodyStyle={{ background: "#111" }}>
       <Clip id={id} from={from} position={position} fit={fit} thumb={thumb} />
     </Window>
   );
 }
+
+/** Window height (title bar + frame) that matches a recording's shape at width `w`. */
+export const clipWindowHeight = (id: ClipId, w: number) => Math.round((w - 6) / clipRatio(id)) + 33;
 
 export const posterOf = (id: ClipId) => staticFile(`clips/${id}.jpg`);
 
@@ -534,10 +559,12 @@ export type SoundName =
   | "menu" | "messenger" | "minimize" | "recycle" | "restore" | "shutdown" | "start";
 
 /** One of the site's XP system sounds, starting at local frame `at`. */
+const SFX_UNDER_MUSIC = 0.5;
+
 export function Sfx({ at, name, volume = 0.55 }: { at: number; name: SoundName; volume?: number }) {
   return (
     <Sequence from={Math.round(at)} layout="none" name={`sfx:${name}`}>
-      <Audio src={staticFile(`xp/sounds/${name}.mp3`)} volume={volume} />
+      <Audio src={staticFile(`xp/sounds/${name}.mp3`)} volume={volume * SFX_UNDER_MUSIC} />
     </Sequence>
   );
 }
@@ -549,9 +576,11 @@ export function Sfx({ at, name, volume = 0.55 }: { at: number; name: SoundName; 
 type StillId = keyof typeof stillManifest.stills;
 export const stillInfo = (id: StillId) => stillManifest.stills[id];
 export const stillRatio = (id: StillId) => stillInfo(id).crop[2] / stillInfo(id).crop[3];
+/** Window height (title bar + frame + extra chrome) that matches a screenshot at width `w`. */
+export const stillWindowHeight = (id: StillId, w: number, chrome = 33) => Math.round((w - 6) / stillRatio(id)) + chrome;
 
 /** A reviewed app screenshot (crop of the original, see stills.json). */
-export function Still({ id, fit = "cover", position = "50% 0%", style }: {
+export function Still({ id, fit = "contain", position = "50% 50%", style }: {
   id: StillId;
   fit?: "cover" | "contain";
   position?: string;

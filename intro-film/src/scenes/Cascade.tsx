@@ -1,4 +1,5 @@
 import { useCurrentFrame } from "remotion";
+import { BEAT } from "../beat";
 import { Clip, Desktop, Sfx, useOrientation, Window, WindowStamp } from "../xp";
 
 /** XP Solitaire's victory cascade, with trading apps for cards. */
@@ -15,7 +16,7 @@ const CARDS = [
   { id: "peptide-tracker", title: "Peptide Tracker" },
 ] as const;
 
-const EVERY = 9; // frames between launches
+const EVERY = BEAT / 2; // one launch per eighth note
 const STAMP = 2; // frames between trail stamps
 
 type Body = { x: number; y: number };
