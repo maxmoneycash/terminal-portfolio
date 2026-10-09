@@ -443,7 +443,7 @@ function App() {
       </main>
 
       <BootScreens flow={flow} />
-      {introOpen ? <IntroVideo fading={introFading} onFinish={setIntroFading} /> : null}
+      {introOpen ? <IntroVideo fading={introFading} onFinish={setIntroFading} requested /> : null}
       <CrtOverlay enabled={crtEnabled} />
       <ScreenSaverOverlay desktopVisible={desktopVisible && !introOpen && !activeWindow} />
     </>

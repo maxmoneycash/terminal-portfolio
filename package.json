@@ -5,13 +5,19 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
-    "build": "node scripts/fetch-github-projects.mjs && node scripts/check-live-apps.mjs && tsc -b && vite build",
+    "build": "node scripts/fetch-github-projects.mjs && node scripts/check-live-apps.mjs && node scripts/fetch-intro-films.mjs && tsc -b && vite build",
     "preview": "vite preview --host 0.0.0.0",
     "reels:cut": "python3 scripts/cut_reels.py",
-    "intro:build": "bash scripts/intro/build.sh",
+    "intro:setup": "npm --prefix intro-film ci",
+    "intro:prepare": "python3 intro-film/prepare.py",
+    "intro:render": "npm --prefix intro-film run render:landscape && npm --prefix intro-film run render:portrait",
+    "intro:publish": "python3 intro-film/publish.py",
+    "intro:build": "npm run intro:prepare && npm run intro:render && npm run intro:publish && npm run intro:clean",
     "projects:refresh": "node scripts/fetch-github-projects.mjs",
     "resume:build": "cd resume && pdflatex -interaction=nonstopmode Max_Mohammadi_Resume.tex && pdflatex -interaction=nonstopmode Max_Mohammadi_Resume_Engineering.tex && pdflatex -interaction=nonstopmode Max_Mohammadi_Resume_Whop.tex && cp Max_Mohammadi_Resume.pdf ../public/Max_Mohammadi_Resume_ATS.pdf && cp Max_Mohammadi_Resume_Engineering.pdf ../public/Max_Mohammadi_Resume_Engineering.pdf && cp Max_Mohammadi_Resume_Whop.pdf ../public/Max_Mohammadi_Resume_Whop.pdf",
     "intro:clean": "node scripts/clean-intro.mjs",
+    "intro:fetch": "node scripts/fetch-intro-films.mjs",
+    "intro:upload": "gh release upload intro-films public/videos/intro/*.mp4 --repo maxmoneycash/terminal-portfolio --clobber",
     "projects:check-links": "node scripts/check-live-apps.mjs"
   },
   "dependencies": {

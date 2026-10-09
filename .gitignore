@@ -31,4 +31,6 @@ resume/*.out
 
 # Intro video render workspace (frames, renders)
 .intro-build/
+# Intro films are fetched at build time from the intro-films release
+public/videos/intro/*.mp4
 __pycache__/

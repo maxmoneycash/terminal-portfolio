@@ -89,59 +89,9 @@
   background: rgb(0 0 0 / 0.7);
 }
 
-.intro-skip:focus-visible,
-.intro-play:focus-visible {
+.intro-skip:focus-visible {
   outline: 1px dotted #fff;
   outline-offset: 3px;
-}
-
-/* Shown instead of autoplay for reduced-motion / Save-Data visitors, or
-   when the browser refuses autoplay: Media Player's big glass Play. */
-.intro-play {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  display: grid;
-  justify-items: center;
-  gap: 10px;
-  border: 0;
-  background: none;
-  color: #fff;
-  font: inherit;
-  font-size: 14px;
-  text-shadow: 0 1px 3px rgb(0 0 0 / 0.7);
-  cursor: pointer;
-  transform: translate(-50%, -50%);
-}
-
-.intro-play-glass {
-  position: relative;
-  width: 76px;
-  height: 76px;
-  border: 2px solid rgb(210 230 255 / 0.9);
-  border-radius: 50%;
-  background: radial-gradient(circle at 50% 30%, #9fd0ff 0%, #3b86e8 45%, #154aa8 100%);
-  box-shadow: 0 6px 22px rgb(0 0 0 / 0.5), inset 0 2px 0 rgb(255 255 255 / 0.45);
-  transition: transform 140ms ease, filter 140ms ease;
-}
-
-.intro-play-glass::before {
-  position: absolute;
-  top: 50%;
-  left: 54%;
-  border-top: 14px solid transparent;
-  border-bottom: 14px solid transparent;
-  border-left: 22px solid #fff;
-  content: "";
-  transform: translate(-50%, -50%);
-}
-
-.intro-play:hover .intro-play-glass {
-  filter: brightness(1.08);
-}
-
-.intro-play:active .intro-play-glass {
-  transform: scale(0.97);
 }
 
 /* ------------------------------------------------------------------ */

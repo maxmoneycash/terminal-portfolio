@@ -1,23 +1,24 @@
 /**
- * The MaxXP intro: a phone filming an XP monitor as windows pop open, each
- * playing a project from the demo reel. It stands in for the boot screen and
- * logs in on film, then hands off directly to the interactive desktop.
+ * The MaxXP intro film: XP boots, logs in, and the projects play out through
+ * Notepad, Internet Explorer, balloon tips and dialogs until every window
+ * closes on the live desktop. It hands off directly to the interactive desktop.
  *
- * Rendered by scripts/intro (make_showcase.py, then scene.py in Blender).
+ * Rendered by intro-film/ (Remotion) from the original project recordings.
  */
 import { useCallback, useEffect, useRef, useState } from "react";
 import { cn } from "../lib/cn";
+import { getSystemVolume } from "./audio";
 
 const INTRO = {
   portrait: {
     orient: "portrait",
-    src: "/videos/intro/intro-portrait-139bb3e8.mp4",
-    poster: "/videos/intro/intro-portrait-139bb3e8.jpg",
+    src: "/videos/intro/intro-portrait-fd3151d6.mp4",
+    poster: "/videos/intro/intro-portrait-fd3151d6.jpg",
   },
   landscape: {
     orient: "landscape",
-    src: "/videos/intro/intro-landscape-548b1e6e.mp4",
-    poster: "/videos/intro/intro-landscape-548b1e6e.jpg",
+    src: "/videos/intro/intro-landscape-8b520101.mp4",
+    poster: "/videos/intro/intro-landscape-8b520101.jpg",
   },
 };
 
@@ -33,8 +34,8 @@ function pickSource() {
   }
 }
 
-/** Visitors who asked for less motion or less data get a still frame and a Play button. */
-function prefersStill() {
+/** Visitors who asked for less motion or less data skip an intro they didn't request. */
+function prefersSkip() {
   try {
     const saveData = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData;
     return Boolean(saveData) || window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -45,10 +46,16 @@ function prefersStill() {
 
 export type IntroEnd = "ended" | "skipped";
 
-export function IntroVideo({ onFinish, fading }: { onFinish: (how: IntroEnd) => void; fading: IntroEnd | null }) {
+/**
+ * `requested` means the visitor clicked Watch intro: the film plays even
+ * with reduced motion, and with its XP sounds when the browser allows.
+ */
+export function IntroVideo({ onFinish, fading, requested = false }: {
+  onFinish: (how: IntroEnd) => void;
+  fading: IntroEnd | null;
+  requested?: boolean;
+}) {
   const [source] = useState(pickSource);
-  const [still] = useState(prefersStill);
-  const [waitingForPlay, setWaitingForPlay] = useState(still);
   const [started, setStarted] = useState(false);
   const [skipVisible, setSkipVisible] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -65,20 +72,28 @@ export function IntroVideo({ onFinish, fading }: { onFinish: (how: IntroEnd) => 
     [onFinish],
   );
 
-  const play = useCallback(() => {
+  useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
-    video.muted = true;
-    video.play().then(
-      () => setWaitingForPlay(false),
-      // Autoplay refused (e.g. iOS Low Power Mode): offer the Play button.
-      () => setWaitingForPlay(true),
-    );
-  }, []);
-
-  useEffect(() => {
-    if (!still) play();
-  }, [still, play]);
+    if (!requested && prefersSkip()) {
+      finish();
+      return;
+    }
+    const playMuted = () => {
+      video.muted = true;
+      // Autoplay refused (e.g. iOS Low Power Mode): go straight to the desktop.
+      video.play().catch(() => finish());
+    };
+    // Sound follows the tray volume; the browser may still insist on muted.
+    const volume = getSystemVolume() / 100;
+    if (!requested || volume === 0) {
+      playMuted();
+      return;
+    }
+    video.volume = volume;
+    video.muted = false;
+    video.play().catch(playMuted);
+  }, [requested, finish]);
 
   useEffect(() => {
     const id = window.setTimeout(() => setSkipVisible(true), SKIP_REVEAL_MS);
@@ -90,10 +105,10 @@ export function IntroVideo({ onFinish, fading }: { onFinish: (how: IntroEnd) => 
   }, []);
 
   useEffect(() => {
-    if (waitingForPlay || started) return;
+    if (started) return;
     const id = window.setTimeout(() => finish(), STALL_MS);
     return () => window.clearTimeout(id);
-  }, [waitingForPlay, started, finish]);
+  }, [started, finish]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -108,9 +123,7 @@ export function IntroVideo({ onFinish, fading }: { onFinish: (how: IntroEnd) => 
       className={cn("intro", fading && `is-fading-${fading}`)}
       role="region"
       aria-label="MaxXP intro"
-      onClick={() => {
-        if (!waitingForPlay) finish();
-      }}
+      onClick={() => finish()}
     >
       <video
         ref={videoRef}
@@ -126,23 +139,10 @@ export function IntroVideo({ onFinish, fading }: { onFinish: (how: IntroEnd) => 
         onError={() => finish()}
         aria-hidden="true"
       />
-      {waitingForPlay ? (
-        <button
-          type="button"
-          className="intro-play"
-          onClick={(event) => {
-            event.stopPropagation();
-            play();
-          }}
-        >
-          <span className="intro-play-glass" aria-hidden="true" />
-          <span className="intro-play-label">Play intro</span>
-        </button>
-      ) : null}
       <button
         ref={skipRef}
         type="button"
-        className={cn("intro-skip", (skipVisible || waitingForPlay) && "is-visible")}
+        className={cn("intro-skip", skipVisible && "is-visible")}
         onClick={(event) => {
           event.stopPropagation();
           finish();

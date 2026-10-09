@@ -1,0 +1,246 @@
+{
+ "stills": {
+  "lilyshark-traffic": {
+   "file": "Screenshot 2026-08-15 at 3.12.50?AM.png",
+   "crop": [
+    24,
+    84,
+    3386,
+    2056
+   ],
+   "repo": "maxmoneycash/lilyshark",
+   "title": "lilyshark-traffic.png"
+  },
+  "commits-sh-card": {
+   "file": "Screenshot 2026-09-22 at 3.12.01?PM.png",
+   "crop": [
+    30,
+    20,
+    1596,
+    1630
+   ],
+   "repo": "private",
+   "title": "commits.sh-maxmoneycash.png"
+  },
+  "commits-sh-home": {
+   "file": "Screenshot 2026-08-25 at 8.12.04?PM.png",
+   "crop": [
+    70,
+    112,
+    3246,
+    1878
+   ],
+   "repo": "private",
+   "title": "commits.sh.png"
+  },
+  "tend-home": {
+   "file": "Screenshot 2026-07-30 at 3.41.53?PM.png",
+   "crop": [
+    24,
+    72,
+    3384,
+    2078
+   ],
+   "repo": "maxmoneycash/tend",
+   "title": "tend.png"
+  },
+  "tend-app": {
+   "file": "Screenshot 2026-07-30 at 4.55.15?PM.png",
+   "crop": [
+    0,
+    0,
+    2834,
+    1680
+   ],
+   "repo": "maxmoneycash/tend",
+   "title": "tend-donations.png"
+  },
+  "content-rewards": {
+   "file": "Screenshot 2026-03-16 at 1.09.02?PM.png",
+   "crop": [
+    0,
+    0,
+    2002,
+    1760
+   ],
+   "repo": "SeamMoney/shelby-content-rewards",
+   "title": "content-rewards-campaign.png"
+  },
+  "cash-trading-btc": {
+   "file": "Screenshot 2026-06-04 at 9.40.55?PM.png",
+   "crop": [
+    16,
+    72,
+    3408,
+    2078
+   ],
+   "repo": "SeamMoney/cash.trading",
+   "title": "cash.trading-btc.png"
+  },
+  "cash-trading-aapl": {
+   "file": "Screenshot 2026-08-25 at 7.18.22?PM.png",
+   "crop": [
+    16,
+    72,
+    3408,
+    2078
+   ],
+   "repo": "SeamMoney/cash.trading",
+   "title": "cash.trading-aapl.png"
+  },
+  "dev-tests": {
+   "file": "Screenshot 2026-09-04 at 7.38.35?PM.png",
+   "crop": [
+    1740,
+    75,
+    1660,
+    1060
+   ],
+   "repo": "maxmoneycash/lilyshark",
+   "title": "lilyshark - 519 tests"
+  },
+  "dev-codex": {
+   "file": "Screenshot 2026-09-06 at 12.45.16?PM.png",
+   "crop": [
+    20,
+    70,
+    3396,
+    2070
+   ],
+   "repo": "maxmoneycash/lilyshark",
+   "title": "lilyshark - codex"
+  },
+  "turbotokens": {
+   "file": "Screenshot 2026-09-07 at 1.29.59?AM.png",
+   "crop": [
+    40,
+    50,
+    910,
+    640
+   ],
+   "repo": "maxmoneycash/turbotokens",
+   "title": "turbotokens.png"
+  },
+  "whop-finance": {
+   "file": "Screenshot 2026-04-12 at 6.42.43?PM.png",
+   "crop": [
+    100,
+    120,
+    1930,
+    1030
+   ],
+   "repo": "private",
+   "title": "whop-finance.png"
+  },
+  "whop-finance-sdk": {
+   "file": "Screenshot 2026-03-05 at 10.22.10?PM.png",
+   "crop": [
+    16,
+    72,
+    3408,
+    2078
+   ],
+   "repo": "private",
+   "title": "whop-finance-sdk.png"
+  },
+  "tx-composer": {
+   "file": "Screenshot 2026-02-11 at 4.03.14?PM.png",
+   "crop": [
+    0,
+    0,
+    2074,
+    1434
+   ],
+   "repo": "SeamMoney/tx-composer",
+   "title": "tx-composer.png"
+  },
+  "aptos-archon": {
+   "file": "Screenshot 2025-12-27 at 10.36.36?PM.png",
+   "crop": [
+    0,
+    0,
+    1480,
+    1784
+   ],
+   "repo": "private",
+   "title": "velociraptr-vs-archon.png"
+  },
+  "gadgets-catalog": {
+   "file": "Screenshot 2026-10-05 at 11.52.51?PM.png",
+   "crop": [
+    24,
+    92,
+    3384,
+    2112
+   ],
+   "repo": "private",
+   "title": "gadgets.sh.png"
+  },
+  "gadgets-huskylens": {
+   "file": "Screenshot 2026-09-29 at 8.37.03?PM.png",
+   "crop": [
+    1090,
+    230,
+    1280,
+    1966
+   ],
+   "repo": "private",
+   "title": "gadgets.sh-huskylens-2.png"
+  },
+  "gadgets-home": {
+   "file": "Screenshot 2026-10-06 at 7.58.39?PM.png",
+   "crop": [
+    0,
+    12,
+    2852,
+    2038
+   ],
+   "repo": "private",
+   "title": "gadgets.sh-home.png"
+  },
+  "roman-parts": {
+   "file": "Screenshot 2026-09-27 at 6.38.55?PM.png",
+   "crop": [
+    24,
+    92,
+    3384,
+    2104
+   ],
+   "repo": "maxmoneycash/orbital-works",
+   "title": "roman-every-part.png"
+  },
+  "roman-now": {
+   "file": "Screenshot 2026-09-27 at 6.39.35?PM.png",
+   "crop": [
+    24,
+    92,
+    3384,
+    2104
+   ],
+   "repo": "maxmoneycash/orbital-works",
+   "title": "roman-right-now.png"
+  },
+  "roman-see": {
+   "file": "Screenshot 2026-09-27 at 6.40.11?PM.png",
+   "crop": [
+    24,
+    92,
+    3384,
+    2104
+   ],
+   "repo": "maxmoneycash/orbital-works",
+   "title": "roman-how-it-will-see.png"
+  },
+  "roman-panel": {
+   "file": "Screenshot 2026-09-27 at 11.49.30?AM.png",
+   "crop": [
+    24,
+    92,
+    3384,
+    2104
+   ],
+   "repo": "maxmoneycash/orbital-works",
+   "title": "roman-telescope.png"
+  }
+ }
+}

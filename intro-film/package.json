@@ -1,0 +1,23 @@
+{
+  "name": "maxxp-intro-film",
+  "private": true,
+  "type": "module",
+  "description": "The MaxXP intro film: XP-styled motion graphics rendered with Remotion from the original project recordings.",
+  "scripts": {
+    "studio": "remotion studio src/index.ts",
+    "render:landscape": "node render.mjs landscape",
+    "render:portrait": "node render.mjs portrait"
+  },
+  "dependencies": {
+    "@remotion/bundler": "4.0.534",
+    "@remotion/cli": "4.0.534",
+    "@remotion/renderer": "4.0.534",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "remotion": "4.0.534"
+  },
+  "devDependencies": {
+    "@types/react": "19.2.7",
+    "typescript": "5.9.3"
+  }
+}

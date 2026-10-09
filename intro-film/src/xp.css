@@ -1,0 +1,475 @@
+/* Luna (Windows XP) chrome for the intro film. Metrics follow XP at 96 DPI;
+   the render scale (1.5x landscape, 2x portrait) keeps every edge sharp. */
+
+* {
+  box-sizing: border-box;
+}
+
+.film {
+  font-family: Tahoma, Verdana, sans-serif;
+  font-size: 11px;
+  color: #000;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: geometricPrecision;
+}
+
+/* ------------------------------------------------------------------ */
+/* Window                                                              */
+/* ------------------------------------------------------------------ */
+
+.xpw {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  padding: 0 3px 3px;
+  border-radius: 8px 8px 0 0;
+  background: #ece9d8;
+  box-shadow:
+    inset -1px -1px #00138c,
+    inset 1px 1px #0831d9,
+    inset -2px -2px #001ea0,
+    inset 2px 2px #166aee,
+    inset -3px -3px #003bda,
+    inset 3px 3px #0855dd,
+    0 12px 30px rgb(0 18 70 / 0.38);
+}
+
+.xpw.is-inactive {
+  box-shadow:
+    inset -1px -1px #7184b8,
+    inset 1px 1px #91a3d8,
+    inset -2px -2px #8495c8,
+    inset 2px 2px #a5b6e3,
+    inset -3px -3px #94a4d4,
+    inset 3px 3px #9fb0de,
+    0 10px 24px rgb(0 18 70 / 0.28);
+}
+
+/* Trail and stack copies: frame only, no drop shadow. */
+.xpw.is-stamp {
+  box-shadow:
+    inset -1px -1px #00138c,
+    inset 1px 1px #0831d9,
+    inset -2px -2px #001ea0,
+    inset 2px 2px #166aee,
+    inset -3px -3px #003bda,
+    inset 3px 3px #0855dd;
+}
+
+.xpw-title {
+  position: relative;
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+  height: 30px;
+  margin: 0 -3px;
+  padding: 0 5px 0 7px;
+  border-top: 1px solid #0831d9;
+  border-right: 1px solid #001ea0;
+  border-left: 1px solid #0831d9;
+  border-radius: 8px 8px 0 0;
+  background: linear-gradient(180deg, #0997ff, #0053ee 8%, #0050ee 40%, #06f 88%, #06f 93%, #005bff 95%, #003dd7 96%, #003dd7);
+  color: #fff;
+  font: 700 13px/1 "Trebuchet MS", Tahoma, sans-serif;
+  letter-spacing: 0.1px;
+  text-shadow: 1px 1px #0f1089;
+  white-space: nowrap;
+}
+
+.is-inactive > .xpw-title {
+  background: linear-gradient(180deg, #a5bcf1, #7d9ee6 8%, #7a99e3 40%, #87a6ed 88%, #87a6ed 93%, #7f9fea 95%, #6f8ed8 96%, #6f8ed8);
+  color: #d8e4f8;
+  text-shadow: none;
+}
+
+.xpw-title-text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.xpw-icon {
+  width: 16px;
+  height: 16px;
+  flex: none;
+  object-fit: contain;
+}
+
+.xpw-buttons {
+  display: flex;
+  flex: none;
+  gap: 2px;
+}
+
+.xpw-btn {
+  position: relative;
+  width: 21px;
+  height: 21px;
+  border: 1px solid #fff;
+  border-radius: 3px;
+  background: radial-gradient(circle at 90% 90%, #0054e9 0%, #2263d5 55%, #4479e4 70%, #a3bbec 90%, #fff 100%);
+  box-shadow: inset 0 -1px 2px 1px #4646ff;
+}
+
+.xpw-btn.close {
+  background: radial-gradient(circle at 90% 90%, #cc4600 0%, #dc6527 55%, #cd7546 70%, #ffccb2 90%, #fff 100%);
+  box-shadow: inset 0 -1px 2px 1px #da4600;
+}
+
+.xpw-btn svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.xpw-btn.is-pressed {
+  filter: brightness(0.82);
+}
+
+.xpw-btn.is-hot {
+  filter: brightness(1.14) saturate(1.1);
+}
+
+.xpw-menu {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 0;
+  height: 21px;
+  padding: 0 2px;
+  border-bottom: 1px solid #d8d2bd;
+  background: #ece9d8;
+  font-size: 11px;
+}
+
+.xpw-menu span {
+  padding: 0 6px;
+}
+
+.xpw-toolbar {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 2px;
+  height: 38px;
+  padding: 0 4px;
+  border-bottom: 1px solid #d8d2bd;
+  background: linear-gradient(180deg, #fbfbf8, #ece9d8);
+  font-size: 11px;
+}
+
+.xpw-tool {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 5px;
+}
+
+.xpw-tool img,
+.xpw-tool .glyph {
+  width: 24px;
+  height: 24px;
+}
+
+.xpw-sep {
+  width: 1px;
+  height: 26px;
+  margin: 0 3px;
+  background: #c8c3ae;
+  box-shadow: 1px 0 #fff;
+}
+
+.xpw-address {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+  height: 25px;
+  padding: 0 4px;
+  border-bottom: 1px solid #d8d2bd;
+  background: #ece9d8;
+  color: #6e6c62;
+  font-size: 11px;
+}
+
+.xpw-address-field {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 5px;
+  height: 19px;
+  padding: 0 4px;
+  border: 1px solid #7f9db9;
+  background: #fff;
+  color: #000;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.xpw-go {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  color: #000;
+}
+
+.xpw-body {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  background: #fff;
+}
+
+.xpw-status {
+  display: flex;
+  flex: none;
+  align-items: center;
+  height: 21px;
+  padding: 0 6px;
+  border-top: 1px solid #d8d2bd;
+  background: #ece9d8;
+  color: #000;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+/* ------------------------------------------------------------------ */
+/* Controls                                                            */
+/* ------------------------------------------------------------------ */
+
+.xpbtn {
+  display: inline-grid;
+  place-items: center;
+  min-width: 75px;
+  height: 23px;
+  padding: 0 10px;
+  border: 1px solid #003c74;
+  border-radius: 3px;
+  background: linear-gradient(180deg, #fff, #ecebe6 86%, #d6d0c5);
+  color: #000;
+  font: 11px Tahoma, sans-serif;
+  box-shadow: inset -1px -1px #d6d0c5;
+}
+
+.xpbtn.is-default {
+  box-shadow: inset -1px 1px #cee7ff, inset 1px 2px #98b8ea, inset -2px 2px #bcd4f6, inset 1px -1px #89ade4, inset 2px -2px #89ade4;
+}
+
+.xpbtn.is-hot {
+  box-shadow: inset -1px 1px #fff0cf, inset 1px 2px #fdd889, inset -2px 2px #fbc761, inset 2px -2px #e5a01a;
+}
+
+.xpbtn.is-pressed {
+  background: linear-gradient(180deg, #cdcac3, #e3e3db 8%, #e5e5de 94%, #f2f2f1);
+  box-shadow: none;
+}
+
+.xp-radio {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.xp-radio i {
+  display: block;
+  width: 13px;
+  height: 13px;
+  border: 1px solid #1c5180;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #dcdcd7, #fff);
+}
+
+.xp-radio i.is-on {
+  background: radial-gradient(circle, #55d351 0 28%, #2c9b2a 36%, transparent 40%), linear-gradient(135deg, #dcdcd7, #fff);
+}
+
+/* ------------------------------------------------------------------ */
+/* Balloon tip                                                         */
+/* ------------------------------------------------------------------ */
+
+.xpb {
+  position: absolute;
+  padding: 9px 30px 11px 11px;
+  border: 1px solid #000;
+  border-radius: 9px;
+  background: #ffffe1;
+  color: #000;
+  box-shadow: 3px 4px 7px rgb(0 0 0 / 0.28);
+}
+
+.xpb-title {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 7px;
+  font-weight: 700;
+}
+
+.xpb-title img {
+  width: 18px;
+  height: 18px;
+}
+
+.xpb-close {
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  width: 15px;
+  height: 15px;
+  border: 1px solid #c4c1b0;
+  border-radius: 3px;
+}
+
+.xpb-close::before,
+.xpb-close::after {
+  position: absolute;
+  top: 6px;
+  left: 2px;
+  width: 9px;
+  height: 1.5px;
+  background: #555;
+  content: "";
+}
+
+.xpb-close::before {
+  transform: rotate(45deg);
+}
+
+.xpb-close::after {
+  transform: rotate(-45deg);
+}
+
+.xpb-tail {
+  position: absolute;
+  overflow: visible;
+}
+
+/* ------------------------------------------------------------------ */
+/* Taskbar                                                             */
+/* ------------------------------------------------------------------ */
+
+.xpt {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  align-items: stretch;
+  height: 30px;
+  background: linear-gradient(180deg, #1f2f86 0, #3165c4 3%, #3682e5 6%, #4490e6 10%, #3883e5 12%, #2b71e0 15%, #2663da 18%, #235bd6 20%, #2258d5 23%, #2157d6 38%, #245ddb 54%, #2562df 86%, #245fdc 89%, #2158d4 92%, #1d4ec0 95%, #1941a5 98%);
+  color: #fff;
+}
+
+.xpt-start {
+  position: relative;
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 5px;
+  width: 99px;
+  padding-left: 9px;
+  border-radius: 0 10px 10px 0;
+  background: radial-gradient(ellipse at 40% -20%, #8fd88b 0%, transparent 55%), linear-gradient(180deg, #3e9c3e 0%, #4bb24b 12%, #3c9e3c 30%, #34923a 70%, #2f8030 92%, #2a6c28 100%);
+  box-shadow: inset -2px 0 3px rgb(0 0 0 / 0.35), 2px 0 3px rgb(0 0 0 / 0.25);
+  font: italic 700 19px/1 "Trebuchet MS", sans-serif;
+  letter-spacing: 0.5px;
+  text-shadow: 1px 1px 2px rgb(0 0 0 / 0.6);
+}
+
+.xpt-start img {
+  width: 22px;
+  height: 22px;
+  filter: drop-shadow(1px 1px 1px rgb(0 0 0 / 0.4));
+}
+
+.xpt-tasks {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 3px;
+  min-width: 0;
+  padding: 0 8px;
+}
+
+.xpt-task {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 160px;
+  height: 24px;
+  padding: 0 8px;
+  overflow: hidden;
+  border-radius: 3px;
+  background: linear-gradient(180deg, #5d9cf6 0, #3c81f3 12%, #3c81f3 88%, #2c6ae0 100%);
+  box-shadow: inset -1px 0 rgb(0 0 0 / 0.3), inset 1px 1px 1px rgb(255 255 255 / 0.25);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.xpt-task.is-active {
+  background: #1e52b7;
+  box-shadow: inset 0 0 1px 1px rgb(0 0 0 / 0.25), inset 1px 0 1px rgb(0 0 0 / 0.65);
+}
+
+.xpt-task img {
+  width: 16px;
+  height: 16px;
+}
+
+.xpt-tray {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 9px;
+  padding: 0 12px 0 12px;
+  border-left: 1px solid #1042af;
+  background: linear-gradient(180deg, #0c59b9 1%, #139ee9 6%, #18b5f2 10%, #139beb 14%, #1290e8 19%, #0d8dea 63%, #0d9ff1 81%, #0f9eed 88%, #119be9 91%, #1392e2 94%, #137ed7 97%, #095bc9 100%);
+  box-shadow: inset 1px 0 1px #18bbff;
+  font-size: 11px;
+}
+
+.xpt-tray img {
+  width: 16px;
+  height: 16px;
+}
+
+/* ------------------------------------------------------------------ */
+/* Desktop                                                             */
+/* ------------------------------------------------------------------ */
+
+.xpd-icon {
+  position: absolute;
+  display: grid;
+  justify-items: center;
+  gap: 3px;
+  width: 76px;
+  color: #fff;
+  font-size: 11px;
+  text-align: center;
+  text-shadow: 1px 1px 1px #000, 0 0 2px #000;
+}
+
+.xpd-icon img {
+  width: 40px;
+  height: 40px;
+  filter: drop-shadow(1px 2px 1px rgb(0 0 0 / 0.35));
+}
+
+/* ------------------------------------------------------------------ */
+/* Type                                                                */
+/* ------------------------------------------------------------------ */
+
+.welcome-type {
+  color: #fff;
+  font: italic 700 64px/1 Verdana, Tahoma, sans-serif;
+  letter-spacing: -1px;
+  text-shadow: 3px 4px 0 rgb(24 38 140 / 0.9);
+  white-space: pre;
+}
+
+.mono {
+  font-family: "Lucida Console", "Andale Mono", monospace;
+}

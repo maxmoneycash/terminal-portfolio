@@ -1,0 +1,434 @@
+{
+ "clips": {
+  "aptos-vs-megaeth": {
+   "title": "Aptos vs MegaETH",
+   "recording": "best_1.*",
+   "start": 77,
+   "duration": 6.0,
+   "crop": [
+    10,
+    88,
+    3430,
+    2146
+   ],
+   "width": 2400
+  },
+  "aptos-vs-megaeth-rerun": {
+   "title": "MegaETH \u2014 another run",
+   "recording": "Screen Recording 2026-01-31 at 1.11*",
+   "start": 12,
+   "duration": 6.0,
+   "crop": [
+    2360,
+    90,
+    1080,
+    1980
+   ],
+   "width": 1080
+  },
+  "sol2move-first-run": {
+   "title": "Sol2Move \u2014 complete",
+   "recording": "Screen Recording 2026-02-24 at 3.11*",
+   "start": 24,
+   "duration": 6.0,
+   "crop": [
+    380,
+    120,
+    2890,
+    2110
+   ],
+   "width": 2400
+  },
+  "sol2move-boringvault": {
+   "title": "Sol2Move \u2014 compiler results",
+   "recording": "veda-transpiler.mp4",
+   "start": 54,
+   "duration": 6.0,
+   "crop": [
+    780,
+    110,
+    2470,
+    1050
+   ],
+   "width": 2400
+  },
+  "sol2move-generated-code": {
+   "title": "Generated Move",
+   "recording": "veda-transpiled-code.mp4",
+   "start": 17,
+   "duration": 6.0,
+   "crop": [
+    32,
+    190,
+    2330,
+    2018
+   ],
+   "width": 2330
+  },
+  "aptos-block-machine": {
+   "title": "Block Machine \u2014 blocks",
+   "recording": "Screen Recording 2026-02-11 at 8.45*",
+   "start": 8,
+   "duration": 6.0,
+   "crop": [
+    80,
+    75,
+    3280,
+    1830
+   ],
+   "width": 2400
+  },
+  "block-machine-functions": {
+   "title": "Function costs",
+   "recording": "Screen Recording 2026-02-23 at 11.30*",
+   "start": 33,
+   "duration": 6.0,
+   "crop": [
+    130,
+    100,
+    3380,
+    2110
+   ],
+   "width": 2400
+  },
+  "block-machine-profile": {
+   "title": "Transaction profile",
+   "recording": "Screen Recording 2026-02-19 at 10.07*",
+   "start": 35.2,
+   "duration": 6.0,
+   "crop": [
+    130,
+    740,
+    3380,
+    1440
+   ],
+   "width": 2400
+  },
+  "nipahscan": {
+   "title": "NipahScan",
+   "recording": "Screen Recording 2026-02-21 at 10.57*",
+   "start": 29.2,
+   "duration": 6.0,
+   "crop": [
+    130,
+    100,
+    3380,
+    2110
+   ],
+   "width": 2400
+  },
+  "nipahscan-genome": {
+   "title": "Genome explorer",
+   "recording": "Screen Recording 2026-02-21 at 10.57*",
+   "start": 47,
+   "duration": 6.0,
+   "crop": [
+    130,
+    100,
+    3380,
+    2110
+   ],
+   "width": 2400
+  },
+  "decibrrr-live": {
+   "title": "Decibrrr \u2014 live orders",
+   "recording": "Screen Recording 2025-12-01 at 9.38*",
+   "start": 146,
+   "duration": 6.0,
+   "crop": [
+    10,
+    88,
+    3430,
+    2146
+   ],
+   "width": 2400
+  },
+  "decibrrr-points": {
+   "title": "Decibrrr \u2014 portfolio",
+   "recording": "Screen Recording 2026-02-03 at 8.59*",
+   "start": 16.4,
+   "duration": 6.0,
+   "crop": [
+    130,
+    105,
+    900,
+    1740
+   ],
+   "width": 900
+  },
+  "aptos-velociraptr": {
+   "title": "Velociraptr \u2014 consensus",
+   "recording": "Screen Recording 2025-12-22 at 1.13*",
+   "start": 33,
+   "duration": 6.0,
+   "crop": [
+    140,
+    90,
+    1070,
+    2110
+   ],
+   "width": 1070
+  },
+  "fee-market-simulator": {
+   "title": "Fee market simulation",
+   "recording": "Screen Recording 2026-01-02 at 4.36*",
+   "start": 131,
+   "duration": 6.0,
+   "crop": [
+    28,
+    40,
+    1210,
+    1430
+   ],
+   "width": 1210
+  },
+  "aptos-hft-demo": {
+   "title": "Aptos \u2014 trade stream",
+   "recording": "Screen Recording 2026-01-06 at 5.16*",
+   "start": 17,
+   "duration": 6.0,
+   "crop": [
+    1302,
+    85,
+    1228,
+    2050
+   ],
+   "width": 1228
+  },
+  "aptos-load-test": {
+   "title": "Aptos \u2014 load test",
+   "recording": "Screen Recording 2026-01-29 at 2.58*",
+   "start": 17,
+   "duration": 6.0,
+   "crop": [
+    64,
+    210,
+    1028,
+    1970
+   ],
+   "width": 1028
+  },
+  "aptos-testnet-nodes": {
+   "title": "Aptos \u2014 testnet nodes",
+   "recording": "Screen Recording 2026-01-29 at 6.46*",
+   "start": 0.5,
+   "duration": 2.79,
+   "crop": [
+    18,
+    92,
+    932,
+    1370
+   ],
+   "width": 932
+  },
+  "seam-dex": {
+   "title": "Seam \u2014 liquidity range",
+   "recording": "Screen Recording 2024-02-06 at 9.34*",
+   "start": 29,
+   "duration": 6.0,
+   "crop": [
+    40,
+    190,
+    3760,
+    1930
+   ],
+   "width": 2400
+  },
+  "shelby-pulse": {
+   "title": "Shelby Pulse \u2014 latency",
+   "recording": "Screen Recording 2025-12-09 at 7.17*",
+   "start": 219,
+   "duration": 6.0,
+   "crop": [
+    42,
+    112,
+    1070,
+    2050
+   ],
+   "width": 1070
+  },
+  "wick-markets-ride": {
+   "title": "Wick Markets",
+   "recording": "Screen Recording 2026-06-21 at 5.49*",
+   "start": 19.4,
+   "duration": 5.93,
+   "crop": [
+    35,
+    190,
+    3380,
+    1995
+   ],
+   "width": 2400
+  },
+  "peptide-tracker": {
+   "title": "Peptide Tracker \u2014 site rotation",
+   "recording": "Screen Recording 2026-06-15 at 10.11*",
+   "start": 14,
+   "duration": 6.0,
+   "crop": [
+    250,
+    262,
+    856,
+    1762
+   ],
+   "width": 856
+  },
+  "emoji-candlestick-charts": {
+   "title": "Emoji Candlestick Charts",
+   "recording": "Screen Recording 2026-03-16 at 11.06*",
+   "start": 20,
+   "duration": 6.0,
+   "crop": [
+    132,
+    98,
+    1060,
+    1630
+   ],
+   "width": 1060
+  },
+  "temper-trade": {
+   "title": "Temper Trade",
+   "recording": "Screen Recording 2025-12-15 at 7.02*",
+   "start": 838.8,
+   "duration": 6.0,
+   "crop": [
+    0,
+    0,
+    1072,
+    1952
+   ],
+   "width": 1072
+  },
+  "aptos-validator-globe": {
+   "title": "Aptos validators",
+   "recording": "Screen Recording 2026-01-05 at 11.28*",
+   "start": 5.5,
+   "duration": 6.0,
+   "crop": [
+    0,
+    0,
+    2484,
+    1934
+   ],
+   "width": 2400
+  },
+  "maxxp-desktop": {
+   "title": "MaxXP \u2014 Dev Stats",
+   "recording": "Screen Recording 2026-08-05 at 9.44*",
+   "start": 67.8,
+   "duration": 6.0,
+   "crop": [
+    36,
+    104,
+    1088,
+    2088
+   ],
+   "width": 1088
+  },
+  "commits-sh-menubar": {
+   "title": "commits.sh",
+   "recording": "Screen Recording 2026-09-26 at 8.54*",
+   "start": 180,
+   "duration": 6.0,
+   "crop": [
+    1975,
+    106,
+    916,
+    1315
+   ],
+   "width": 916
+  },
+  "lilyshark-intro": {
+   "title": "Lilyshark",
+   "recording": "Screen Recording 2026-08-16 at 12.47*",
+   "start": 0.3,
+   "duration": 7.0,
+   "crop": [
+    40,
+    96,
+    3376,
+    2096
+   ],
+   "width": 2400
+  },
+  "lilyshark-traffic": {
+   "title": "Lilyshark - traffic",
+   "recording": "Screen Recording 2026-08-16 at 12.47*",
+   "start": 18.5,
+   "duration": 5.5,
+   "crop": [
+    40,
+    96,
+    3376,
+    2096
+   ],
+   "width": 2400
+  },
+  "commits-sh-popover": {
+   "title": "commits.sh",
+   "recording": "Screen Recording 2026-09-17 at 5.52*",
+   "start": 6.0,
+   "duration": 6.0,
+   "crop": [
+    52,
+    70,
+    952,
+    980
+   ],
+   "width": 952
+  },
+  "commits-sh-ticker": {
+   "title": "commits.sh - $MAXMONEYCASH",
+   "recording": "Screen Recording 2026-08-25 at 9.40*",
+   "start": 40.0,
+   "duration": 6.0,
+   "crop": [
+    26,
+    96,
+    2240,
+    2016
+   ],
+   "width": 2240
+  },
+  "yank-clone": {
+   "title": "yank-clone",
+   "recording": "Screen Recording 2026-10-07 at 9.29*",
+   "start": 14.5,
+   "duration": 8.0,
+   "crop": [
+    28,
+    108,
+    3372,
+    2096
+   ],
+   "width": 2400
+  },
+  "yank-apart": {
+   "title": "yank-apart",
+   "recording": "Screen Recording 2026-10-07 at 9.29*",
+   "start": 46.0,
+   "duration": 8.0,
+   "crop": [
+    28,
+    108,
+    3372,
+    2096
+   ],
+   "width": 2400
+  },
+  "devenv-timelapse": {
+   "title": "Claude Code on spectra - timelapse",
+   "recording": "Screen Recording 2026-10-08 at 3.14.05?PM.mov",
+   "start": 0,
+   "duration": 550.0,
+   "speed": 68.75,
+   "crop": [
+    16,
+    76,
+    3424,
+    2148
+   ],
+   "width": 2400
+  }
+ }
+}
