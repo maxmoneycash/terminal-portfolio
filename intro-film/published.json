@@ -2,13 +2,13 @@
   "repo": "maxmoneycash/terminal-portfolio",
   "release": "intro-films",
   "files": {
-    "intro-landscape-91531726.mp4": {
-      "sha256": "55ca1f7e24810906eeca1e9ba016a3fc59370a2c560d56a93f75ef4d8cd543af",
-      "bytes": 35080514
+    "intro-landscape-8188e24a.mp4": {
+      "sha256": "0887453b4be9fbb062358f99a385664a9c565497d4c3bdfe828da5e57dae05ea",
+      "bytes": 36323591
     },
-    "intro-portrait-97e3668c.mp4": {
-      "sha256": "7449bb90082b089fd08b2931a3135d85b6a25949ac566affb49a122051b3a9b8",
-      "bytes": 39931289
+    "intro-portrait-1fa7c05a.mp4": {
+      "sha256": "d715e5c163b6ae7a0757579a8d04c0fbc0b2d6dbe1e38a6675b372343052922b",
+      "bytes": 41300361
     }
   }
 }

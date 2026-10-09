@@ -151,6 +151,28 @@ export function readyAudioContext(): AudioContext | null {
   return ctx;
 }
 
+/**
+ * The shared AudioContext once it is actually running, else null. Resumes
+ * it if the page has had a gesture; never creates one before any gesture
+ * (browsers would refuse and log a warning). A context left suspended, say
+ * after an Escape key, which browsers don't count as a gesture, stays null
+ * here so nothing gets scheduled on a frozen clock.
+ */
+export async function runningAudioContext(): Promise<AudioContext | null> {
+  const activation = (navigator as Navigator & { userActivation?: { hasBeenActive: boolean } }).userActivation;
+  if (!ctx && activation && !activation.hasBeenActive) return null;
+  const audio = ensureContext();
+  if (!audio) return null;
+  if (audio.state !== "running") {
+    try {
+      await Promise.race([audio.resume(), new Promise((resolve) => setTimeout(resolve, 600))]);
+    } catch {
+      // Refused: still suspended.
+    }
+  }
+  return audio.state === "running" ? audio : null;
+}
+
 /** Fire-and-forget playback of a shell cue. */
 export function playSfx(id: SfxId) {
   const level = cueLevel(id);

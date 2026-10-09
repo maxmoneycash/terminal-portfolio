@@ -1,12 +1,12 @@
 /**
  * KK6OQA Radio: an SDR console and a TS-2000 station view that greet the
- * visitor in CW. The greeting plays on the audio clock when sound is allowed
- * (a gesture has unlocked it); otherwise the radio keys silently and START
- * sends it with sound.
+ * visitor in CW. The greeting starts on its own: with sound when the browser
+ * allows it, otherwise keyed silently with the tone joining at the first tap,
+ * click or key anywhere. STOP ends it for good; SEND sends it again.
  */
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { MenuBar, type WindowMenu } from "../components/MenuBar";
-import { getSystemVolume, readyAudioContext, subscribeVolume } from "../xp/audio";
+import { getSystemVolume, readyAudioContext, runningAudioContext, subscribeVolume, unlockAudio } from "../xp/audio";
 import { playCw, type CwPlayback } from "./cw";
 import { decoded, keyed, timeline, unitSeconds } from "./morse";
 import { BANDS, PowerSdrScreen, type Band, type RadioState } from "./PowerSdrScreen";
@@ -27,7 +27,7 @@ function toSilent(current: Send | null): Send | null {
   return { kind: "silent", start: performance.now() / 1000 - elapsed };
 }
 
-export function RadioApp({ active, greet = false }: { active: boolean; greet?: boolean }) {
+export function RadioApp({ active, greet = false, hidden = false }: { active: boolean; greet?: boolean; hidden?: boolean }) {
   const [view, setView] = useState<"sdr" | "station">("sdr");
   const [band, setBand] = useState("20");
   const [vfoA, setVfoA] = useState(VFO_A);
@@ -76,25 +76,69 @@ export function RadioApp({ active, greet = false }: { active: boolean; greet?: b
     setSend(next);
   }, []);
 
-  const stop = useCallback(() => {
+  // The visitor stopped or muted the greeting: the tone never comes back on
+  // its own. And once a greeting has been heard, later gestures leave it be.
+  const holdRef = useRef(false);
+  const heardRef = useRef(false);
+
+  const halt = useCallback(() => {
     const current = sendRef.current;
     if (current?.kind === "audio") current.playback.stop();
     commit(null);
   }, [commit]);
 
+  const stop = useCallback(() => {
+    holdRef.current = true;
+    halt();
+  }, [halt]);
+
   const silence = useCallback(() => commit(toSilent(sendRef.current)), [commit]);
 
-  const start = useCallback((withSound = true) => {
+  const tone = useCallback(
+    (context: AudioContext, fromUnits = 0): Send => {
+      heardRef.current = true;
+      const level = 0.22 * (getSystemVolume() / 100);
+      return { kind: "audio", playback: playCw(context, line, { wpm, pitch: PITCH_HZ, level }, fromUnits) };
+    },
+    [line, wpm],
+  );
+
+  /**
+   * Bring the tone in as soon as the browser allows sound: join a greeting
+   * that is keying silently where it is, or send one that went by unheard.
+   */
+  const upgrade = useCallback(async (asked = false) => {
+    const done = () => holdRef.current || (heardRef.current && !asked);
+    if (done() || muted || hidden || getSystemVolume() === 0) return;
+    const context = await runningAudioContext();
+    if (!context || done()) return;
+    const current = sendRef.current;
+    if (current?.kind === "audio") return;
+    if (current?.kind === "silent") {
+      const at = (performance.now() / 1000 - current.start) / unit;
+      if (at < line.units - 2) {
+        commit(tone(context, Math.max(0, at)));
+        return;
+      }
+    }
+    if (greetedRef.current) commit(tone(context));
+  }, [commit, hidden, line.units, muted, tone, unit]);
+
+  /** `asked`: the visitor pressed SEND, so it plays with sound regardless. */
+  const start = useCallback((asked = false) => {
+    holdRef.current = false;
     const current = sendRef.current;
     if (current?.kind === "audio") current.playback.stop();
-    const context = withSound && !muted && getSystemVolume() > 0 ? readyAudioContext() : null;
+    // Only a running clock: a suspended one would freeze the keying.
+    const ready = readyAudioContext();
+    const context = !muted && getSystemVolume() > 0 && ready?.state === "running" ? ready : null;
     if (context) {
-      const level = 0.22 * (getSystemVolume() / 100);
-      commit({ kind: "audio", playback: playCw(context, line, { wpm, pitch: PITCH_HZ, level }) });
+      commit(tone(context));
     } else {
       commit({ kind: "silent", start: performance.now() / 1000 });
+      void upgrade(asked);
     }
-  }, [commit, line, muted, wpm]);
+  }, [commit, muted, tone, upgrade]);
 
   // Greet once when opened at login.
   useEffect(() => {
@@ -114,7 +158,27 @@ export function RadioApp({ active, greet = false }: { active: boolean; greet?: b
     return () => { unsubscribe(); };
   }, [silence]);
 
-  useEffect(() => () => stop(), [stop]);
+  // The first tap, click or key anywhere brings the tone in (browsers allow
+  // sound only after one). The radio's own buttons and window controls
+  // don't: pressing STOP or closing the window must stay silent.
+  useEffect(() => {
+    if (!greet) return;
+    const onGesture = (event: Event) => {
+      if (holdRef.current || heardRef.current) return;
+      const target = event.target instanceof Element ? event.target : null;
+      if (target?.closest(".radio-app button, .window-titlebar button")) return;
+      unlockAudio();
+      void upgrade();
+    };
+    document.addEventListener("pointerdown", onGesture, true);
+    document.addEventListener("keydown", onGesture, true);
+    return () => {
+      document.removeEventListener("pointerdown", onGesture, true);
+      document.removeEventListener("keydown", onGesture, true);
+    };
+  }, [greet, upgrade]);
+
+  useEffect(() => () => halt(), [halt]);
 
   // Units sent at any moment on the page clock (seconds), for the keying
   // now and the waterfall's history. Audio sends run on the audio clock.
@@ -151,11 +215,15 @@ export function RadioApp({ active, greet = false }: { active: boolean; greet?: b
   };
 
   const controls = {
-    onStart: () => (sending ? stop() : start()),
+    onStart: () => (sending ? stop() : start(true)),
     onBand: (b: Band) => { setBand(b.id); setVfoA(b.mhz); },
     onMode: setMode,
     onTune: (delta: number) => setVfoA((value) => Math.max(0.1, +(value + delta).toFixed(6))),
-    onMute: () => { setMuted((m) => !m); silence(); },
+    onMute: () => {
+      if (!muted) holdRef.current = true;
+      setMuted((m) => !m);
+      silence();
+    },
   };
 
   const menus: WindowMenu[] = view === "sdr"

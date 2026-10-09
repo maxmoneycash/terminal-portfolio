@@ -237,7 +237,7 @@ export function WindowContent({
     case "radio":
       return (
         <Suspense fallback={null}>
-          <RadioApp active={active} greet />
+          <RadioApp active={active} greet hidden={record.minimized} />
         </Suspense>
       );
     case "quill":

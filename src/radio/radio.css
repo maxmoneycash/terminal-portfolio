@@ -1220,31 +1220,13 @@
 .sdr-led-scale .is-over { color: #ff4a3d; }
 
 .sdr-scope {
-  display: grid;
-  grid-template-rows: 150px 140px;
   overflow: hidden;
   border: 1px solid #2a3654;
   box-shadow: 0 0 0 1px #000, 0 0 18px rgb(40 120 255 / 0.18);
 }
 
-.rx-pan,
-.rx-fall {
+.rx-scope {
   display: block;
-}
-
-.rx-pan-axis {
-  fill: #8fb4ff;
-  font: 10px "Lucida Console", Menlo, monospace;
-}
-
-.rx-pan-db {
-  fill: #5f78a8;
-  font: 9.5px "Lucida Console", Menlo, monospace;
-}
-
-.rx-pan-tag {
-  fill: #1a1400;
-  font: 700 10px "Lucida Console", Menlo, monospace;
 }
 
 .sdr-foot {
@@ -1292,15 +1274,10 @@
   border: 1px solid #2a3654;
 }
 
-.sdr-compact .sdr-c-scope svg,
 .sdr-compact .sdr-c-scope canvas {
   display: block;
   width: 100% !important;
-  height: auto;
-}
-
-.sdr-compact .sdr-c-scope canvas {
-  height: 150px !important;
+  height: 300px !important;
 }
 
 .sdr-compact .sdr-decoder {

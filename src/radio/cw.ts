@@ -13,9 +13,16 @@ export type CwPlayback = {
 
 const EDGE = 0.005; // 5 ms rise and fall: no key clicks
 
-export function playCw(context: AudioContext, line: Timeline, { wpm, pitch, level }: { wpm: number; pitch: number; level: number }): CwPlayback {
+/**
+ * `fromUnits` joins a send already in progress (keyed silently until sound
+ * was allowed): unit 0 lands in the past and only what is still ahead plays.
+ */
+export function playCw(context: AudioContext, line: Timeline, { wpm, pitch, level }: { wpm: number; pitch: number; level: number }, fromUnits = 0): CwPlayback {
   const unit = unitSeconds(wpm);
-  const start = context.currentTime + 0.12;
+  // A fresh send starts 120 ms ahead; a join keeps the clock exactly where
+  // the silent keying is and lets the tone in from 40 ms on.
+  const first = context.currentTime + (fromUnits > 0 ? 0.04 : 0.12);
+  const start = fromUnits > 0 ? context.currentTime - fromUnits * unit : first;
   const osc = context.createOscillator();
   osc.type = "sine";
   osc.frequency.value = pitch;
@@ -24,13 +31,15 @@ export function playCw(context: AudioContext, line: Timeline, { wpm, pitch, leve
   for (const element of line.elements) {
     const on = start + element.on * unit;
     const off = start + element.off * unit;
+    // An element already under way when the tone joins is skipped whole.
+    if (on < first) continue;
     key.gain.setValueAtTime(0, on);
     key.gain.linearRampToValueAtTime(level, on + EDGE);
     key.gain.setValueAtTime(level, off - EDGE);
     key.gain.linearRampToValueAtTime(0, off);
   }
   osc.connect(key).connect(context.destination);
-  osc.start(start);
+  osc.start(first);
   osc.stop(start + line.units * unit + 0.1);
   let stopped = false;
   return {

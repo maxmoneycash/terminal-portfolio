@@ -1,12 +1,12 @@
 /**
  * KK6OQA's SDR console in the PowerSDR style, cut down to what matters: one
- * START key, VFO A, an LED meter, a glowing spectrum over a scrolling
+ * SEND/STOP key, VFO A, an LED meter, a live panadapter over a skimmer-style
  * waterfall, a handful of bands and modes, and the CW decoder. Pure function
  * of `state` (no clocks of its own), so the intro film can render it frame by
  * frame. `compact` restacks it for phones.
  */
 import type { CSSProperties, ReactNode, WheelEvent } from "react";
-import { LedMeter, Panadapter, Waterfall } from "./Spectrum";
+import { LedMeter, Scope } from "./Spectrum";
 import { sMeter, sToDbm } from "./signal";
 import "./radio.css";
 
@@ -102,12 +102,14 @@ export function PowerSdrScreen({ state, compact = false, controls = {} }: { stat
       }
     : undefined;
   const readout = keyed ? "100 W" : `${dbm} dBm`;
+  const epoch = state.now.getTime() - state.t * 1000;
+  const tx = state.sending ? `KK6OQA ${state.wpm} WPM` : null;
 
   if (compact) {
     return (
       <div className="sdr sdr-compact">
         <div className="sdr-c-row">
-          <Btn on={state.sending} onClick={controls.onStart} style={{ flex: 1 }}>{state.sending ? "STOP" : "START"}</Btn>
+          <Btn on={state.sending} onClick={controls.onStart} style={{ flex: 1 }}>{state.sending ? "STOP" : "SEND"}</Btn>
           <div className={`sdr-tx${keyed ? " is-keyed" : ""}`} style={{ width: 64 }}>TX</div>
           <Btn on={state.muted} onClick={controls.onMute} style={{ width: 64 }}>MUT</Btn>
         </div>
@@ -121,8 +123,7 @@ export function PowerSdrScreen({ state, compact = false, controls = {} }: { stat
           <LedMeter s={s} segments={24} />
         </div>
         <div className="sdr-c-scope">
-          <Panadapter t={state.t} keyAt={state.keyAt} vfo={state.vfoA} width={360} height={150} id="pan-c" />
-          <Waterfall t={state.t} keyAt={state.keyAt} width={360} height={150} rows={64} />
+          <Scope t={state.t} keyAt={state.keyAt} vfo={state.vfoA} width={360} height={300} epochMs={epoch} tx={tx} />
         </div>
         <Decoder state={state} />
         <div className="sdr-c-grid is-bands">
@@ -137,7 +138,7 @@ export function PowerSdrScreen({ state, compact = false, controls = {} }: { stat
 
   return (
     <div className="sdr sdr-stage">
-      <Btn x={10} y={10} w={72} h={58} big on={state.sending} onClick={controls.onStart}>{state.sending ? "STOP" : "START"}</Btn>
+      <Btn x={10} y={10} w={72} h={58} big on={state.sending} onClick={controls.onStart}>{state.sending ? "STOP" : "SEND"}</Btn>
 
       <Group x={92} y={6} w={330} h={66} label="VFO A · KK6OQA" />
       <div className="sdr-display" style={at(100, 15, 240, 34)} onWheel={tuneWheel}>{freqText(state.vfoA)}</div>
@@ -155,8 +156,7 @@ export function PowerSdrScreen({ state, compact = false, controls = {} }: { stat
       </div>
 
       <div className="sdr-scope" style={at(8, 80, 784, 290)}>
-        <Panadapter t={state.t} keyAt={state.keyAt} vfo={state.vfoA} width={784} height={150} zoom={state.zoom} />
-        <Waterfall t={state.t} keyAt={state.keyAt} width={784} height={140} />
+        <Scope t={state.t} keyAt={state.keyAt} vfo={state.vfoA} width={784} height={290} zoom={state.zoom} epochMs={epoch} tx={tx} />
       </div>
 
       {BANDS.map((b, i) => (
