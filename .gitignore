@@ -36,3 +36,7 @@ resume/*.out
 public/videos/intro/*.mp4
 public/videos/reels/orbital-works-*.mp4
 __pycache__/
+# Signature stroke tooling: generated graph and debug output.
+scripts/signature/graph.json
+scripts/signature/route-debug.json
+scripts/signature/__pycache__/

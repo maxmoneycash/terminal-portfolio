@@ -159,16 +159,24 @@ def cw(cue: dict) -> tuple[int, np.ndarray]:
 
 def quill_scratch() -> tuple[int, np.ndarray]:
     """Nib noise that follows the pen: louder when it moves fast, silent on
-    lifts. Same track and timing as the film's calligraphy (calligraphy.py)."""
+    lifts. Same strokes and timing as the film's calligraphy
+    (src/lib/signatureStrokes.json)."""
     spec = SCORE["calligraphy"]
-    path = json.loads((ROOT / ".intro-build" / "film" / "public" / "signature" / "path.json").read_text())["path"]
+    strokes = json.loads((ROOT / "src" / "lib" / "signatureStrokes.json").read_text())["strokes"]
     n = int(spec["frames"] / 30 * SR)
-    xy = np.array([[p[0], p[1]] for p in path], dtype=float)
-    down = np.array([p[2] for p in path], dtype=float)
-    speed = np.r_[0.0, np.linalg.norm(np.diff(xy, axis=0), axis=1)] * down
-    speed = np.minimum(speed, np.percentile(speed[speed > 0], 95)) if (speed > 0).any() else speed
-    env = np.interp(np.linspace(0, len(path) - 1, n), np.arange(len(path)), speed / (speed.max() + 1e-9))
-    env = ndimage.uniform_filter1d(env, int(0.02 * SR)) ** 0.7
+    times, speeds = [0.0], [0.0]
+    for st in strokes:
+        t = np.array(st["t"])
+        xy = np.c_[st["x"], st["y"]]
+        v = np.r_[0.0, np.hypot(*np.diff(xy, axis=0).T) / np.maximum(np.diff(t), 1e-4)]
+        # Silent just before and after each stroke: the nib leaves the paper.
+        times += [t[0] - 1e-3, *t.tolist(), t[-1] + 1e-3]
+        speeds += [0.0, *v.tolist(), 0.0]
+    order = np.argsort(times, kind="stable")
+    times, speeds = np.array(times)[order], np.array(speeds)[order]
+    speeds = np.minimum(speeds, np.percentile(speeds[speeds > 0], 95))
+    env = np.interp(np.arange(n) / SR, times, speeds / (speeds.max() + 1e-9))
+    env = np.maximum(ndimage.uniform_filter1d(env, int(0.02 * SR)), 0) ** 0.7
     grain = 0.6 + 0.4 * np.abs(signal.sosfilt(signal.butter(2, 45, "lowpass", fs=SR, output="sos"), rng.standard_normal(n))) * 6
     noise = rng.standard_normal((2, n))
     noise = signal.sosfilt(signal.butter(2, [1800, 7000], "bandpass", fs=SR, output="sos"), noise, axis=1)

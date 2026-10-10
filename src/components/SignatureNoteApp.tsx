@@ -1,88 +1,95 @@
-import { animate, motion, useMotionValue, useReducedMotion, useTransform } from "framer-motion";
+import { useReducedMotion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { portfolio } from "../data/portfolio";
-import { inkPoint, loadInkMap, signatureSize, type InkMap } from "../lib/signatureInk";
+import { drawSignature, loadInk, penAt, signature } from "../lib/calligraphy";
 
-const signatureAsset = "/maxwell_mohammadi_signature_full_canvas.svg";
 const quillAsset = "/quill-pen-transparent.png";
+/** After the last stroke the fresh ink keeps drying for a moment. */
+const DRY = 0.6;
 
+/**
+ * The quill writes the signature stroke by stroke, the way a hand would:
+ * each capital, then each word in one flow, the crossing and the dot, and
+ * the flourish last (see lib/calligraphy).
+ */
 export function AnimatedSignature({ runId }: { runId: number }) {
   const stageRef = useRef<HTMLDivElement>(null);
-  const [inkMap, setInkMap] = useState<InkMap | null>(null);
-  const [stageSize, setStageSize] = useState({ width: 0, height: 0 });
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const quillRef = useRef<HTMLDivElement>(null);
+  const [ink, setInk] = useState<HTMLImageElement | null>(null);
   const reduceMotion = useReducedMotion();
-  const progress = useMotionValue(0);
 
   useEffect(() => {
     let active = true;
-    void loadInkMap(signatureAsset)
-      .then((map) => {
-        if (active) setInkMap(map);
-      })
-      .catch(() => {
-        if (active) progress.set(1);
-      });
+    void loadInk().then((image) => {
+      if (active) setInk(image);
+    });
     return () => {
       active = false;
     };
-  }, [progress]);
-
-  useEffect(() => {
-    const stage = stageRef.current;
-    if (!stage) return;
-    const update = () => {
-      const rect = stage.getBoundingClientRect();
-      setStageSize({ width: rect.width, height: rect.height });
-    };
-    update();
-    const observer = new ResizeObserver(update);
-    observer.observe(stage);
-    return () => observer.disconnect();
   }, []);
 
   useEffect(() => {
-    if (!inkMap) return;
-    progress.set(reduceMotion ? 1 : 0);
-    if (reduceMotion) return;
-    const playback = animate(progress, 1, {
-      duration: 2.7,
-      ease: [0.45, 0, 0.55, 1],
+    const stage = stageRef.current;
+    const canvas = canvasRef.current;
+    const ctx = canvas?.getContext("2d");
+    if (!stage || !canvas || !ctx || !ink) return;
+    let frame = 0;
+    let begin = performance.now();
+    const end = signature.duration + DRY;
+
+    const paint = (t: number) => {
+      const rect = stage.getBoundingClientRect();
+      const ratio = window.devicePixelRatio || 1;
+      const width = Math.round(rect.width * ratio);
+      const height = Math.round(rect.height * ratio);
+      if (canvas.width !== width || canvas.height !== height) {
+        canvas.width = width;
+        canvas.height = height;
+      }
+      ctx.clearRect(0, 0, width, height);
+      const scale = rect.width / signature.width;
+      drawSignature(ctx, ink, t, { scale, dx: 0, dy: 0 }, ratio);
+      const quill = quillRef.current;
+      if (!quill) return;
+      const pen = penAt(t);
+      const tilt = -0.1 + Math.max(-0.08, Math.min(0.08, Math.sin(pen.heading) * 0.08));
+      quill.style.transform = `translate3d(${pen.x * scale}px, ${pen.y * scale - pen.lift * rect.height * 0.08}px, 0) rotate(${tilt}rad)`;
+      const fadeIn = Math.min(1, t / 0.12);
+      const fadeOut = Math.min(1, Math.max(0, (signature.duration + 0.25 - t) / 0.25));
+      quill.style.opacity = String(Math.min(fadeIn, fadeOut));
+    };
+
+    if (reduceMotion) {
+      paint(end);
+      return;
+    }
+    const tick = (now: number) => {
+      // A frame's timestamp can precede the effect that scheduled it.
+      const t = Math.max(0, (now - begin) / 1000);
+      paint(Math.min(t, end));
+      if (t < end) frame = requestAnimationFrame(tick);
+    };
+    begin = performance.now();
+    frame = requestAnimationFrame(tick);
+    // Keep the finished name crisp if the window is resized.
+    const observer = new ResizeObserver(() => {
+      if ((performance.now() - begin) / 1000 >= end) paint(end);
     });
-    return () => playback.stop();
-  }, [inkMap, progress, reduceMotion, runId]);
-
-  const signatureClip = useTransform(progress, (value) => {
-    if (!inkMap || value >= 0.999) return "inset(0 0% 0 0)";
-    const revealX = inkMap.minX + (inkMap.maxX - inkMap.minX) * value;
-    return `inset(0 ${100 - (revealX / signatureSize.width) * 100}% 0 0)`;
-  });
-
-  const penTransform = useTransform(progress, (value) => {
-    if (!inkMap || stageSize.width === 0) return "translate3d(0, 0, 0) rotate(0rad)";
-    const point = inkPoint(inkMap, value);
-    const previous = inkPoint(inkMap, Math.max(0, value - 0.012));
-    const next = inkPoint(inkMap, Math.min(1, value + 0.012));
-    const x = (point.x / signatureSize.width) * stageSize.width;
-    const y = (point.y / signatureSize.height) * stageSize.height;
-    const angle = Math.max(-0.45, Math.min(0.45, Math.atan2(next.y - previous.y, next.x - previous.x)));
-    return `translate3d(${x}px, ${y}px, 0) rotate(${angle}rad)`;
-  });
-
-  const penOpacity = useTransform(progress, [0, 0.015, 0.95, 1], [0, 1, 1, 0]);
+    observer.observe(stage);
+    return () => {
+      cancelAnimationFrame(frame);
+      observer.disconnect();
+    };
+  }, [ink, reduceMotion, runId]);
 
   return (
     <div className="signature-stage" ref={stageRef} role="img" aria-label={`Animated signature: ${portfolio.name}`}>
-      <motion.img
-        className="signature-ink"
-        src={signatureAsset}
-        alt=""
-        draggable={false}
-        style={{ clipPath: signatureClip }}
-      />
+      <canvas className="signature-canvas" ref={canvasRef} />
       {!reduceMotion ? (
-        <motion.div className="signature-quill-anchor" style={{ opacity: penOpacity, transform: penTransform }}>
+        <div className="signature-quill-anchor" ref={quillRef} style={{ opacity: 0 }}>
           <img src={quillAsset} alt="" draggable={false} />
-        </motion.div>
+        </div>
       ) : null}
     </div>
   );

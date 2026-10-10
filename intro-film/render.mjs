@@ -38,7 +38,8 @@ function fingerprint(options = picture) {
   // The radio and the signature come from the site, the beat grid from score.json.
   walk(path.join(here, "../src/radio"));
   files.push(
-    path.join(here, "../src/lib/signatureInk.ts"),
+    path.join(here, "../src/lib/calligraphy.ts"),
+    path.join(here, "../src/lib/signatureStrokes.json"),
     path.join(here, "clips.json"),
     path.join(here, "stills.json"),
     path.join(here, "score.json"),
