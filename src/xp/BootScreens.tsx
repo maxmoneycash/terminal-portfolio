@@ -84,6 +84,11 @@ function phaseForStage(stage: Stage): BootPhase {
 
 type InitialBoot = { stage: Stage; restored: boolean };
 
+function isReload() {
+  const [entry] = performance.getEntriesByType("navigation") as PerformanceNavigationTiming[];
+  return entry?.type === "reload";
+}
+
 function resolveInitialBoot(): InitialBoot {
   try {
     const url = new URL(window.location.href);
@@ -97,14 +102,16 @@ function resolveInitialBoot(): InitialBoot {
       window.sessionStorage.removeItem("logged_in");
       return { stage: "preboot", restored: false };
     }
-    // Arriving on a shared link, or returning in the same tab: open the work directly.
-    if (url.hash.length > 1 || window.sessionStorage.getItem("logged_in") === "true") {
+    // Arriving on a shared link to a project opens the work directly. A reload is
+    // not an arrival: the desktop writes routes into the hash as windows open and
+    // take focus, so reloading always replays the intro.
+    if (url.hash.length > 1 && !isReload()) {
       return { stage: "desktop", restored: true };
     }
   } catch {
-    // Storage is optional; a first visit still gets the intro.
+    // A malformed URL still gets the intro.
   }
-  // A first visit to the site plays the intro film, which hands off to the desktop.
+  // Every load of the site itself, reloads included, plays the intro film, which hands off to the desktop.
   return { stage: "preboot", restored: false };
 }
 

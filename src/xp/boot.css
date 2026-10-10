@@ -50,15 +50,16 @@
   .intro.is-fading-skipped { transition: none; }
 }
 
-/* Each orientation has its own large-window composition. Fill the viewport;
-   the surrounding desktop absorbs small aspect-ratio differences. */
+/* Each orientation has its own composition, framed edge to edge. Show the
+   whole frame: on a viewport of another shape the film letterboxes rather
+   than cutting off windows, the taskbar, or the Start button. */
 .intro-video {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   max-width: none;
-  object-fit: cover;
+  object-fit: contain;
   background: #000;
 }
 
