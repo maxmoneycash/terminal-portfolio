@@ -5,7 +5,7 @@
  * interactive desktop.
  *
  * It plays with sound whenever the browser allows; otherwise it starts muted
- * and the first tap turns the sound on (a second tap, Skip or Escape skips).
+ * and a click or tap anywhere turns the sound on. Only Skip or Escape leaves.
  *
  * Rendered by intro-film/ (Remotion) from the original project recordings.
  */
@@ -29,6 +29,8 @@ const INTRO = {
 /** If playback hasn't started by now (slow network), open the desktop. */
 const STALL_MS = 8000;
 const SKIP_REVEAL_MS = 900;
+/** How long the "Click for sound" hint stays up once the film starts. */
+const SOUND_HINT_MS = 3000;
 
 function pickSource() {
   try {
@@ -63,6 +65,7 @@ export function IntroVideo({ onFinish, fading, requested = false }: {
   const [started, setStarted] = useState(false);
   const [muted, setMuted] = useState(true);
   const [skipVisible, setSkipVisible] = useState(false);
+  const [hintVisible, setHintVisible] = useState(true);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const skipRef = useRef<HTMLButtonElement | null>(null);
   const finishedRef = useRef(false);
@@ -115,6 +118,13 @@ export function IntroVideo({ onFinish, fading, requested = false }: {
     return () => window.clearTimeout(id);
   }, []);
 
+  // The sound hint shows briefly once the film is moving, then gets out of the way.
+  useEffect(() => {
+    if (!started) return;
+    const id = window.setTimeout(() => setHintVisible(false), SOUND_HINT_MS);
+    return () => window.clearTimeout(id);
+  }, [started]);
+
   useEffect(() => {
     skipRef.current?.focus({ preventScroll: true });
   }, []);
@@ -135,10 +145,12 @@ export function IntroVideo({ onFinish, fading, requested = false }: {
 
   return (
     <div
-      className={cn("intro", fading && `is-fading-${fading}`)}
+      className={cn("intro", `is-${source.orient}`, fading && `is-fading-${fading}`)}
       role="region"
       aria-label="MaxXP intro"
-      onClick={() => (muted ? unmute() : finish())}
+      onClick={() => {
+        if (muted) unmute();
+      }}
     >
       <video
         ref={videoRef}
@@ -155,17 +167,10 @@ export function IntroVideo({ onFinish, fading, requested = false }: {
         aria-hidden="true"
       />
       {muted && started ? (
-        <button
-          type="button"
-          className={cn("intro-sound", skipVisible && "is-visible")}
-          onClick={(event) => {
-            event.stopPropagation();
-            unmute();
-          }}
-        >
-          <img src="/xp/gui/tray/volume.webp" alt="" width={16} height={16} />
-          Turn on sound
-        </button>
+        <p className={cn("intro-sound", hintVisible && "is-visible")} aria-live="polite">
+          <img src="/xp/gui/tray/volume.webp" alt="" width={12} height={12} />
+          Click for sound
+        </p>
       ) : null}
       <button
         ref={skipRef}
@@ -176,7 +181,7 @@ export function IntroVideo({ onFinish, fading, requested = false }: {
           finish();
         }}
       >
-        Skip intro <span aria-hidden="true">»</span>
+        Skip
       </button>
     </div>
   );

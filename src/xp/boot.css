@@ -63,30 +63,82 @@
   background: #000;
 }
 
-.intro-skip,
-.intro-sound {
-  position: absolute;
-  right: max(18px, env(safe-area-inset-right));
-  bottom: max(18px, env(safe-area-inset-bottom));
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  border: 1px solid rgb(255 255 255 / 0.38);
-  border-radius: 3px;
-  background: rgb(0 0 0 / 0.48);
-  color: #fff;
-  font: inherit;
-  font-size: 12px;
-  padding: 7px 12px;
-  opacity: 0;
-  cursor: pointer;
-  transition: opacity 400ms ease, background-color 140ms ease;
+/* The film's own frame inside the (letterboxed) viewport, so the controls
+   sit on the film itself: Skip on its taskbar, the hint just inside the top. */
+.intro {
+  container-type: size;
+  --film-w: min(100cqw, 100cqh * 16 / 9);
+  --film-h: min(100cqh, 100cqw * 9 / 16);
+  /* The film's taskbar: 30 of 720 logical px; its clock: the last 4.3% of the width. */
+  --film-taskbar: calc(var(--film-h) * 0.0417);
+  --film-clock: calc(var(--film-w) * 0.043);
 }
 
-/* Sound is off until the visitor taps: the hint sits opposite Skip. */
+.intro.is-portrait {
+  --film-w: min(100cqw, 100cqh * 9 / 16);
+  --film-h: min(100cqh, 100cqw * 16 / 9);
+  /* 30 of 960 logical px; the clock is 11% of the narrower width. */
+  --film-taskbar: calc(var(--film-h) * 0.03125);
+  --film-clock: calc(var(--film-w) * 0.11);
+}
+
+/* A Luna push button, the same metrics as XP's own dialog buttons, sitting
+   over the film's tray clock. */
+.intro-skip {
+  --skip-h: clamp(19px, calc(var(--film-taskbar) - 8px), 23px);
+  position: absolute;
+  right: calc((100cqw - var(--film-w)) / 2 + var(--film-w) * 0.004);
+  bottom: calc((100cqh - var(--film-h)) / 2 + (var(--film-taskbar) - var(--skip-h)) / 2);
+  display: inline-grid;
+  place-items: center;
+  min-width: max(58px, var(--film-clock));
+  height: var(--skip-h);
+  padding: 0 12px;
+  border: 1px solid #003c74;
+  border-radius: 3px;
+  background: linear-gradient(180deg, #fff, #ecebe6 86%, #d6d0c5);
+  box-shadow: inset -1px -1px #d6d0c5;
+  color: #000;
+  font: 11px/1 Tahoma, Verdana, sans-serif;
+  opacity: 0;
+  cursor: pointer;
+  transition: opacity 400ms ease;
+}
+
+.intro-skip:hover {
+  box-shadow: inset -1px 1px #fff0cf, inset 1px 2px #fdd889, inset -2px 2px #fbc761, inset 2px -2px #e5a01a;
+}
+
+.intro-skip:focus-visible {
+  outline: 1px dotted #000;
+  outline-offset: -4px;
+  box-shadow: inset -1px 1px #cee7ff, inset 1px 2px #98b8ea, inset -2px 2px #bcd4f6, inset 1px -1px #89ade4, inset 2px -2px #89ade4;
+}
+
+.intro-skip:active {
+  background: linear-gradient(180deg, #cdcac3, #e3e3db 8%, #e5e5de 94%, #f2f2f1);
+  box-shadow: none;
+}
+
+/* "Click for sound": small, over the sky at the top of the film, gone in a few seconds. */
 .intro-sound {
-  right: auto;
-  left: max(18px, env(safe-area-inset-left));
+  position: absolute;
+  top: calc((100cqh - var(--film-h)) / 2 + 10px);
+  left: 50%;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin: 0;
+  padding: 3px 8px;
+  border-radius: 9px;
+  background: rgb(0 0 0 / 0.42);
+  color: #fff;
+  font: 11px/1.2 Tahoma, Verdana, sans-serif;
+  white-space: nowrap;
+  transform: translateX(-50%);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 500ms ease;
 }
 
 .intro-sound img {
@@ -97,17 +149,6 @@
 .intro-skip.is-visible,
 .intro-sound.is-visible {
   opacity: 1;
-}
-
-.intro-skip:hover,
-.intro-sound:hover {
-  background: rgb(0 0 0 / 0.7);
-}
-
-.intro-skip:focus-visible,
-.intro-sound:focus-visible {
-  outline: 1px dotted #fff;
-  outline-offset: 3px;
 }
 
 /* ------------------------------------------------------------------ */
