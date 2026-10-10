@@ -62,7 +62,8 @@
   background: #000;
 }
 
-.intro-skip {
+.intro-skip,
+.intro-sound {
   position: absolute;
   right: max(18px, env(safe-area-inset-right));
   bottom: max(18px, env(safe-area-inset-bottom));
@@ -81,15 +82,29 @@
   transition: opacity 400ms ease, background-color 140ms ease;
 }
 
-.intro-skip.is-visible {
+/* Sound is off until the visitor taps: the hint sits opposite Skip. */
+.intro-sound {
+  right: auto;
+  left: max(18px, env(safe-area-inset-left));
+}
+
+.intro-sound img {
+  display: block;
+  image-rendering: pixelated;
+}
+
+.intro-skip.is-visible,
+.intro-sound.is-visible {
   opacity: 1;
 }
 
-.intro-skip:hover {
+.intro-skip:hover,
+.intro-sound:hover {
   background: rgb(0 0 0 / 0.7);
 }
 
-.intro-skip:focus-visible {
+.intro-skip:focus-visible,
+.intro-sound:focus-visible {
   outline: 1px dotted #fff;
   outline-offset: 3px;
 }

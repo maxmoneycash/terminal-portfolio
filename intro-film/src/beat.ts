@@ -1,7 +1,7 @@
 /**
  * The film's beat grid, shared with music.py through score.json: 128.57 BPM,
- * so one beat is exactly 14 frames at 30 fps. Scenes last whole beats, cuts
- * land on bar lines, and the drops push the frame on every kick.
+ * so one beat is exactly 14 frames at 30 fps. Scenes last whole beats and
+ * cuts land on beats and bar lines.
  */
 import score from "../score.json";
 
@@ -24,18 +24,6 @@ export function sectionAt(frame: number): Section {
 }
 
 const isDrop = (s: Section) => s.name.startsWith("drop");
-
-/**
- * Kick envelope at an absolute film frame: 1 on the beat, decaying over a few
- * frames. Downbeats hit harder; only the drops have a kick at all.
- */
-export function kick(frame: number): number {
-  const section = sectionAt(frame);
-  if (!isDrop(section) || frame >= SECTIONS[SECTIONS.length - 1].end - BAR) return 0;
-  const sinceBeat = (frame - section.start) % BEAT;
-  const downbeat = Math.floor((frame - section.start) / BEAT) % 4 === 0;
-  return (downbeat ? 1 : 0.55) * Math.exp(-sinceBeat / 2.6);
-}
 
 /** 1 on the first frames of each drop (and the final hit), for the flash. */
 export function dropFlash(frame: number): number {

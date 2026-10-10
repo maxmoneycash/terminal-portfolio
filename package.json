@@ -18,6 +18,7 @@
     "intro:clean": "node scripts/clean-intro.mjs",
     "intro:fetch": "node scripts/fetch-intro-films.mjs",
     "intro:upload": "gh release upload intro-films public/videos/intro/*.mp4 --repo maxmoneycash/terminal-portfolio --clobber",
+    "media:upload": "gh release upload intro-films public/videos/reels/orbital-works-*.mp4 --repo maxmoneycash/terminal-portfolio --clobber",
     "projects:check-links": "node scripts/check-live-apps.mjs"
   },
   "dependencies": {

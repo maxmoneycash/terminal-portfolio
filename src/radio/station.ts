@@ -1,8 +1,8 @@
 /** KK6OQA's station: what the radio shows and sends when you log in. */
 export const CALLSIGN = "KK6OQA";
 export const OPERATOR = "Max";
-/** The CW greeting, sent at login: a CQ, a hello, and 73. */
-export const GREETING = "CQ DE KK6OQA <BT> HI, WELCOME TO MY SITE <BT> 73 DE MAX <SK>";
+/** The CW greeting, sent at login: the callsign and a hello (the intro film sends it too). */
+export const GREETING = "DE KK6OQA <BT> HI, I'M MAX! EAST BAY NATIVE ON THE MT DIABLO HAM RADIO REPEATER <SK>";
 export const WPM = 25;
 /** Sidetone pitch: the usual CW offset. */
 export const PITCH_HZ = 600;

@@ -2,24 +2,20 @@
   "framesPerBeat": 14,
   "sections": [
     {
-      "name": "intro",
+      "name": "sign",
       "bars": 4
+    },
+    {
+      "name": "radio",
+      "bars": 9
     },
     {
       "name": "drop1",
       "bars": 8
     },
     {
-      "name": "break",
-      "bars": 4
-    },
-    {
       "name": "drop2",
-      "bars": 8
-    },
-    {
-      "name": "space",
-      "bars": 4
+      "bars": 6
     },
     {
       "name": "drop3",
@@ -28,20 +24,16 @@
   ],
   "morse": [
     {
-      "id": "boot",
-      "text": "KK6OQA",
-      "start": 14,
-      "framesPerUnit": 1.75,
+      "id": "radio",
+      "text": "KK6OQA HI, I'M MAX! EAST BAY NATIVE ON THE MT DIABLO HAM RADIO REPEATER",
+      "start": 246,
+      "framesPerUnit": 0.72,
       "pitch": 622.25,
-      "gainDb": -17
-    },
-    {
-      "id": "station",
-      "text": "DE KK6OQA",
-      "start": 224,
-      "framesPerUnit": 1.75,
-      "pitch": 622.25,
-      "gainDb": -10
+      "gainDb": -8
     }
-  ]
+  ],
+  "calligraphy": {
+    "start": 12,
+    "frames": 168
+  }
 }

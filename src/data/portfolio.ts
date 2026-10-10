@@ -7,6 +7,7 @@ const cashTrading = publicRepo("SeamMoney", "cash.trading");
 const txComposer = publicRepo("SeamMoney", "tx-composer");
 const lilyshark = publicRepo("maxmoneycash", "lilyshark");
 const nipahScan = publicRepo("maxmoneycash", "NIPAHSCAN");
+const orbitalWorks = publicRepo("maxmoneycash", "orbital-works");
 
 export type Project = {
   id?: string;
@@ -92,6 +93,23 @@ export const portfolio = {
       details: [
         { label: "Built", text: "LoRa packet capture and decoding on the T-Deck, with a browser analyzer for inspecting frames and radio measurements." },
         { label: "Try it", text: "The analyzer includes labeled sample captures; no radio is needed to explore them." },
+      ],
+    }] : []),
+    ...(orbitalWorks ? [{
+      id: "orbital-works",
+      name: "Orbital Works",
+      featured: true,
+      category: "Space & 3D",
+      stack: "TypeScript · Three.js · SatNOGS · CelesTrak",
+      summary: "A live 3D satellite tracker and the story of NASA's Roman telescope.",
+      link: orbitalWorks.homepage || "https://orbital-works.vercel.app/",
+      code: orbitalWorks.url,
+      demoId: "orbital-works",
+      loop: [5, 14] as [number, number],
+      focus: "50% 50%",
+      details: [
+        { label: "Built", text: "Real-time satellite tracking with live SatNOGS telemetry and an orbital census of everything in orbit, in the browser on desktop and phones." },
+        { label: "Demo", text: "The Nancy Grace Roman Space Telescope: launch, the cruise to L2, its parts pulled apart, and how its instruments will see." },
       ],
     }] : []),
     {
@@ -191,6 +209,20 @@ export const portfolio = {
     },
   ] satisfies Project[],
   videos: [
+    {
+      id: "orbital-works",
+      title: "Orbital Works: the Roman Space Telescope",
+      date: "Featured",
+      summary: "NASA's Nancy Grace Roman Space Telescope in Orbital Works: over Earth, out to L2, pulled apart part by part, and the instruments that will survey the sky.",
+      sourceFilename: "roman-film",
+      poster: "/videos/reels/posters/orbital-works-5f57b0bc.jpg",
+      link: "https://orbital-works.vercel.app/",
+      durationSeconds: 86.7,
+      sizeBytes: 18096349,
+      width: 1920,
+      height: 1080,
+      sources: [{ src: "/videos/reels/orbital-works-5f57b0bc.mp4", type: "video/mp4", quality: "HD" }],
+    },
     {
       id: "aptos-vs-megaeth",
       title: "Aptos vs MegaETH, live",

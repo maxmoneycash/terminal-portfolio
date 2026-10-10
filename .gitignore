@@ -31,6 +31,8 @@ resume/*.out
 
 # Intro video render workspace (frames, renders)
 .intro-build/
-# Intro films are fetched at build time from the intro-films release
+# Intro films and large demos are fetched at build time from the intro-films
+# release (intro-film/published.json, scripts/release-media.json)
 public/videos/intro/*.mp4
+public/videos/reels/orbital-works-*.mp4
 __pycache__/

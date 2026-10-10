@@ -2,7 +2,7 @@ import { createContext, useContext, type CSSProperties, type ReactNode } from "r
 import { AbsoluteFill, Audio, getInputProps, Img, Loop, OffthreadVideo, Sequence, staticFile, useCurrentFrame, useVideoConfig } from "remotion";
 import clipManifest from "../clips.json";
 import stillManifest from "../stills.json";
-import { caretVisible, easeInOut, easeOut, keyed, keyedPoint, progress, type Key, type Point } from "./lib";
+import { caretVisible, easeIn, easeInOut, easeOut, keyed, keyedPoint, progress, type Key, type Point } from "./lib";
 import "./xp.css";
 
 export const asset = (path: string) => staticFile(`xp/gui/${path}`);
@@ -422,8 +422,8 @@ export function Cursor({ path, clicks = [], kind = "arrow", size = 32, shadow = 
 export type Shot = { x: number; y: number; z: number };
 export type Rect = { x: number; y: number; w: number; h: number };
 
-/** Closest the camera ever gets: the XP chrome and taskbar stay in view. */
-export const zoomCap = (portrait: boolean) => (portrait ? 1 : 1.14);
+/** The camera never zooms in: the whole XP screen, taskbar included, stays in view. */
+export const zoomCap = (_portrait: boolean) => 1;
 
 /** A shot showing all of `rect` plus a margin, never closer than the cap. */
 export function shotOf(rect: Rect, W: number, H: number, portrait: boolean, margin = 24): Shot {
@@ -493,6 +493,103 @@ export function Pop({ at, children, until }: { at: number; children: ReactNode; 
   if (frame < at || (until !== undefined && frame >= until)) return null;
   const t = progress(frame, at, 3);
   return <div style={{ position: "absolute", inset: 0, opacity: 0.6 + 0.4 * t, transform: `scale(${0.985 + 0.015 * t})`, transformOrigin: "50% 50%" }}>{children}</div>;
+}
+
+/* ------------------------------------------------------------------ */
+/* Windows that come and go                                            */
+/* ------------------------------------------------------------------ */
+
+export type Enter = "pop" | "left" | "right" | "top" | "bottom";
+export type Exit = "minimize" | "close";
+const ENTER_FRAMES = 7;
+const EXIT_FRAMES = 7;
+
+function easeOutBack(t: number) {
+  const c = 1.45;
+  return 1 + (c + 1) * (t - 1) ** 3 + c * (t - 1) ** 2;
+}
+
+/**
+ * An XP window with an entrance and an exit: it pops open (or slides in from
+ * an edge) at `at`, and from `out` minimizes into the taskbar (or closes).
+ * Always laid out fully inside the frame; only the animation crosses it.
+ */
+export function AppWindow({ at, out, enter = "pop", exit = "minimize", taskX, chromeScale = 1, children, x, y, w, h, ...rest }: {
+  at: number;
+  out?: number;
+  /** Draws the frame, title bar and buttons smaller, for dense grids; x/y/w/h stay in screen pixels. */
+  chromeScale?: number;
+  enter?: Enter;
+  exit?: Exit;
+  /** Where its taskbar button sits (x), for the minimize. */
+  taskX?: number;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  title: ReactNode;
+  icon?: string;
+  active?: boolean;
+  chrome?: WindowChrome;
+  children?: ReactNode;
+  bodyStyle?: CSSProperties;
+  buttons?: "all" | "close";
+}) {
+  const frame = useCurrentFrame();
+  const { W, H } = useOrientation();
+  if (frame < at || (out !== undefined && frame >= out + EXIT_FRAMES)) return null;
+  const tIn = Math.min(1, (frame - at) / ENTER_FRAMES);
+  const tOut = out === undefined || frame < out ? 0 : Math.min(1, (frame - out) / EXIT_FRAMES);
+  let transform = "";
+  let opacity = 1;
+  if (tIn < 1) {
+    const e = easeOut(tIn);
+    if (enter === "pop") {
+      transform = `scale(${0.78 + 0.22 * easeOutBack(tIn)})`;
+      opacity = Math.min(1, tIn * 3);
+    } else {
+      const far = { left: -(x + w + 40), right: W - x + 40, top: -(y + h + 40), bottom: H - y + 40 }[enter];
+      const d = (far * (1 - e)) / chromeScale;
+      transform = enter === "left" || enter === "right" ? `translateX(${d}px)` : `translateY(${d}px)`;
+    }
+  }
+  if (tOut > 0) {
+    const e = easeIn(tOut);
+    if (exit === "minimize") {
+      const dx = (taskX ?? W / 2) - (x + w / 2);
+      const dy = H - 15 - (y + h / 2);
+      transform += ` translate(${(dx * e) / chromeScale}px, ${(dy * e) / chromeScale}px) scale(${1 - 0.9 * e})`;
+      opacity = 1 - e * 0.85;
+    } else {
+      transform += ` scale(${1 - 0.08 * e})`;
+      opacity = 1 - e;
+    }
+  }
+  return (
+    <Window
+      x={x / chromeScale}
+      y={y / chromeScale}
+      w={w / chromeScale}
+      h={h / chromeScale}
+      {...rest}
+      style={{ transform, opacity, transformOrigin: "50% 50%", ...(chromeScale !== 1 ? { zoom: chromeScale } : null) }}
+    >
+      {children}
+    </Window>
+  );
+}
+
+/** Hard cuts between shots on the beat: each shot plays from its own start. */
+export function Montage({ shots, until }: { shots: { id: ClipId; at: number; from?: number }[]; until: number }) {
+  return (
+    <>
+      {shots.map((shot, i) => (
+        <Sequence key={`${shot.id}-${shot.at}`} from={shot.at} durationInFrames={Math.max(1, (shots[i + 1]?.at ?? until) - shot.at)} layout="none">
+          <Clip id={shot.id} from={shot.from ?? 0} />
+        </Sequence>
+      ))}
+    </>
+  );
 }
 
 /** A window playing one recording, opening at `at` (frames). */

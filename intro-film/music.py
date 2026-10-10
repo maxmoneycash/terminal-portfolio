@@ -114,7 +114,7 @@ MORSE = {
     "J": ".---", "K": "-.-", "L": ".-..", "M": "--", "N": "-.", "O": "---", "P": ".--.", "Q": "--.-", "R": ".-.",
     "S": "...", "T": "-", "U": "..-", "V": "...-", "W": ".--", "X": "-..-", "Y": "-.--", "Z": "--..",
     "0": "-----", "1": ".----", "2": "..---", "3": "...--", "4": "....-", "5": ".....", "6": "-....",
-    "7": "--...", "8": "---..", "9": "----.",
+    "7": "--...", "8": "---..", "9": "----.", ",": "--..--", "'": ".----.", "!": "-.-.--",
 }
 
 
@@ -153,6 +153,27 @@ def cw(cue: dict) -> tuple[int, np.ndarray]:
     tone = np.sin(2 * np.pi * cue["pitch"] * t) * env * db(cue["gainDb"])
     start = int(round(cue["start"] / 30 * SR))
     return start, np.vstack([tone, tone])
+
+
+# --- the quill on paper ----------------------------------------------------------
+
+def quill_scratch() -> tuple[int, np.ndarray]:
+    """Nib noise that follows the pen: louder when it moves fast, silent on
+    lifts. Same track and timing as the film's calligraphy (calligraphy.py)."""
+    spec = SCORE["calligraphy"]
+    path = json.loads((ROOT / ".intro-build" / "film" / "public" / "signature" / "path.json").read_text())["path"]
+    n = int(spec["frames"] / 30 * SR)
+    xy = np.array([[p[0], p[1]] for p in path], dtype=float)
+    down = np.array([p[2] for p in path], dtype=float)
+    speed = np.r_[0.0, np.linalg.norm(np.diff(xy, axis=0), axis=1)] * down
+    speed = np.minimum(speed, np.percentile(speed[speed > 0], 95)) if (speed > 0).any() else speed
+    env = np.interp(np.linspace(0, len(path) - 1, n), np.arange(len(path)), speed / (speed.max() + 1e-9))
+    env = ndimage.uniform_filter1d(env, int(0.02 * SR)) ** 0.7
+    grain = 0.6 + 0.4 * np.abs(signal.sosfilt(signal.butter(2, 45, "lowpass", fs=SR, output="sos"), rng.standard_normal(n))) * 6
+    noise = rng.standard_normal((2, n))
+    noise = signal.sosfilt(signal.butter(2, [1800, 7000], "bandpass", fs=SR, output="sos"), noise, axis=1)
+    start = int(round(spec["start"] / 30 * SR))
+    return start, noise * env * np.minimum(grain, 1.6) * 0.5
 
 
 # --- synthesized FX (all in C) -------------------------------------------------
@@ -227,7 +248,7 @@ def limit(audio: np.ndarray, ceiling_db: float = -1.0) -> np.ndarray:
 
 
 def main() -> None:
-    I, D1, BR, D2, SP, D3 = (bar_of(n) for n in ("intro", "drop1", "break", "drop2", "space", "drop3"))
+    SG, RA, D1, D2, D3 = (bar_of(n) for n in ("sign", "radio", "drop1", "drop2", "drop3"))
     END = TOTAL_BARS
 
     pad = loop("Airy Vox Synth")
@@ -247,78 +268,75 @@ def main() -> None:
     music = np.zeros((2, LENGTH))
     fx = np.zeros((2, LENGTH))
 
-    # Intro: the pad opens up under boot and login, a roll and riser build.
-    place(music, pad, I, D1 - I, -6, fade_in=1.0)
-    place(music, strum, I + 2, 2, -9)
-    sweep(music, I, D1 - I, 250, 9000)
-    place(drums, roll, D1 - 2, 2, -10)
+    # The signature: an airy pad opening up, washed in reverb, and the quill.
+    opening = np.zeros((2, LENGTH))
+    place(opening, pad, SG, RA - SG, -7, fade_in=1.0)
+    place(opening, strum, SG + 2, 2, -13)
+    sweep(opening, SG, RA - SG, 300, 7000)
+    music += reverb(opening, 3.0, 0.4)
+    start, scratch = quill_scratch()
+    fx[:, start:start + scratch.shape[1]] += scratch * db(-17)
+
+    # The radio: a sparse groove under the Morse, then a build into drop 1.
+    place(music, pad, RA, D1 - RA, -9)
+    place(music, strum, RA, D1 - RA, -12)
+    sweep(music, RA, D1 - RA, 700, 9000)
+    place(drums, hats, RA + 1, D1 - RA - 3, -15)
+    place(drums, beat2, RA + 3, D1 - RA - 5, -13)
+    drums[:, int((RA + 3) * BAR):int((D1 - 2) * BAR)] = static_filter(drums[:, int((RA + 3) * BAR):int((D1 - 2) * BAR)], 700, "highpass")
+    place(low, bass, RA + 5, D1 - RA - 7, -11)
+    low[:, int((RA + 5) * BAR):int((D1 - 2) * BAR)] = static_filter(low[:, int((RA + 5) * BAR):int((D1 - 2) * BAR)], 300, "lowpass")
+    place(drums, roll, D1 - 2, 2, -9)
     fx[:, int((D1 - 2) * BAR):int(D1 * BAR)] += riser(2) * db(-9)
 
-    # Drop 1: beat, bass and lead; the glitchy topper joins halfway.
-    place(drums, beat, D1, BR - D1, 0)
-    place(drums, top, D1 + 4, BR - D1 - 4, -9)
-    place(low, bass, D1, BR - D1, -2)
-    place(music, lead, D1, BR - D1, -6)
-    place(music, stutter, D1 + 4, BR - D1 - 4, -10)
+    # Drop 1, the best work: beat, bass and lead; the topper joins halfway.
+    place(drums, beat, D1, D2 - D1, 0)
+    place(drums, top, D1 + 4, D2 - D1 - 4, -10)
+    place(low, bass, D1, D2 - D1, -2)
+    place(music, lead, D1, D2 - D1, -6)
+    place(drums, roll, D2 - 1, 1, -11)
 
-    # Breakdown: no kick, filtered synths, a roll and riser into drop 2.
-    place(music, pad, BR, D2 - BR, -6)
-    place(music, strum, BR, D2 - BR, -8)
-    place(music, stutter, BR, D2 - BR, -9)
-    sweep(music, BR, 2, 1800, 900)
-    sweep(music, BR + 2, 2, 900, 12000)
-    place(drums, hats, BR, 2, -12)
-    place(drums, roll, D2 - 2, 2, -8)
-    fx[:, int((D2 - 2) * BAR):int(D2 * BAR)] += riser(2) * db(-8)
+    # Drop 2: the anthem, a project a bar.
+    place(drums, beat, D2, D3 - D2, 0)
+    place(drums, top, D2, D3 - D2, -9)
+    place(low, bass, D2, D3 - D2, -2)
+    place(music, anthem, D2, D3 - D2, -6)
+    place(music, lead, D2 + 2, D3 - D2 - 2, -9)
+    place(drums, roll, D3 - 1, 1, -9)
 
-    # Drop 2: full anthem.
-    place(drums, beat, D2, SP - D2, 0)
-    place(drums, top, D2, SP - D2, -9)
-    place(low, bass, D2, SP - D2, -2)
-    place(music, anthem, D2, SP - D2, -6)
-    place(music, lead, D2 + 4, SP - D2 - 4, -8)
-
-    # Space: Roman. Pad and strum only, washed in reverb, then a long build.
-    space = np.zeros((2, LENGTH))
-    place(space, pad, SP, D3 - SP, -5)
-    place(space, strum, SP, D3 - SP, -8)
-    sweep(space, SP, 2, 600, 3000)
-    sweep(space, SP + 2, 2, 3000, 12000)
-    music += reverb(space, 3.2, 0.45)
-    place(drums, beat2, SP + 2, 2, -10)
-    drums[:, int((SP + 2) * BAR):int(D3 * BAR)] = static_filter(drums[:, int((SP + 2) * BAR):int(D3 * BAR)], 900, "highpass")
-    place(drums, roll, D3 - 2, 2, -7)
-    fx[:, int((D3 - 2) * BAR):int(D3 * BAR)] += riser(2) * db(-7)
-
-    # Drop 3: everything, then one last hit for "your turn."
+    # Drop 3, overload: everything, faster and denser every two bars.
     place(drums, beat, D3, END - 1 - D3, 0)
-    place(drums, top, D3, END - 1 - D3, -9)
+    place(drums, top, D3, END - 1 - D3, -8)
+    place(drums, hats, D3 + 2, END - 1 - D3 - 2, -10)
     place(low, bass, D3, END - 1 - D3, -2)
     place(music, anthem, D3, END - 1 - D3, -6)
     place(music, lead, D3, END - 1 - D3, -8)
-    place(music, stutter, D3 + 4, END - 1 - D3 - 4, -11)
+    place(music, stutter, D3 + 2, END - 1 - D3 - 2, -9)
+    place(drums, roll, D3 + 4, 3, -9)
+    fx[:, int((D3 + 4) * BAR):int((D3 + 7) * BAR)] += riser(3) * db(-8)
     tail = np.zeros((2, LENGTH))
     place(tail, pad, END - 1, 1, -4)
     tail[:, int((END - 0.5) * BAR):] *= np.linspace(1, 0, LENGTH - int((END - 0.5) * BAR)) ** 2
     music += reverb(tail, 3.0, 0.5)
 
     # Sidechain the tonal parts to the kick in every drop.
-    for a, b in ((D1, BR), (D2, SP), (D3, END - 1)):
+    for a, b in ((D1, D2), (D2, D3), (D3, END - 1)):
         duck(low, (a, b), -7)
         duck(music, (a, b), -4)
 
-    # Gaps before each drop, then impact + crash on the downbeat.
+    # A breath before each drop, then impact + crash on the downbeat; the
+    # overload peaks one bar before the end and the last hit closes it.
     for d in (D1, D2, D3):
         gap = int((d - 0.125) * BAR)
         for track in (drums, low, music):
             track[:, gap:int(d * BAR)] *= np.linspace(1, 0, int(d * BAR) - gap) ** 3
-    for d in (D1, D2, D3, END - 1):
+    for d in (D1, D2, D3, END - 2, END - 1):
         hit = impact()
         fx[:, int(d * BAR):int(d * BAR) + hit.shape[1]] += hit * db(-5)
         cr = crash()
         fx[:, int(d * BAR):int(d * BAR) + cr.shape[1]] += cr * db(-10)
 
-    # The callsign in Morse: once over the boot screen, once on the first drop.
+    # The greeting in Morse over the radio.
     for cue in SCORE.get("morse", []):
         start, tone = cw(cue)
         fx[:, start:start + tone.shape[1]] += tone
@@ -331,7 +349,7 @@ def main() -> None:
     mix = mix - static_filter(mix, 80, "lowpass") * (1 - db(-2.0)) + static_filter(mix, 4000, "highpass") * (db(1.5) - 1)
     mix = compress(mix)
     # Loudness: aim near -14 LUFS-ish (RMS of the drops), then a -1 dBFS ceiling.
-    drops = np.concatenate([mix[:, int(a * BAR):int(b * BAR)] for a, b in ((D1, BR), (D2, SP), (D3, END - 1))], axis=1)
+    drops = np.concatenate([mix[:, int(a * BAR):int(b * BAR)] for a, b in ((D1, D2), (D2, D3), (D3, END - 1))], axis=1)
     mix *= db(-13.0) / (np.sqrt((drops ** 2).mean()) + 1e-9)
     mix = limit(mix, -1.0)
     mix = mix[:, : TOTAL_BARS * BAR + int(1.2 * SR)]

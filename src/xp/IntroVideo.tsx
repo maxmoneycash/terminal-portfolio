@@ -1,7 +1,11 @@
 /**
- * The MaxXP intro film: XP boots, logs in, and the projects play out through
- * Notepad, Internet Explorer, balloon tips and dialogs until every window
- * closes on the live desktop. It hands off directly to the interactive desktop.
+ * The MaxXP intro film: the quill writes the name, the KK6OQA radio sends the
+ * greeting in Morse, then the work plays out best first and ever faster until
+ * every window minimizes on the live desktop. It hands off directly to the
+ * interactive desktop.
+ *
+ * It plays with sound whenever the browser allows; otherwise it starts muted
+ * and the first tap turns the sound on (a second tap, Skip or Escape skips).
  *
  * Rendered by intro-film/ (Remotion) from the original project recordings.
  */
@@ -12,13 +16,13 @@ import { getSystemVolume } from "./audio";
 const INTRO = {
   portrait: {
     orient: "portrait",
-    src: "/videos/intro/intro-portrait-1fa7c05a.mp4",
-    poster: "/videos/intro/intro-portrait-1fa7c05a.jpg",
+    src: "/videos/intro/intro-portrait-72311d5a.mp4",
+    poster: "/videos/intro/intro-portrait-72311d5a.jpg",
   },
   landscape: {
     orient: "landscape",
-    src: "/videos/intro/intro-landscape-8188e24a.mp4",
-    poster: "/videos/intro/intro-landscape-8188e24a.jpg",
+    src: "/videos/intro/intro-landscape-89cc07ea.mp4",
+    poster: "/videos/intro/intro-landscape-89cc07ea.jpg",
   },
 };
 
@@ -57,6 +61,7 @@ export function IntroVideo({ onFinish, fading, requested = false }: {
 }) {
   const [source] = useState(pickSource);
   const [started, setStarted] = useState(false);
+  const [muted, setMuted] = useState(true);
   const [skipVisible, setSkipVisible] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const skipRef = useRef<HTMLButtonElement | null>(null);
@@ -81,19 +86,29 @@ export function IntroVideo({ onFinish, fading, requested = false }: {
     }
     const playMuted = () => {
       video.muted = true;
+      setMuted(true);
       // Autoplay refused (e.g. iOS Low Power Mode): go straight to the desktop.
       video.play().catch(() => finish());
     };
     // Sound follows the tray volume; the browser may still insist on muted.
     const volume = getSystemVolume() / 100;
-    if (!requested || volume === 0) {
+    if (volume === 0) {
       playMuted();
       return;
     }
     video.volume = volume;
     video.muted = false;
-    video.play().catch(playMuted);
+    video.play().then(() => setMuted(false), playMuted);
   }, [requested, finish]);
+
+  const unmute = useCallback(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    video.volume = Math.max(0.5, getSystemVolume() / 100);
+    video.muted = false;
+    void video.play().catch(() => {});
+    setMuted(false);
+  }, []);
 
   useEffect(() => {
     const id = window.setTimeout(() => setSkipVisible(true), SKIP_REVEAL_MS);
@@ -123,7 +138,7 @@ export function IntroVideo({ onFinish, fading, requested = false }: {
       className={cn("intro", fading && `is-fading-${fading}`)}
       role="region"
       aria-label="MaxXP intro"
-      onClick={() => finish()}
+      onClick={() => (muted ? unmute() : finish())}
     >
       <video
         ref={videoRef}
@@ -139,6 +154,19 @@ export function IntroVideo({ onFinish, fading, requested = false }: {
         onError={() => finish()}
         aria-hidden="true"
       />
+      {muted && started ? (
+        <button
+          type="button"
+          className={cn("intro-sound", skipVisible && "is-visible")}
+          onClick={(event) => {
+            event.stopPropagation();
+            unmute();
+          }}
+        >
+          <img src="/xp/gui/tray/volume.webp" alt="" width={16} height={16} />
+          Turn on sound
+        </button>
+      ) : null}
       <button
         ref={skipRef}
         type="button"
