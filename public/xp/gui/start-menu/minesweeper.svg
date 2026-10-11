@@ -1,13 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <rect x="1" y="1" width="30" height="30" fill="#c0c0c0"/>
-  <path d="M1 1h30v2H3v28H1z" fill="#ffffff"/>
-  <path d="M31 1v30H1v-2h28V1z" fill="#7b7b7b"/>
-  <line x1="16" y1="5" x2="16" y2="27" stroke="#000" stroke-width="2"/>
-  <line x1="5" y1="16" x2="27" y2="16" stroke="#000" stroke-width="2"/>
-  <line x1="8" y1="8" x2="24" y2="24" stroke="#000" stroke-width="1.6"/>
-  <line x1="24" y1="8" x2="8" y2="24" stroke="#000" stroke-width="1.6"/>
-  <circle cx="16" cy="16" r="7.5" fill="#000"/>
-  <rect x="12.5" y="12.5" width="3.2" height="3.2" fill="#fff"/>
-  <polygon points="26,2 26,8 19.5,5" fill="#e00"/>
-  <line x1="26" y1="2" x2="26" y2="11" stroke="#800000" stroke-width="1.6"/>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="30" height="30" x="1" y="1" fill="silver"/><path fill="#fff" d="M1 1h30v2H3v28H1z"/><path fill="#7b7b7b" d="M31 1v30H1v-2h28V1z"/><line x1="16" x2="16" y1="5" y2="27" stroke="#000" stroke-width="2"/><line x1="5" x2="27" y1="16" y2="16" stroke="#000" stroke-width="2"/><line x1="8" x2="24" y1="8" y2="24" stroke="#000" stroke-width="1.6"/><line x1="24" x2="8" y1="8" y2="24" stroke="#000" stroke-width="1.6"/><circle cx="16" cy="16" r="7.5" fill="#000"/><rect width="3.2" height="3.2" x="12.5" y="12.5" fill="#fff"/><polygon fill="#e00" points="26 2 26 8 19.5 5"/><line x1="26" x2="26" y1="2" y2="11" stroke="maroon" stroke-width="1.6"/></svg>
