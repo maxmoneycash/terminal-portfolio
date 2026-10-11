@@ -10,7 +10,6 @@ import type stillManifest from "../../stills.json";
 type Item = { title: string; clip?: keyof typeof clipManifest.clips; still?: keyof typeof stillManifest.stills };
 const PAGES: Item[][] = [
   [{ title: "Whop Finance", still: "whop-finance" }, { title: "Peptide Tracker", clip: "peptide-tracker" }],
-  [{ title: "Tend — tend.earth", still: "tend-home" }, { title: "Tend — donations", still: "tend-app" }],
   [{ title: "cash.trading", still: "cash-trading-btc" }, { title: "Wick Markets", clip: "wick-markets-ride" }],
   [{ title: "Content Rewards", still: "content-rewards" }, { title: "turbotokens", still: "turbotokens" }],
   [{ title: "Seam — liquidity", clip: "seam-dex" }, { title: "Shelby Pulse", clip: "shelby-pulse" }],
@@ -25,8 +24,8 @@ export function Overload() {
   const page = Math.min(PAGES.length - 1, Math.floor(frame / BAR));
   const items = PAGES[page];
   const boxes = mediaLayout(items.map(ratioOf), W, H);
-  const recap = frame >= 6 * BAR;
-  const clear = 7 * BAR;
+  const recap = frame >= PAGES.length * BAR;
+  const clear = (PAGES.length + 1) * BAR;
   const tasks = frame < clear ? items.map(item => ({ title: item.title, icon: asset("desktop/projects.webp"), active: true })) : [];
   return (
     <Desktop tasks={tasks}>
@@ -43,13 +42,13 @@ export function Overload() {
         const w = Math.min(portrait ? W - 60 : 700, (h - 33) * ratio + 6);
         const height = (w - 6) / ratio + 33;
         return <AppWindow key={item.title} x={portrait ? 18 + i * 3 : 50 + i * 42} y={portrait ? 60 + i * 26 : 36 + i * 12}
-          w={w} h={height} at={6 * BAR + i * 3} out={clear - 7} title={item.title} icon={asset("desktop/projects.webp")}>
+          w={w} h={height} at={PAGES.length * BAR + i * 3} out={clear - 7} title={item.title} icon={asset("desktop/projects.webp")}>
           <Media item={item} />
         </AppWindow>;
       })}
-      {[0, 1, 2, 3, 4, 5].map(i => <Sfx key={i} at={i * BAR} name="minimize" volume={0.18} />)}
+      {PAGES.map((_, i) => <Sfx key={i} at={i * BAR} name="minimize" volume={0.18} />)}
       <Sfx at={clear - 7} name="minimize" volume={0.5} />
-      {frame >= clear && <AbsoluteFill style={{ display: "grid", placeItems: "center", opacity: 1 - progress(frame, 8 * BAR - 10, 10) }}>
+      {frame >= clear && <AbsoluteFill style={{ display: "grid", placeItems: "center", opacity: 1 - progress(frame, (PAGES.length + 2) * BAR - 10, 10) }}>
         <div className="welcome-type" style={{ fontSize: portrait ? 62 : 92, textAlign: "center" }}>
           your{frame >= clear + BEAT ? " turn." : ""}
         </div>

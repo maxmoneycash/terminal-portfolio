@@ -115,25 +115,25 @@ export function Lilyshark() {
 }
 
 export function Commits() {
-  return (
-    <Chapter
-      name="commits.sh"
-      length={2 * BAR}
-      panes={[
-        {
-          title: "commits.sh — $MAXMONEYCASH - Internet Explorer",
-          url: "https://commits.sh/maxmoneycash",
-          body: { clip: "commits-sh-ticker" },
-        },
-        {
-          title: "commits.sh — menu bar",
-          body: { clip: "commits-sh-menubar" },
-          at: 5,
-          enter: "top",
-        },
-      ]}
-    />
-  );
+  return <Chapter name="commits.sh" length={4 * BAR} panes={[{
+    title: "commits.sh — full workspace · timelapse",
+    body: { clip: "commits-sh-workspace" },
+  }]} />;
+}
+
+/** One connected chapter: land acknowledgment, the atlas, then language. */
+export function LandLanguage() {
+  const { portrait } = useOrientation();
+  const views = [
+    { title: "Tend — land acknowledgment", still: "tend-home" as const },
+    { title: "Presidio Atlas — land & history", still: portrait ? "presidio-portrait" as const : "presidio-landscape" as const },
+    { title: "Ohlone Unicode — language", still: portrait ? "ohlone-portrait" as const : "ohlone-landscape" as const },
+  ];
+  return <>{views.map((view, i) => (
+    <Sequence key={view.title} from={i * 2 * BAR} durationInFrames={2 * BAR} layout="none">
+      <Chapter name="Land & language" length={2 * BAR} panes={[{ title: view.title, body: { still: view.still } }]} />
+    </Sequence>
+  ))}</>;
 }
 
 export function Orbital() {

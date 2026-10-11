@@ -40,3 +40,6 @@ __pycache__/
 scripts/signature/graph.json
 scripts/signature/route-debug.json
 scripts/signature/__pycache__/
+
+public/videos/reels/commits-sh-workspace-*.mp4
+public/intro-art/*.mp4

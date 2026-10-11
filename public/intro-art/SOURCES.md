@@ -14,3 +14,6 @@ The `assets/montage/*.webp` files are square macro crops of these scans. `pile.w
 - https://commons.wikimedia.org/wiki/File:Obverse_of_the_series_2009_$100_Federal_Reserve_Note.jpg
 
 (Note: US law restricts reproducing currency at actual size or in colour on both sides. These are partial, enlarged, and colour-graded macro crops used as motion-blurred background imagery.)
+
+Motion layer: user-supplied `ScreenRecording_10-11-2025 12.mov`, first 3.2 seconds,
+retimed to the first two musical bars. Prepared by `intro-film/prepare-opening.py`.

@@ -40,10 +40,21 @@ export function Clip({ id, from = 0, fit = "contain", position = "50% 50%", styl
   /** Playback speed (the timelapse runs a little faster on the beat grid). */
   rate?: number;
 }) {
-  const { fps } = useVideoConfig();
+  const { fps, width, height } = useVideoConfig();
+  const frame = useCurrentFrame();
   if (AUDIO_ONLY) return null;
-  const length = Math.floor(clipInfo(id).duration * fps) - 1;
+  const info = clipInfo(id);
+  const speed = "speed" in info ? info.speed : 1;
+  const length = Math.floor(info.duration / speed * fps) - 1;
   const trim = Math.min(Math.round(from * fps), length - 1);
+  // Predecode demanding footage once instead of seeking a video per frame.
+  // The complete source framing is retained; Chrome only composites the image.
+  const useFrames = ("frames" in info && info.frames) || (height > width && "portraitFrames" in info && info.portraitFrames);
+  if (useFrames && !thumb) {
+    const index = trim + Math.floor(frame * rate) % (length - trim + 1);
+    return <Img src={staticFile(`frames/${id}/${String(index).padStart(5, "0")}.jpg`)}
+      style={{ width: "100%", height: "100%", objectFit: fit, objectPosition: position, display: "block", ...style }} />;
+  }
   const video = (
     <OffthreadVideo
       src={staticFile(`clips/${id}${thumb ? ".thumb" : ""}.mp4`)}

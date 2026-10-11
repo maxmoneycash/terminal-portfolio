@@ -11,7 +11,8 @@
         3430,
         2146
       ],
-      "width": 2400
+      "width": 2400,
+      "portraitFrames": true
     },
     "aptos-vs-megaeth-rerun": {
       "title": "MegaETH \u2014 another run",
@@ -37,7 +38,8 @@
         1340,
         1620
       ],
-      "width": 1340
+      "width": 1340,
+      "portraitFrames": true
     },
     "sol2move-boringvault": {
       "title": "Sol2Move \u2014 compiler results",
@@ -63,7 +65,8 @@
         2330,
         2018
       ],
-      "width": 2330
+      "width": 2330,
+      "portraitFrames": true
     },
     "aptos-block-machine": {
       "title": "Block Machine \u2014 blocks",
@@ -76,7 +79,8 @@
         3280,
         1830
       ],
-      "width": 2400
+      "width": 2400,
+      "portraitFrames": true
     },
     "block-machine-functions": {
       "title": "Function costs",
@@ -115,7 +119,8 @@
         3260,
         1200
       ],
-      "width": 2400
+      "width": 2400,
+      "portraitFrames": true
     },
     "nipahscan-genome": {
       "title": "Genome explorer",
@@ -232,7 +237,8 @@
         3760,
         1930
       ],
-      "width": 2400
+      "width": 2400,
+      "portraitFrames": true
     },
     "shelby-pulse": {
       "title": "Shelby Pulse \u2014 latency",
@@ -245,7 +251,8 @@
         1070,
         2050
       ],
-      "width": 1070
+      "width": 1070,
+      "portraitFrames": true
     },
     "wick-markets-ride": {
       "title": "Wick Markets",
@@ -258,7 +265,8 @@
         3380,
         1995
       ],
-      "width": 2400
+      "width": 2400,
+      "portraitFrames": true
     },
     "peptide-tracker": {
       "title": "Peptide Tracker \u2014 site rotation",
@@ -271,7 +279,8 @@
         856,
         1762
       ],
-      "width": 856
+      "width": 856,
+      "portraitFrames": true
     },
     "emoji-candlestick-charts": {
       "title": "Emoji Candlestick Charts",
@@ -284,7 +293,8 @@
         1060,
         1630
       ],
-      "width": 1060
+      "width": 1060,
+      "portraitFrames": true
     },
     "temper-trade": {
       "title": "Temper Trade",
@@ -297,7 +307,8 @@
         1072,
         1952
       ],
-      "width": 1072
+      "width": 1072,
+      "portraitFrames": true
     },
     "aptos-validator-globe": {
       "title": "Aptos validators",
@@ -310,7 +321,8 @@
         2484,
         1934
       ],
-      "width": 2400
+      "width": 2400,
+      "portraitFrames": true
     },
     "maxxp-desktop": {
       "title": "MaxXP \u2014 Dev Stats",
@@ -324,19 +336,6 @@
         2088
       ],
       "width": 1088
-    },
-    "commits-sh-menubar": {
-      "title": "commits.sh",
-      "recording": "Screen Recording 2026-09-26 at 8.54*",
-      "start": 180,
-      "duration": 6.0,
-      "crop": [
-        1975,
-        106,
-        916,
-        1315
-      ],
-      "width": 916
     },
     "lilyshark-intro": {
       "title": "Lilyshark",
@@ -364,32 +363,6 @@
       ],
       "width": 2400
     },
-    "commits-sh-popover": {
-      "title": "commits.sh",
-      "recording": "Screen Recording 2026-09-17 at 5.52*",
-      "start": 6.0,
-      "duration": 6.0,
-      "crop": [
-        52,
-        70,
-        952,
-        980
-      ],
-      "width": 952
-    },
-    "commits-sh-ticker": {
-      "title": "commits.sh - $MAXMONEYCASH",
-      "recording": "Screen Recording 2026-08-25 at 9.40*",
-      "start": 40.0,
-      "duration": 6.0,
-      "crop": [
-        26,
-        96,
-        2240,
-        2016
-      ],
-      "width": 2240
-    },
     "yank-clone": {
       "title": "yank-clone",
       "recording": "Screen Recording 2026-10-07 at 9.29*",
@@ -401,7 +374,8 @@
         1840,
         1080
       ],
-      "width": 1840
+      "width": 1840,
+      "portraitFrames": true
     },
     "yank-apart": {
       "title": "yank-apart",
@@ -572,6 +546,21 @@
         1080,
         1360
       ]
+    },
+    "commits-sh-workspace": {
+      "title": "commits.sh \u2014 full workspace timelapse",
+      "recording": "Screen Recording 2026-09-26 at 8.54.42?PM.mov",
+      "start": 0,
+      "duration": 676.435,
+      "speed": 90.59397321428571,
+      "crop": [
+        0,
+        0,
+        3456,
+        2234
+      ],
+      "width": 2400,
+      "frames": true
     }
   }
 }

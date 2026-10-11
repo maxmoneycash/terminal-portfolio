@@ -1,7 +1,7 @@
 import { AbsoluteFill, Audio, Series, staticFile, useCurrentFrame } from "remotion";
 import { BEAT, dropFlash } from "./beat";
 import { SceneStart } from "./xp";
-import { AptosMegaeth, Commits, Gadgets, Lilyshark, Mainnet, Nipah, Orbital, Sol2Move, Yank } from "./scenes/Chapters";
+import { AptosMegaeth, Commits, LandLanguage, Gadgets, Lilyshark, Mainnet, Nipah, Orbital, Sol2Move, Yank } from "./scenes/Chapters";
 import { Overload } from "./scenes/Overload";
 import { Radio } from "./scenes/Radio";
 import { Sign } from "./scenes/Sign";
@@ -9,7 +9,7 @@ import { Sign } from "./scenes/Sign";
 /**
  * Scene order and lengths in beats (14 frames each). Sections follow the
  * soundtrack in score.json: the signature 4 bars, the radio 2, then three
- * drops (15, 9, 8) that get faster and denser. Every cut lands on a beat.
+ * drops (23, 9, 7) that get faster and denser. Every cut lands on a beat.
  */
 export const SCENES = [
   // the signature, then the radio's callsign
@@ -17,8 +17,9 @@ export const SCENES = [
   { name: "radio", beats: 8, component: Radio },
   // drop 1: the best work
   { name: "lilyshark", beats: 40, component: Lilyshark },
-  { name: "commits", beats: 8, component: Commits },
+  { name: "commits", beats: 16, component: Commits },
   { name: "orbital", beats: 12, component: Orbital },
+  { name: "land-language", beats: 24, component: LandLanguage },
   // drop 2: a project every six beats
   { name: "aptos", beats: 6, component: AptosMegaeth },
   { name: "sol2move", beats: 6, component: Sol2Move },
@@ -27,7 +28,7 @@ export const SCENES = [
   { name: "mainnet", beats: 6, component: Mainnet },
   { name: "gadgets", beats: 6, component: Gadgets },
   // drop 3: overload, then "your turn."
-  { name: "overload", beats: 32, component: Overload },
+  { name: "overload", beats: 28, component: Overload },
 ] as const;
 
 export const FILM_FRAMES = SCENES.reduce((sum, scene) => sum + scene.beats * BEAT, 0);

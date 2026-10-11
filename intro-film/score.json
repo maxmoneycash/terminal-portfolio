@@ -11,7 +11,7 @@
     },
     {
       "name": "drop1",
-      "bars": 15
+      "bars": 23
     },
     {
       "name": "drop2",
@@ -19,7 +19,7 @@
     },
     {
       "name": "drop3",
-      "bars": 8
+      "bars": 7
     }
   ],
   "morse": [

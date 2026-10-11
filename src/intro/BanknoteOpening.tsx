@@ -1,24 +1,26 @@
-import type { ElementType } from "react";
+import type { ElementType, ReactNode } from "react";
 import score from "../../intro-film/score.json";
+import openingMedia from "./openingMedia.json";
 import { RecordedSignature } from "./RecordedSignature";
 
 export const OPENING_FRAMES = score.sections[0].bars * 4 * score.framesPerBeat;
 export const OPENING_SECONDS = OPENING_FRAMES / 30;
-const SHOTS = ["gold", "franklin", "seal", "annuit", "blue", "eye", "serial", "swirl"];
+const SHOTS = ["gold", "seal", "blue", "swirl"];
 const BEAT = score.framesPerBeat;
 const clamp = (n: number) => Math.max(0, Math.min(1, n));
 
 /** One composition for the immediate loader and the rendered film. */
-export function BanknoteOpening({ frame, width, height, ink, Image = "img", asset = (path) => `/${path}` }: {
+export function BanknoteOpening({ frame, width, height, ink, motion, Image = "img", asset = (path) => `/${path}` }: {
   frame: number;
   width: number;
   height: number;
   ink: HTMLImageElement | null;
+  motion?: ReactNode;
   Image?: ElementType;
   asset?: (path: string) => string;
 }) {
   const portrait = height > width;
-  const shot = Math.min(SHOTS.length - 1, Math.floor(frame / (2 * BEAT)));
+  const shot = Math.min(SHOTS.length - 1, Math.max(0, Math.floor((frame - openingMedia.frames) / (2 * BEAT))));
   const writing = Math.max(0, (frame - score.calligraphy.start) / score.calligraphy.frames);
   const reveal = clamp((frame - 184) / 14);
   const inset = width * (portrait ? 0.055 : 0.035);
@@ -30,6 +32,8 @@ export function BanknoteOpening({ frame, width, height, ink, Image = "img", asse
             objectPosition: "50% 50%", opacity: i === shot ? 1 : 0,
             filter: "saturate(0.55) sepia(0.15)", transform: `scale(${1.025 + (frame % (2 * BEAT)) / (2 * BEAT) * 0.015})` }} />
       ))}
+      {frame < openingMedia.frames && <div style={{ position: "absolute", inset: 0, overflow: "hidden",
+        filter: "sepia(.3) contrast(.92)" }}>{motion}</div>}
       {/* The engraving remains visible at the edges; quiet paper behind the ink. */}
       <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse at 48% 54%, rgb(246 239 218 / .94) 0%, rgb(246 239 218 / .82) 30%, rgb(234 222 191 / .28) 78%), linear-gradient(0deg, rgb(240 230 204 / .8), transparent 25%, transparent 85%, rgb(240 230 204 / .35))" }} />
       <div style={{ position: "absolute", inset, border: "1px solid rgb(33 51 36 / .25)", pointerEvents: "none" }} />

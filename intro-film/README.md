@@ -1,7 +1,8 @@
 # MaxXP intro film
 
-A 71-second XP desktop film: a banknote montage under Max's recorded signature, **KK6OQA** in Morse,
-a 19-second Lilyshark feature, commits.sh, Orbital Works, six project chapters, larger pairs of
+An 84-second XP desktop film: a banknote montage under Max's recorded signature, **KK6OQA** in Morse,
+a 19-second Lilyshark feature, a full-workspace commits.sh timelapse, Orbital Works,
+a connected Tend / Presidio Atlas / Ohlone Unicode chapter, six project chapters, larger pairs of
 additional work, then a short window cascade and “your turn.” The live radio
 app keeps its longer greeting; the film's cue is independent in `score.json`.
 
@@ -33,11 +34,17 @@ npm dependencies. This checkout uses native ARM Node 22.
 crops and exact source names. Originals are found in `~/Screenshots`, iCloud
 Screenshots, `~/Downloads`, or `~/Movies/Orbital Works`. Review each changed
 crop across its entire time span: windows sometimes move in the source.
-Never publish other desktop windows or unreviewed source footage.
+Review source footage before publishing. The September 26 commits recording is an
+explicit full-desktop exception: preserve its entire frame and timeline. The film
+uses a 7.47-second timelapse; the Demo Reel uses the same source at 24× speed.
+Its `frames` flag predecodes the dense timelapse to full-frame JPEGs during
+preparation, avoiding repeated high-resolution video extraction while rendering.
+The remaining phone-film clips use `portraitFrames` at 1080 pixels wide or their
+native width when smaller, retaining the full view at the final output resolution.
 
 The opening uses `src/intro/BanknoteOpening.tsx` and `src/lib/calligraphy.ts`,
-shared with the immediate loading montage and the site's quill. Eight supplied
-banknote engravings change every two beats under the recorded ink; portrait
+shared with the immediate loading montage and the site's quill. The supplied dollar-bill motion clip opens into four
+banknote engravings under the recorded ink; portrait
 stacks the two words. Source credits live in `public/intro-art/SOURCES.md`.
 The loader starts before the MP4 is ready and playback joins at its elapsed
 opening time, capped at the radio cut, so the name is written only once.
@@ -72,3 +79,10 @@ Autoplay is attempted with sound and then muted. If the browser refuses, or
 reduced-motion/data-saving is requested, a visible Play intro button remains.
 A slow load or media error never silently dismisses the intro. Click the film
 for sound; Skip or Escape opens the desktop.
+
+`python3 intro-film/prepare-opening.py` rebuilds the 3.2-second motion layer from
+`ScreenRecording_10-11-2025 12.mov`, trimming its black/UI tail. Its manifest is
+`src/intro/openingMedia.json`; `npm run media:upload` publishes every asset in
+`scripts/release-media.json` before deployment. Captures in `intro-film/captures/`
+show the public Presidio Atlas and Ohlone Unicode apps at desktop/phone sizes.
+Tend, Presidio Atlas, and Ohlone Unicode share one six-bar chapter.

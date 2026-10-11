@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 """Cut the film's source clips from the original screen recordings.
 
-Each clip is a reviewed crop of one app (never the full desktop take), cut to
+Each clip uses its reviewed framing (including explicitly requested full desktop takes), cut to
 30 fps H.264 at near-source sharpness. Outputs land in .intro-build/film/public,
 which Remotion serves as its public folder; nothing here is published.
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import shutil
 import subprocess
@@ -28,7 +29,7 @@ XP_ASSETS = ["gui", "fonts", "sounds"]
 def cut(clip_id: str, clip: dict) -> str:
     out = CLIPS / f"{clip_id}.mp4"
     meta = CLIPS / f"{clip_id}.json"
-    signature = json.dumps(clip, sort_keys=True)
+    signature = json.dumps({k: v for k, v in clip.items() if k not in ("frames", "portraitFrames")}, sort_keys=True)
     if out.exists() and meta.exists() and meta.read_text() == signature:
         return f"{clip_id}: cached"
     x, y, w, h = clip["crop"]
@@ -77,11 +78,14 @@ def still(still_id: str, item: dict) -> str:
     from PIL import Image
     out = STILLS / f"{still_id}.jpg"
     meta = STILLS / f"{still_id}.json"
-    signature = json.dumps(item, sort_keys=True)
+    source = ROOT / item["file"]
+    if not source.is_file():
+        source = Path(find_source(item["file"]))
+    signature = json.dumps(item, sort_keys=True) + hashlib.sha256(source.read_bytes()).hexdigest()
     if out.exists() and meta.exists() and meta.read_text() == signature:
         return f"{still_id}: cached"
     x, y, w, h = item["crop"]
-    with Image.open(find_source(item["file"])) as image:
+    with Image.open(source) as image:
         image = image.convert("RGB").crop((x, y, x + w, y + h))
         if image.width > 2400:
             image = image.resize((2400, round(image.height * 2400 / image.width)), Image.LANCZOS)
@@ -142,6 +146,13 @@ def main() -> None:
     with ThreadPoolExecutor(max_workers=4) as pool:
         for line in pool.map(lambda item: cut(*item), jobs.items()):
             print(line, flush=True)
+    for clip_id, clip in jobs.items():
+        if clip.get("frames") or clip.get("portraitFrames"):
+            frames = PUBLIC / "frames" / clip_id
+            frames.mkdir(parents=True, exist_ok=True)
+            subprocess.run(["ffmpeg", "-v", "error", "-y", "-threads", "1", "-i", str(CLIPS / f"{clip_id}.mp4"),
+                "-vf", "scale='min(1080,iw)':-2" if clip.get("portraitFrames") else "null",
+                "-q:v", "2", "-start_number", "0", str(frames / "%05d.jpg")], check=True)
     for clip_id in jobs:
         if not (CLIPS / f"{clip_id}.jpg").exists():
             poster(clip_id)

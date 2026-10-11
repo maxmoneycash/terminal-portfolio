@@ -35,6 +35,7 @@ function fingerprint(options = picture) {
     }
   };
   walk(path.join(here, "src"));
+  walk(path.join(here, "captures"));
   // The radio and the signature come from the site, the beat grid from score.json.
   walk(path.join(here, "../src/radio"));
   files.push(
@@ -63,7 +64,8 @@ const video = {
   ...shared,
   ...picture,
   concurrency: Number(process.env.INTRO_CONCURRENCY ?? 2),
-  offthreadVideoCacheSizeInBytes: 128 * 1024 * 1024,
+  offthreadVideoCacheSizeInBytes: 64 * 1024 * 1024,
+  offthreadVideoThreads: 1,
 };
 
 // One Chrome for every chunk: Remotion's launch timeout is a fixed 25 s,

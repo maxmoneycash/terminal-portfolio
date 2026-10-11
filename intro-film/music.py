@@ -313,8 +313,8 @@ def main() -> None:
     place(music, anthem, D3, END - 1 - D3, -6)
     place(music, lead, D3, END - 1 - D3, -8)
     place(music, stutter, D3 + 2, END - 1 - D3 - 2, -9)
-    place(drums, roll, D3 + 4, 3, -9)
-    fx[:, int((D3 + 4) * BAR):int((D3 + 7) * BAR)] += riser(3) * db(-8)
+    place(drums, roll, D3 + 4, END - 1 - (D3 + 4), -9)
+    fx[:, int((D3 + 4) * BAR):int((END - 1) * BAR)] += riser(END - 1 - (D3 + 4)) * db(-8)
     tail = np.zeros((2, LENGTH))
     place(tail, pad, END - 1, 1, -4)
     tail[:, int((END - 0.5) * BAR):] *= np.linspace(1, 0, LENGTH - int((END - 0.5) * BAR)) ** 2

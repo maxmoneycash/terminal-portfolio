@@ -18,13 +18,13 @@ import { OPENING_SECONDS } from "../intro/BanknoteOpening";
 const INTRO = {
   portrait: {
     orient: "portrait",
-    src: "/videos/intro/intro-portrait-9a89a40e.mp4",
-    poster: "/videos/intro/intro-portrait-9a89a40e.jpg",
+    src: "/videos/intro/intro-portrait-b4cb73d2.mp4",
+    poster: "/videos/intro/intro-portrait-b4cb73d2.jpg",
   },
   landscape: {
     orient: "landscape",
-    src: "/videos/intro/intro-landscape-65a27e3a.mp4",
-    poster: "/videos/intro/intro-landscape-65a27e3a.jpg",
+    src: "/videos/intro/intro-landscape-12a8c08b.mp4",
+    poster: "/videos/intro/intro-landscape-12a8c08b.jpg",
   },
 };
 

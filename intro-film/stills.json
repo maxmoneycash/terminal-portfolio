@@ -11,28 +11,6 @@
    "repo": "maxmoneycash/lilyshark",
    "title": "lilyshark-traffic.png"
   },
-  "commits-sh-card": {
-   "file": "Screenshot 2026-09-22 at 3.12.01?PM.png",
-   "crop": [
-    30,
-    20,
-    1596,
-    1630
-   ],
-   "repo": "private",
-   "title": "commits.sh-maxmoneycash.png"
-  },
-  "commits-sh-home": {
-   "file": "Screenshot 2026-08-25 at 8.12.04?PM.png",
-   "crop": [
-    70,
-    112,
-    3246,
-    1878
-   ],
-   "repo": "private",
-   "title": "commits.sh.png"
-  },
   "tend-home": {
    "file": "Screenshot 2026-07-30 at 3.41.53?PM.png",
    "crop": [
@@ -241,6 +219,50 @@
    ],
    "repo": "maxmoneycash/orbital-works",
    "title": "roman-telescope.png"
+  },
+  "ohlone-landscape": {
+   "file": "intro-film/captures/ohlone-landscape.jpg",
+   "crop": [
+    0,
+    0,
+    1280,
+    800
+   ],
+   "repo": "maxmoneycash/ohlone-unicode",
+   "title": "ohlone-landscape.jpg"
+  },
+  "ohlone-portrait": {
+   "file": "intro-film/captures/ohlone-portrait.jpg",
+   "crop": [
+    0,
+    0,
+    540,
+    760
+   ],
+   "repo": "maxmoneycash/ohlone-unicode",
+   "title": "ohlone-portrait.jpg"
+  },
+  "presidio-landscape": {
+   "file": "intro-film/captures/presidio-landscape.jpg",
+   "crop": [
+    0,
+    0,
+    1280,
+    800
+   ],
+   "repo": "maxmoneycash/presidio-atlas",
+   "title": "presidio-landscape.jpg"
+  },
+  "presidio-portrait": {
+   "file": "intro-film/captures/presidio-portrait.jpg",
+   "crop": [
+    0,
+    0,
+    540,
+    760
+   ],
+   "repo": "maxmoneycash/presidio-atlas",
+   "title": "presidio-portrait.jpg"
   }
  }
 }

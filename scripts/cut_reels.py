@@ -32,6 +32,10 @@ SEARCH = [
 # (height follows the crop's shape). poster is seconds into the output.
 # span is (start, duration) for an exact short extract without montage cuts.
 JOBS = {
+    # Explicitly requested whole desktop: preserve every edge of this recording.
+    "commits-sh-workspace": dict(
+        source="Screen Recording 2026-09-26 at 8.54.42?PM.mov", crop=(0, 0, 3456, 2234),
+        width=2400, speed=24, poster=8, crf=20),
     "maxxp-desktop": dict(
         source="Screen Recording 2026-08-05 at 9.44*", crop=(36, 104, 1088, 2088), width=900,
         span=(66, 5), poster=3.4, crf=18),
@@ -82,7 +86,7 @@ def cut(job_id: str, job: dict) -> None:
     x, y, w, h = job["crop"]
     width = job["width"]
     height = round(h * width / w / 2) * 2
-    filters = ["fps=30", f"crop={w}:{h}:{x}:{y}", f"scale={width}:{height}:flags=lanczos", "setsar=1"]
+    filters = ([f"setpts=(PTS-STARTPTS)/{job['speed']}"] if job.get("speed") else []) + ["fps=30", f"crop={w}:{h}:{x}:{y}", f"scale={width}:{height}:flags=lanczos", "setsar=1"]
     if job.get("keep"):
         expr = "+".join(f"between(t\\,{a}\\,{b})" for a, b in job["keep"])
         filters += [f"select='{expr}'", "setpts=N/(30*TB)"]

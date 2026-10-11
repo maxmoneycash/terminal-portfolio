@@ -5,6 +5,14 @@
     "videos/reels/orbital-works-5f57b0bc.mp4": {
       "sha256": "5f57b0bc64824cad6f7272a379dfcd5430b0582e178e7a7939c78e3e4b35751c",
       "bytes": 18096349
+    },
+    "intro-art/banknote-motion-773e953d.mp4": {
+      "sha256": "773e953dd509baba32ac2bad22aa9dd91ced51827a3cb218d568a94ac92e51f9",
+      "bytes": 2142726
+    },
+    "videos/reels/commits-sh-workspace-827f94b0.mp4": {
+      "sha256": "c123a208dc889f51862cd290f2f59a560825cac48d75d5b451beb8e80bd6e503",
+      "bytes": 27354075
     }
   }
 }
