@@ -1,5 +1,6 @@
 import { createContext, useContext, type CSSProperties, type ReactNode } from "react";
-import { AbsoluteFill, Audio, getInputProps, Img, Loop, OffthreadVideo, Sequence, staticFile, useCurrentFrame, useVideoConfig } from "remotion";
+import { AbsoluteFill, Audio, getInputProps, getRemotionEnvironment, Img, Loop, OffthreadVideo, Sequence, staticFile, useCurrentFrame, useVideoConfig } from "remotion";
+import { useWebPlayback } from "./playback";
 import clipManifest from "../clips.json";
 import stillManifest from "../stills.json";
 import { caretVisible, easeIn, easeInOut, easeOut, keyed, keyedPoint, progress, type Key, type Point } from "./lib";
@@ -8,7 +9,7 @@ import "./xp.css";
 export const asset = (path: string) => staticFile(`xp/gui/${path}`);
 
 /** The soundtrack pass skips every video: it only needs the <Sfx> cues. */
-const AUDIO_ONLY = getInputProps().audioOnly === true;
+const AUDIO_ONLY = getRemotionEnvironment().isRendering && getInputProps().audioOnly === true;
 
 export function useOrientation() {
   const { width, height } = useVideoConfig();
@@ -42,6 +43,7 @@ export function Clip({ id, from = 0, fit = "contain", position = "50% 50%", styl
 }) {
   const { fps, width, height } = useVideoConfig();
   const frame = useCurrentFrame();
+  const web = useWebPlayback();
   if (AUDIO_ONLY) return null;
   const info = clipInfo(id);
   const speed = "speed" in info ? info.speed : 1;
@@ -49,7 +51,7 @@ export function Clip({ id, from = 0, fit = "contain", position = "50% 50%", styl
   const trim = Math.min(Math.round(from * fps), length - 1);
   // Predecode demanding footage once instead of seeking a video per frame.
   // The complete source framing is retained; Chrome only composites the image.
-  const useFrames = ("frames" in info && info.frames) || (height > width && "portraitFrames" in info && info.portraitFrames);
+  const useFrames = !web && (("frames" in info && info.frames) || (height > width && "portraitFrames" in info && info.portraitFrames));
   if (useFrames && !thumb) {
     const index = trim + Math.floor(frame * rate) % (length - trim + 1);
     return <Img src={staticFile(`frames/${id}/${String(index).padStart(5, "0")}.jpg`)}
@@ -57,7 +59,8 @@ export function Clip({ id, from = 0, fit = "contain", position = "50% 50%", styl
   }
   const video = (
     <OffthreadVideo
-      src={staticFile(`clips/${id}${thumb ? ".thumb" : ""}.mp4`)}
+      src={web ? web.clips[id][web.mobile ? "mobile" : "src"] : staticFile(`clips/${id}${thumb ? ".thumb" : ""}.mp4`)}
+      pauseWhenBuffering
       trimBefore={trim}
       playbackRate={rate}
       muted
@@ -66,7 +69,7 @@ export function Clip({ id, from = 0, fit = "contain", position = "50% 50%", styl
   );
   return (
     <AbsoluteFill style={{ background: "#000" }}>
-      <Loop durationInFrames={Math.max(1, Math.floor((length - trim) / rate))}>{video}</Loop>
+      <Loop durationInFrames={Math.max(1, Math.ceil((length - trim + 1) / rate))}>{video}</Loop>
     </AbsoluteFill>
   );
 }
@@ -305,7 +308,8 @@ export const SceneStart = createContext(0);
 export function Bliss({ style }: { style?: CSSProperties }) {
   const { portrait } = useOrientation();
   const start = useContext(SceneStart);
-  if (AUDIO_ONLY) return null;
+  const web = useWebPlayback();
+  if (AUDIO_ONLY || web) return null;
   return (
     <OffthreadVideo
       src={staticFile(`wallpaper-${portrait ? "portrait" : "landscape"}.mp4`)}
@@ -329,8 +333,8 @@ const DESKTOP_ICONS = [
 ];
 
 export function DesktopIcons() {
-  const { portrait } = useOrientation();
-  const step = portrait ? 84 : 78;
+  const { portrait, H } = useOrientation();
+  const step = Math.min(portrait ? 84 : 78, (H - 105) / 7);
   return (
     <>
       {DESKTOP_ICONS.map((icon, i) => (
@@ -351,8 +355,9 @@ export function Desktop({ children, tasks, icons = true, taskbar = true, clock }
   taskbar?: boolean;
   clock?: string;
 }) {
+  const web = useWebPlayback();
   return (
-    <AbsoluteFill className="film" style={{ overflow: "hidden", background: "#3a6ea5" }}>
+    <AbsoluteFill className="film" style={{ overflow: "hidden", background: web ? "transparent" : "#3a6ea5" }}>
       <Bliss />
       {icons ? <DesktopIcons /> : null}
       {children}
@@ -694,9 +699,10 @@ export function Still({ id, fit = "contain", position = "50% 50%", style }: {
   position?: string;
   style?: CSSProperties;
 }) {
+  const web = useWebPlayback();
   return (
     <Img
-      src={staticFile(`stills/${id}.jpg`)}
+      src={web ? web.stills[id] : staticFile(`stills/${id}.jpg`)}
       style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: fit, objectPosition: position, ...style }}
     />
   );

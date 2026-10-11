@@ -7,12 +7,12 @@ const chapters = read('../src/intro/chapters.json');
 const score = read('../intro-film/score.json');
 const clips = read('../intro-film/clips.json').clips;
 
-test('chapter navigation and soundtrack use the same complete timeline', () => {
+test('scenes and soundtrack use the same complete timeline', () => {
   assert.equal(new Set(chapters.map(chapter => chapter.id)).size, chapters.length);
   assert.ok(chapters.every(chapter => chapter.beats > 0 && chapter.label));
   const sections = [chapters[0].beats, chapters[1].beats,
-    chapters.slice(2, 6).reduce((sum, chapter) => sum + chapter.beats, 0),
-    chapters.slice(6, 12).reduce((sum, chapter) => sum + chapter.beats, 0), chapters[12].beats];
+    chapters.slice(2, 5).reduce((sum, chapter) => sum + chapter.beats, 0),
+    chapters.slice(5, 11).reduce((sum, chapter) => sum + chapter.beats, 0), chapters[11].beats];
   assert.deepEqual(sections, score.sections.map(section => section.bars * 4));
   assert.deepEqual(score.morse.map(cue => cue.text), ['KK6OQA']);
 });
@@ -30,18 +30,21 @@ test('Roman holds full frames without looping; commits retains the whole workspa
   assert.ok(Math.abs(commits.duration / commits.speed - seconds) < .05);
 });
 
-test('both orientations have separate, substantially smaller mobile files pinned to the release', () => {
-  const sources = read('../src/data/intro-sources.json');
-  const files = read('../intro-film/published.json').files;
-  for (const orient of ['landscape', 'portrait']) {
-    const source = sources[orient];
-    assert.notEqual(source.mobile, source.hd);
-    const hd = files[source.hd.split('/').pop()];
-    const mobile = files[source.mobile.split('/').pop()];
+test('responsive shots and soundtrack are pinned, with posters available immediately', () => {
+  const media = read('../src/data/intro-media.json');
+  const files = read('./release-media.json').files;
+  assert.ok(Object.keys(media.clips).length >= 20);
+  let hdBytes = 0, mobileBytes = 0;
+  for (const clip of Object.values(media.clips)) {
+    const hd = files[clip.src.slice(1)], mobile = files[clip.mobile.slice(1)];
     assert.ok(hd && mobile);
-    assert.ok(mobile.bytes < hd.bytes * .65, `${orient} mobile encode must save at least 35%`);
-    assert.ok(existsSync(new URL(`../public${source.poster}`, import.meta.url)));
+    hdBytes += hd.bytes; mobileBytes += mobile.bytes;
+    assert.ok(existsSync(new URL(`../public${clip.poster}`, import.meta.url)));
   }
+  assert.ok(mobileBytes < hdBytes * .75, 'Mobile playback must save meaningful bandwidth');
+  assert.ok(files[media.soundtrack.slice(1)]);
+  assert.equal(chapters.some(chapter => /land|presidio|tend|ohlone/i.test(chapter.id)), false);
+  assert.equal(Object.keys(media.stills).some(id => /presidio|tend|ohlone/i.test(id)), false);
 });
 
 test('Lilyshark has its complete launch film, ten uncropped shorts, and a separate preview', () => {

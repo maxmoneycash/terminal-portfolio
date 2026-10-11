@@ -1,0 +1,124 @@
+{
+  "clips": {
+    "aptos-vs-megaeth": {
+      "src": "/videos/intro-shots/aptos-vs-megaeth-src-6c7794bc.mp4",
+      "mobile": "/videos/intro-shots/aptos-vs-megaeth-mobile-5af489ef.mp4",
+      "poster": "/videos/intro-shots/aptos-vs-megaeth-2cfca5dc.jpg"
+    },
+    "sol2move-first-run": {
+      "src": "/videos/intro-shots/sol2move-first-run-src-01cc86ed.mp4",
+      "mobile": "/videos/intro-shots/sol2move-first-run-mobile-33801114.mp4",
+      "poster": "/videos/intro-shots/sol2move-first-run-efa287a3.jpg"
+    },
+    "sol2move-generated-code": {
+      "src": "/videos/intro-shots/sol2move-generated-code-src-474b879a.mp4",
+      "mobile": "/videos/intro-shots/sol2move-generated-code-mobile-3d0ab0f8.mp4",
+      "poster": "/videos/intro-shots/sol2move-generated-code-952df0c5.jpg"
+    },
+    "aptos-block-machine": {
+      "src": "/videos/intro-shots/aptos-block-machine-src-a0a86a57.mp4",
+      "mobile": "/videos/intro-shots/aptos-block-machine-mobile-056edfd8.mp4",
+      "poster": "/videos/intro-shots/aptos-block-machine-050dd649.jpg"
+    },
+    "nipahscan": {
+      "src": "/videos/intro-shots/nipahscan-src-2d63e41b.mp4",
+      "mobile": "/videos/intro-shots/nipahscan-mobile-893cd596.mp4",
+      "poster": "/videos/intro-shots/nipahscan-aff3f387.jpg"
+    },
+    "seam-dex": {
+      "src": "/videos/intro-shots/seam-dex-src-09ca2188.mp4",
+      "mobile": "/videos/intro-shots/seam-dex-mobile-38497170.mp4",
+      "poster": "/videos/intro-shots/seam-dex-58777ef9.jpg"
+    },
+    "shelby-pulse": {
+      "src": "/videos/intro-shots/shelby-pulse-src-fd705821.mp4",
+      "mobile": "/videos/intro-shots/shelby-pulse-mobile-232a6c2b.mp4",
+      "poster": "/videos/intro-shots/shelby-pulse-64a874d7.jpg"
+    },
+    "wick-markets-ride": {
+      "src": "/videos/intro-shots/wick-markets-ride-src-4e177cc1.mp4",
+      "mobile": "/videos/intro-shots/wick-markets-ride-mobile-31e3252d.mp4",
+      "poster": "/videos/intro-shots/wick-markets-ride-17037d3d.jpg"
+    },
+    "peptide-tracker": {
+      "src": "/videos/intro-shots/peptide-tracker-src-cae91126.mp4",
+      "mobile": "/videos/intro-shots/peptide-tracker-mobile-27abe8fd.mp4",
+      "poster": "/videos/intro-shots/peptide-tracker-6b3a5a68.jpg"
+    },
+    "emoji-candlestick-charts": {
+      "src": "/videos/intro-shots/emoji-candlestick-charts-src-83b83150.mp4",
+      "mobile": "/videos/intro-shots/emoji-candlestick-charts-mobile-d518eaf2.mp4",
+      "poster": "/videos/intro-shots/emoji-candlestick-charts-62f88d56.jpg"
+    },
+    "temper-trade": {
+      "src": "/videos/intro-shots/temper-trade-src-719c5e6d.mp4",
+      "mobile": "/videos/intro-shots/temper-trade-mobile-b40d80ff.mp4",
+      "poster": "/videos/intro-shots/temper-trade-5990aa73.jpg"
+    },
+    "aptos-validator-globe": {
+      "src": "/videos/intro-shots/aptos-validator-globe-src-0e6010af.mp4",
+      "mobile": "/videos/intro-shots/aptos-validator-globe-mobile-cceb650f.mp4",
+      "poster": "/videos/intro-shots/aptos-validator-globe-44c0e645.jpg"
+    },
+    "yank-clone": {
+      "src": "/videos/intro-shots/yank-clone-src-899e6fb4.mp4",
+      "mobile": "/videos/intro-shots/yank-clone-mobile-beb20f8a.mp4",
+      "poster": "/videos/intro-shots/yank-clone-d5aa402b.jpg"
+    },
+    "roman-earth": {
+      "src": "/videos/intro-shots/roman-earth-src-f1a91ff2.mp4",
+      "mobile": "/videos/intro-shots/roman-earth-mobile-655a7f79.mp4",
+      "poster": "/videos/intro-shots/roman-earth-ecb5dd6f.jpg"
+    },
+    "roman-apart": {
+      "src": "/videos/intro-shots/roman-apart-src-9d9301f8.mp4",
+      "mobile": "/videos/intro-shots/roman-apart-mobile-e022b00b.mp4",
+      "poster": "/videos/intro-shots/roman-apart-4bf29fb1.jpg"
+    },
+    "roman-wheel": {
+      "src": "/videos/intro-shots/roman-wheel-src-99b378f9.mp4",
+      "mobile": "/videos/intro-shots/roman-wheel-mobile-e20a676a.mp4",
+      "poster": "/videos/intro-shots/roman-wheel-aea84f8c.jpg"
+    },
+    "tdeck-hero": {
+      "src": "/videos/intro-shots/tdeck-hero-src-5a11d6e5.mp4",
+      "mobile": "/videos/intro-shots/tdeck-hero-mobile-5dea7f36.mp4",
+      "poster": "/videos/intro-shots/tdeck-hero-9e4b1d49.jpg"
+    },
+    "tdeck-bytes": {
+      "src": "/videos/intro-shots/tdeck-bytes-src-65aa065a.mp4",
+      "mobile": "/videos/intro-shots/tdeck-bytes-mobile-bd3bcd97.mp4",
+      "poster": "/videos/intro-shots/tdeck-bytes-811ced77.jpg"
+    },
+    "tdeck-band": {
+      "src": "/videos/intro-shots/tdeck-band-src-99fcb1a5.mp4",
+      "mobile": "/videos/intro-shots/tdeck-band-mobile-6f44965d.mp4",
+      "poster": "/videos/intro-shots/tdeck-band-b60de2cc.jpg"
+    },
+    "lilyshark-below-noise": {
+      "src": "/videos/intro-shots/lilyshark-below-noise-src-067072d8.mp4",
+      "mobile": "/videos/intro-shots/lilyshark-below-noise-mobile-f0c6c1e7.mp4",
+      "poster": "/videos/intro-shots/lilyshark-below-noise-fdd15518.jpg"
+    },
+    "lilyshark-airtime-short": {
+      "src": "/videos/intro-shots/lilyshark-airtime-short-src-6e0cc072.mp4",
+      "mobile": "/videos/intro-shots/lilyshark-airtime-short-mobile-5b5e0201.mp4",
+      "poster": "/videos/intro-shots/lilyshark-airtime-short-a2e90755.jpg"
+    },
+    "commits-sh-workspace": {
+      "src": "/videos/intro-shots/commits-sh-workspace-src-7c237f18.mp4",
+      "mobile": "/videos/intro-shots/commits-sh-workspace-mobile-ebf6c88a.mp4",
+      "poster": "/videos/intro-shots/commits-sh-workspace-db591351.jpg"
+    }
+  },
+  "stills": {
+    "content-rewards": "/videos/intro-shots/content-rewards-9ccd198a.jpg",
+    "cash-trading-btc": "/videos/intro-shots/cash-trading-btc-78ece83b.jpg",
+    "turbotokens": "/videos/intro-shots/turbotokens-e5dc649b.jpg",
+    "whop-finance": "/videos/intro-shots/whop-finance-3f7c1593.jpg",
+    "gadgets-catalog": "/videos/intro-shots/gadgets-catalog-5229dd8e.jpg",
+    "gadgets-huskylens": "/videos/intro-shots/gadgets-huskylens-97c546b4.jpg"
+  },
+  "soundtrack": "/videos/intro-shots/score-e201cee2.m4a",
+  "wallpaperFrames": 415
+}

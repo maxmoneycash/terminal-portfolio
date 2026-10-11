@@ -1,11 +1,17 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readFileSync } from 'node:fs';
+import { filmDimensions } from '../src/intro/filmDimensions.ts';
 import { mediaLayout } from '../intro-film/src/mediaLayout.ts';
 const clips = JSON.parse(readFileSync(new URL('../intro-film/clips.json', import.meta.url))).clips;
 const stills = JSON.parse(readFileSync(new URL('../intro-film/stills.json', import.meta.url))).stills;
 const ratios = Object.values({...clips, ...stills}).map(({crop}) => crop[2] / crop[3]);
-for (const [W, H] of [[1280,720], [540,960]]) {
+for (const [width, height] of [[1280,720], [1440,900], [1950,1160], [1024,768], [2560,1080], [390,844], [768,1024], [844,390]]) {
+  const {width: W, height: H} = filmDimensions(width, height);
+  test(`composition fills the ${width}x${height} viewport`, () => {
+    const scale = Math.min(width / W, height / H);
+    assert.ok(width - W * scale < 1 && height - H * scale < 1, 'No letterbox or pillarbox gaps');
+  });
   test(`media remains fully visible without internal bars at ${W}x${H}`, () => {
     for (const a of ratios) for (const b of ratios) {
       for (const input of [[a],[a,b]]) {

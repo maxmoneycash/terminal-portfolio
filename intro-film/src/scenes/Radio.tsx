@@ -38,8 +38,16 @@ export function Radio() {
     pitch: 622,
   };
 
-  const radio = portrait ? { x: 10, y: 38, w: W - 20, h: 702 } : { x: (W - 806) / 2, y: 22, w: 806, h: 526 };
-  const decoder = portrait ? { x: 20, y: 754, w: W - 40, h: 120 } : { x: 390, y: 570, w: 500, h: 102 };
+  const designW = portrait ? 540 : 846;
+  const designH = portrait ? 890 : 690;
+  const scale = Math.min(1, (W - 20) / designW, (H - 50) / designH);
+  const left = (W - designW * scale) / 2;
+  const top = (H - 30 - designH * scale) / 2;
+  const fit = (box: {x: number; y: number; w: number; h: number}) => ({
+    x: left + box.x * scale, y: top + box.y * scale, w: box.w * scale, h: box.h * scale, chromeScale: scale,
+  });
+  const radio = fit(portrait ? { x: 10, y: 18, w: 520, h: 702 } : { x: 20, y: 12, w: 806, h: 526 });
+  const decoder = fit(portrait ? { x: 20, y: 734, w: 500, h: 120 } : { x: 173, y: 558, w: 500, h: 102 });
   const taskX = portrait ? 140 : 200;
   const text = morse.text;
 

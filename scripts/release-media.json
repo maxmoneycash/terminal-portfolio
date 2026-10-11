@@ -61,6 +61,186 @@
     "videos/reels/lilyshark-10-what-is-lilyshark-ba617c10.mp4": {
       "sha256": "ba617c10f0ffed2469404ae8b3809b6e662cc86be40ab89dfe5453eb01f32045",
       "bytes": 6704374
+    },
+    "videos/intro-shots/aptos-vs-megaeth-src-6c7794bc.mp4": {
+      "sha256": "6c7794bccaf3ee27d449de9619a7aca59e9e4569ba9a466147b644a09847bded",
+      "bytes": 1426457
+    },
+    "videos/intro-shots/aptos-vs-megaeth-mobile-5af489ef.mp4": {
+      "sha256": "5af489ef243b2dd1081e4b396d1c3b9eba088c6270360c62d7c722ec6467bc5c",
+      "bytes": 556547
+    },
+    "videos/intro-shots/sol2move-first-run-src-01cc86ed.mp4": {
+      "sha256": "01cc86edc3ff8e824430e35adbcb0874b82d944b9c0a0a10ea03fb296fd9dead",
+      "bytes": 281744
+    },
+    "videos/intro-shots/sol2move-first-run-mobile-33801114.mp4": {
+      "sha256": "33801114d92869b8ecc5dba41c4e8656e2f88728e0247a0fd79cbbd27a9ec825",
+      "bytes": 215722
+    },
+    "videos/intro-shots/sol2move-generated-code-src-474b879a.mp4": {
+      "sha256": "474b879a054c352ddbf3546f8d3a761055730148934f0ff05e99a970a374b6a9",
+      "bytes": 2833266
+    },
+    "videos/intro-shots/sol2move-generated-code-mobile-3d0ab0f8.mp4": {
+      "sha256": "3d0ab0f857add87c10e3e466914750c68378f2dfea7f5e9afa2674aee5af3569",
+      "bytes": 1255644
+    },
+    "videos/intro-shots/aptos-block-machine-src-a0a86a57.mp4": {
+      "sha256": "a0a86a57c7adec6027e12fbc5abd68f82ae24630d220874680c007e4a61cf885",
+      "bytes": 1414079
+    },
+    "videos/intro-shots/aptos-block-machine-mobile-056edfd8.mp4": {
+      "sha256": "056edfd89b1995114b289c1547fb9a2861bce5c1bf683376e4dc893cf127be30",
+      "bytes": 579038
+    },
+    "videos/intro-shots/nipahscan-src-2d63e41b.mp4": {
+      "sha256": "2d63e41b4d2ac0f2a8d3ca5bad84b465f163030a4aec4d9d7ead59e9d3a41c87",
+      "bytes": 542321
+    },
+    "videos/intro-shots/nipahscan-mobile-893cd596.mp4": {
+      "sha256": "893cd596a141732dcddc41a778480cfb65f4d0bc62881e5330567c8b423fcb55",
+      "bytes": 217435
+    },
+    "videos/intro-shots/seam-dex-src-09ca2188.mp4": {
+      "sha256": "09ca2188f4f32906672dd789ef237a8a9fb82bd5878fb3256763442baf321161",
+      "bytes": 437983
+    },
+    "videos/intro-shots/seam-dex-mobile-38497170.mp4": {
+      "sha256": "384971705679160d18305e802d81be228d90bc27a3333e34d9dd06a94a2cf0f7",
+      "bytes": 198870
+    },
+    "videos/intro-shots/shelby-pulse-src-fd705821.mp4": {
+      "sha256": "fd7058219f381c7d2bc16a18be2af3613448b3a9785060c00605196e89362ffa",
+      "bytes": 439800
+    },
+    "videos/intro-shots/shelby-pulse-mobile-232a6c2b.mp4": {
+      "sha256": "232a6c2bb60744a6f913dd9c690d9cd08c7f227ed90367a3e5d984b0c7b84cb5",
+      "bytes": 357978
+    },
+    "videos/intro-shots/wick-markets-ride-src-4e177cc1.mp4": {
+      "sha256": "4e177cc115eeb009832b39ab1a8311d2e2f3f6690f2d185c03f577dd72edb15b",
+      "bytes": 671828
+    },
+    "videos/intro-shots/wick-markets-ride-mobile-31e3252d.mp4": {
+      "sha256": "31e3252d02f26814b5f02024f4786324dc09331345fd938e91262f56f325460e",
+      "bytes": 266039
+    },
+    "videos/intro-shots/peptide-tracker-src-cae91126.mp4": {
+      "sha256": "cae91126c7c9f4e7490a206cd412eef457693319dc4d4abd832f2ddd02076365",
+      "bytes": 316924
+    },
+    "videos/intro-shots/peptide-tracker-mobile-27abe8fd.mp4": {
+      "sha256": "27abe8fd11b8ef5cf84d89ee20c4f7665928fbf3f7e65745e6cafa6c268d5921",
+      "bytes": 257409
+    },
+    "videos/intro-shots/emoji-candlestick-charts-src-83b83150.mp4": {
+      "sha256": "83b8315090ed0a6f46bd9f8b53701cc7fdd02f3f57ef03b227abf165b94ed2fb",
+      "bytes": 504249
+    },
+    "videos/intro-shots/emoji-candlestick-charts-mobile-d518eaf2.mp4": {
+      "sha256": "d518eaf248cc83fb9aa8a68371a70160b530975770258ac5c3e99ba5a2beaf92",
+      "bytes": 393821
+    },
+    "videos/intro-shots/temper-trade-src-719c5e6d.mp4": {
+      "sha256": "719c5e6d104a1d93686b7fa76fb729841fd3d46c9251f9795ae05b5c7d0fded7",
+      "bytes": 633570
+    },
+    "videos/intro-shots/temper-trade-mobile-b40d80ff.mp4": {
+      "sha256": "b40d80ffc5523d63044b9cbb71743bddf05b2528e05316ac9259a6624634c08c",
+      "bytes": 531306
+    },
+    "videos/intro-shots/aptos-validator-globe-src-0e6010af.mp4": {
+      "sha256": "0e6010af263b2a80e67c80ccbd5983f7094a8fd2698b71719df16330b10910d9",
+      "bytes": 3388445
+    },
+    "videos/intro-shots/aptos-validator-globe-mobile-cceb650f.mp4": {
+      "sha256": "cceb650ffccbc18a5ced7c8b0613befee7f368776942b462a32a73d0811c3911",
+      "bytes": 1525345
+    },
+    "videos/intro-shots/yank-clone-src-899e6fb4.mp4": {
+      "sha256": "899e6fb4d40dad889e49a5ff9934f7b3d0fd77807061809ac31a25cb75554310",
+      "bytes": 479926
+    },
+    "videos/intro-shots/yank-clone-mobile-beb20f8a.mp4": {
+      "sha256": "beb20f8ace0d7222226b76146e9a6afbfe84b6fb758afcb7ff837ddd762dd58b",
+      "bytes": 167278
+    },
+    "videos/intro-shots/roman-earth-src-f1a91ff2.mp4": {
+      "sha256": "f1a91ff275595758ca62840a0c7a29164862c4dc613c44b2ed189349bce30dd1",
+      "bytes": 1077898
+    },
+    "videos/intro-shots/roman-earth-mobile-655a7f79.mp4": {
+      "sha256": "655a7f79de952594f913b404b26fc31bf7a10af3814aae76235d6eac40f1aee3",
+      "bytes": 284755
+    },
+    "videos/intro-shots/roman-apart-src-9d9301f8.mp4": {
+      "sha256": "9d9301f824fefdb8e945bff7eeb4553927c2104674dfacbe159c7331099e976c",
+      "bytes": 866478
+    },
+    "videos/intro-shots/roman-apart-mobile-e022b00b.mp4": {
+      "sha256": "e022b00bc5bbc1375d30878cae3bfbbce3efb26dc209765250218f567475f0cf",
+      "bytes": 242940
+    },
+    "videos/intro-shots/roman-wheel-src-99b378f9.mp4": {
+      "sha256": "99b378f9c712f1c9c9c43159982e315c1037f2a8cab9193f45dcb7a1302acf0e",
+      "bytes": 1017211
+    },
+    "videos/intro-shots/roman-wheel-mobile-e20a676a.mp4": {
+      "sha256": "e20a676a08a32336225ad79a36bacca8129e4032125d521963093b692dd13edc",
+      "bytes": 196057
+    },
+    "videos/intro-shots/tdeck-hero-src-5a11d6e5.mp4": {
+      "sha256": "5a11d6e5b3abb7321a443885a9dd8a43ee943e55b260fb8ffd8422afc431eea1",
+      "bytes": 1185502
+    },
+    "videos/intro-shots/tdeck-hero-mobile-5dea7f36.mp4": {
+      "sha256": "5dea7f36cb6ad84522341f8c3e09e7c74b9baae42bea3df8ee26084e74a801ee",
+      "bytes": 284622
+    },
+    "videos/intro-shots/tdeck-bytes-src-65aa065a.mp4": {
+      "sha256": "65aa065a1304080e9365b215d4046a1190cf6ac06de94b092e7aab27ce711734",
+      "bytes": 2134789
+    },
+    "videos/intro-shots/tdeck-bytes-mobile-bd3bcd97.mp4": {
+      "sha256": "bd3bcd979a87d32643e146e065b08ff993dcb8ceef75133782c960330ae41b7d",
+      "bytes": 598081
+    },
+    "videos/intro-shots/tdeck-band-src-99fcb1a5.mp4": {
+      "sha256": "99fcb1a52858052c5b9e097c86a68b97589efc47c2df99d6bcf37e8d01c7350e",
+      "bytes": 1413270
+    },
+    "videos/intro-shots/tdeck-band-mobile-6f44965d.mp4": {
+      "sha256": "6f44965d70bd4c24bfc01a8ff3adf685f349f09fe836ad770985c09dfede8a0f",
+      "bytes": 384657
+    },
+    "videos/intro-shots/lilyshark-below-noise-src-067072d8.mp4": {
+      "sha256": "067072d87a43e78900af6a7fb5adb120384a138aba68ff65b791516a7aa90e52",
+      "bytes": 1493820
+    },
+    "videos/intro-shots/lilyshark-below-noise-mobile-f0c6c1e7.mp4": {
+      "sha256": "f0c6c1e7c7206d173aefbc94f82d8c6f046088e54edcc86ae239f0ec334a72db",
+      "bytes": 907579
+    },
+    "videos/intro-shots/lilyshark-airtime-short-src-6e0cc072.mp4": {
+      "sha256": "6e0cc072ea5c102fa77948e887b6fa6a09120411e0cc0567e956ef273982df3d",
+      "bytes": 1674991
+    },
+    "videos/intro-shots/lilyshark-airtime-short-mobile-5b5e0201.mp4": {
+      "sha256": "5b5e02012bca896748e6a0d6a29fd73761bf70816b2ef3219549e58190f01e0c",
+      "bytes": 986497
+    },
+    "videos/intro-shots/commits-sh-workspace-src-7c237f18.mp4": {
+      "sha256": "7c237f18b295c51e8a9cc5885af71edd6a6359df0f127394a9e0121c34246e88",
+      "bytes": 4132912
+    },
+    "videos/intro-shots/commits-sh-workspace-mobile-ebf6c88a.mp4": {
+      "sha256": "ebf6c88a226eee8071574332a50b6ef0877681fc4e99dc0c187a30b76fa7e271",
+      "bytes": 1871026
+    },
+    "videos/intro-shots/score-e201cee2.m4a": {
+      "sha256": "e201cee2d8dad694295055bcdb2157127101bdf3642e51f9943e5a780fb0e166",
+      "bytes": 1283902
     }
   }
 }

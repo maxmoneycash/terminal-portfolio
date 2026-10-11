@@ -44,3 +44,5 @@ scripts/signature/__pycache__/
 public/videos/reels/commits-sh-workspace-*.mp4
 public/intro-art/*.mp4
 public/videos/reels/lilyshark-*.mp4
+public/videos/intro-shots/*.mp4
+public/videos/intro-shots/*.m4a

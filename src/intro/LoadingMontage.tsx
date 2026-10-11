@@ -2,15 +2,15 @@ import { useEffect, useRef, useState } from "react";
 import { loadInk } from "../lib/calligraphy";
 import { BanknoteOpening, OPENING_FRAMES } from "./BanknoteOpening";
 import openingMedia from "./openingMedia.json";
+import { filmDimensions } from "./filmDimensions";
 
 /** Runs immediately, even while the MP4 is still downloading. */
-export function LoadingMontage({ startedAt, still, portrait }: { startedAt: number; still: boolean; portrait: boolean }) {
+export function LoadingMontage({ startedAt, still, width: viewportWidth, height: viewportHeight }: { startedAt: number; still: boolean; width: number; height: number }) {
   const [frame, setFrame] = useState(0);
   const [ink, setInk] = useState<HTMLImageElement | null>(null);
   const stage = useRef<HTMLDivElement>(null);
   const motion = useRef<HTMLVideoElement>(null);
-  const width = portrait ? 540 : 1280;
-  const height = portrait ? 960 : 720;
+  const { width, height } = filmDimensions(viewportWidth, viewportHeight);
   useEffect(() => {
     let active = true;
     void loadInk().then(image => { if (active) setInk(image); }).catch(() => {});

@@ -1,21 +1,22 @@
-import { AbsoluteFill, Audio, Series, staticFile, useCurrentFrame } from "remotion";
+import { AbsoluteFill, Audio, Loop, OffthreadVideo, Series, staticFile, useCurrentFrame, useVideoConfig } from "remotion";
 import { BEAT, dropFlash } from "./beat";
 import { SceneStart } from "./xp";
-import { AptosMegaeth, Commits, LandLanguage, Gadgets, Lilyshark, Mainnet, Nipah, Orbital, Sol2Move, Yank } from "./scenes/Chapters";
+import { AptosMegaeth, Commits, Gadgets, Lilyshark, Mainnet, Nipah, Orbital, Sol2Move, Yank } from "./scenes/Chapters";
 import { Overload } from "./scenes/Overload";
 import { Radio } from "./scenes/Radio";
 import { Sign } from "./scenes/Sign";
 import chapters from "../../src/intro/chapters.json";
+import { useWebPlayback } from "./playback";
 
 /**
  * Scene order and lengths in beats (14 frames each). Sections follow the
  * soundtrack in score.json: the signature 4 bars, the radio 2, then three
- * drops (26, 9, 7) that get faster and denser. Every cut lands on a beat.
+ * drops (20, 9, 7) that get faster and denser. Every cut lands on a beat.
  */
 const components = { sign: Sign, radio: Radio, lilyshark: Lilyshark, commits: Commits, orbital: Orbital,
-  "land-language": LandLanguage, aptos: AptosMegaeth, sol2move: Sol2Move, yank: Yank, nipah: Nipah,
+  aptos: AptosMegaeth, sol2move: Sol2Move, yank: Yank, nipah: Nipah,
   mainnet: Mainnet, gadgets: Gadgets, overload: Overload };
-// The same beat map drives the rendered scenes and the site's chapter controls.
+// One beat map drives browser playback and offline renders.
 export const SCENES = chapters.map(({ id, beats }) => ({ name: id, beats, component: components[id as keyof typeof components] }));
 
 export const FILM_FRAMES = SCENES.reduce((sum, scene) => sum + scene.beats * BEAT, 0);
@@ -28,9 +29,17 @@ export const SCENE_STARTS = SCENES.reduce<Record<string, number>>((starts, scene
 
 export function Film() {
   const frame = useCurrentFrame();
+  const { width, height } = useVideoConfig();
+  const web = useWebPlayback();
   const flash = dropFlash(frame);
   return (
-    <AbsoluteFill style={{ background: "#000" }}>
+    <AbsoluteFill style={{ background: "#3a6ea5" }}>
+      {web && <AbsoluteFill style={{ background: `url(/xp/gui/bgs/bliss-${height > width ? "mobile" : "desktop"}.webp) center / cover` }}>
+        <Loop durationInFrames={web.wallpaperFrames}>
+          <OffthreadVideo src={`/xp/video/bliss-loop-${height > width ? "portrait" : "landscape"}.mp4`} muted
+            pauseWhenBuffering={false} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+        </Loop>
+      </AbsoluteFill>}
       <AbsoluteFill>
         <Series>
           {SCENES.map(({ name, beats, component: Scene }) => (
@@ -43,7 +52,7 @@ export function Film() {
         </Series>
       </AbsoluteFill>
       {flash > 0.01 ? <AbsoluteFill style={{ background: "#fff", opacity: 0.55 * flash, pointerEvents: "none" }} /> : null}
-      <Audio src={staticFile("music/soundtrack.wav")} volume={0.9} />
+      <Audio src={web ? web.soundtrack : staticFile("music/soundtrack.wav")} volume={0.9} pauseWhenBuffering />
     </AbsoluteFill>
   );
 }

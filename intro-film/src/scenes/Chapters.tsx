@@ -124,21 +124,6 @@ export function Commits() {
   }]} />;
 }
 
-/** One connected chapter: land acknowledgment, the atlas, then language. */
-export function LandLanguage() {
-  const { portrait } = useOrientation();
-  const views = [
-    { title: "Tend — land acknowledgment", still: "tend-home" as const },
-    { title: "Presidio Atlas — land & history", still: portrait ? "presidio-portrait" as const : "presidio-landscape" as const },
-    { title: "Ohlone Unicode — language", still: portrait ? "ohlone-portrait" as const : "ohlone-landscape" as const },
-  ];
-  return <>{views.map((view, i) => (
-    <Sequence key={view.title} from={i * 2 * BAR} durationInFrames={2 * BAR} layout="none">
-      <Chapter name="Land & language" length={2 * BAR} panes={[{ title: view.title, body: { still: view.still } }]} />
-    </Sequence>
-  ))}</>;
-}
-
 export function Orbital() {
   return (
     <Chapter

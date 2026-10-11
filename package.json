@@ -19,11 +19,13 @@
     "intro:fetch": "node scripts/fetch-intro-films.mjs",
     "intro:upload": "gh release upload intro-films public/videos/intro/*.mp4 --repo maxmoneycash/terminal-portfolio --clobber",
     "media:upload": "node scripts/upload-media.mjs",
-    "projects:check-links": "node scripts/check-live-apps.mjs"
+    "projects:check-links": "node scripts/check-live-apps.mjs",
+    "intro:web": "python3 intro-film/prepare.py && python3 intro-film/music.py && python3 scripts/prepare-intro-web.py"
   },
   "dependencies": {
     "@chenglou/pretext": "^0.0.6",
     "@etareduction/humantypingts": "npm:@jsr/etareduction__humantypingts@^0.1.0",
+    "@remotion/player": "4.0.534",
     "@webtui/css": "^0.1.7",
     "@wterm/dom": "0.3.0",
     "@wterm/react": "0.3.0",
@@ -31,6 +33,7 @@
     "framer-motion": "^12.39.0",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
+    "remotion": "4.0.534",
     "tailwind-merge": "^3.4.0",
     "tegaki": "^0.15.0",
     "three": "^0.184.0"

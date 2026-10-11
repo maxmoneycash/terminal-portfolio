@@ -16,7 +16,7 @@
   inset: 0;
   z-index: 8000;
   overflow: hidden;
-  background: #000;
+  background: #3a6ea5;
   cursor: pointer;
   font-family: var(--font-ui, Tahoma, Verdana, sans-serif);
 }
@@ -38,18 +38,7 @@
   .intro.is-fading-skipped { transition: none; }
 }
 
-/* Each orientation has its own composition, framed edge to edge. Show the
-   whole frame: on a viewport of another shape the film letterboxes rather
-   than cutting off windows, the taskbar, or the Start button. */
-.intro-video {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  max-width: none;
-  object-fit: contain;
-  background: #000;
-}
+.intro-film { position: absolute; inset: 0; }
 
 .intro-loading-art {
   position: absolute;
@@ -62,7 +51,7 @@
 .intro-loading-art img { max-width: none; }
 
 .intro.is-opening,
-.intro.is-opening .intro-video { background: #e9e1ca; }
+.intro.is-opening .intro-film { background: #e9e1ca; }
 
 .intro-play-prompt {
   position: absolute;
@@ -81,23 +70,17 @@
 .intro-play-prompt .xp-control { min-height: 44px; padding: 0 24px; font-size: 14px; }
 .intro:not(.is-opening) .intro-play-prompt { color: #fff; background: rgb(0 0 0 / .28); }
 
-/* The film's own frame inside the (letterboxed) viewport, so the controls
-   sit on the film itself: Skip on its taskbar, the hint just inside the top. */
+/* The composition fills the viewport; Skip sits on the XP tray. */
 .intro {
   container-type: size;
-  --film-w: min(100cqw, 100cqh * 16 / 9);
-  --film-h: min(100cqh, 100cqw * 9 / 16);
-  /* The film's taskbar: 30 of 720 logical px; its clock: the last 4.3% of the width. */
-  --film-taskbar: calc(var(--film-h) * 0.0417);
-  --film-clock: calc(var(--film-w) * 0.043);
+  --film-w: 100cqw;
+  --film-h: 100cqh;
+  --film-taskbar: calc(100cqh * 30 / 720);
+  --film-clock: calc(100cqh * 62 / 720);
 }
-
 .intro.is-portrait {
-  --film-w: min(100cqw, 100cqh * 9 / 16);
-  --film-h: min(100cqh, 100cqw * 16 / 9);
-  /* 30 of 960 logical px; the clock is 11% of the narrower width. */
-  --film-taskbar: calc(var(--film-h) * 0.03125);
-  --film-clock: calc(var(--film-w) * 0.11);
+  --film-taskbar: calc(100cqw * 30 / 540);
+  --film-clock: calc(100cqw * 62 / 540);
 }
 
 /* A Luna push button, the same metrics as XP's own dialog buttons, sitting
@@ -140,62 +123,6 @@
 
 .intro-skip.is-visible {
   opacity: 1;
-}
-
-.intro-controls {
-  position: absolute;
-  top: calc((100cqh - var(--film-h)) / 2 + 8px);
-  right: calc((100cqw - var(--film-w)) / 2 + 8px);
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  padding: 2px 8px 2px 2px;
-  border: 1px solid rgb(255 255 255 / .25);
-  border-radius: 4px;
-  background: rgb(8 18 38 / .8);
-  color: #fff;
-  font: 11px/1.2 Tahoma, Verdana, sans-serif;
-  cursor: default;
-}
-
-.intro-controls, .intro-navigation { opacity: 0; pointer-events: none; transition: opacity 180ms ease; }
-.intro-controls.is-visible, .intro-navigation.is-visible,
-.intro-controls:focus-within, .intro-navigation:focus-within,
-.intro-controls:hover, .intro-navigation:hover { opacity: 1; pointer-events: auto; }
-.intro-controls select { width: 76px; margin-left: 4px; }
-.intro-controls select, .intro-navigation select { min-height: 32px; border: 1px solid #667487; border-radius: 2px; padding: 0 5px; background: #142438; color: #fff; font: inherit; }
-.intro-navigation { position: absolute; width: min(520px, calc(var(--film-w) - 20px)); left: 50%; bottom: calc((100cqh - var(--film-h)) / 2 + var(--film-taskbar) + 10px); transform: translateX(-50%); padding: 6px 10px; border: 1px solid rgb(255 255 255 / .25); border-radius: 4px; background: rgb(8 18 38 / .88); color: white; font: 11px/1.2 Tahoma, Verdana, sans-serif; }
-.intro-chapter-row { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
-.intro-chapter-row select { min-width: 0; max-width: 58%; }
-.intro-chapter-row button { min-height: 32px; border: 0; padding: 3px 5px; background: transparent; color: #fff; font: inherit; cursor: pointer; }
-.intro-timeline { position: relative; height: 28px; display: flex; align-items: center; }
-.intro-timeline input { position: relative; z-index: 1; width: 100%; height: 28px; margin: 0; accent-color: #69aaff; cursor: pointer; }
-.intro-chapter-marks { position: absolute; left: 7px; right: 7px; top: 23px; pointer-events: none; }
-.intro-chapter-marks span { position: absolute; width: 1px; height: 3px; background: #b3c7e2; }
-.intro-navigation button:focus-visible, .intro-navigation input:focus-visible, .intro-controls select:focus-visible, .intro-navigation select:focus-visible { outline: 2px solid #fff; outline-offset: 1px; }
-
-.intro-controls button {
-  min-height: 32px;
-  padding: 0 8px;
-  border: 0;
-  border-radius: 2px;
-  background: transparent;
-  color: inherit;
-  font: inherit;
-  cursor: pointer;
-}
-
-.intro-controls button:hover { background: rgb(255 255 255 / .16); }
-.intro-controls button:focus-visible { outline: 2px solid #fff; outline-offset: -3px; }
-.intro-time { padding-left: 6px; font-variant-numeric: tabular-nums; white-space: nowrap; }
-
-@media (pointer: coarse) {
-  .intro-controls button { min-height: 44px; }
-  .intro-controls select, .intro-navigation select, .intro-navigation button { min-height: 44px; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .intro-controls, .intro-navigation { transition: none; }
 }
 
 /* ------------------------------------------------------------------ */

@@ -1,8 +1,8 @@
 # MaxXP intro film
 
-An 84-second XP desktop film: a banknote montage under Max's recorded signature, **KK6OQA** in Morse,
+A 78.4-second XP desktop film: a banknote montage under Max's recorded signature, **KK6OQA** in Morse,
 a 19-second Lilyshark feature, a full-workspace commits.sh timelapse, Orbital Works,
-a connected Tend / Presidio Atlas / Ohlone Unicode chapter, six project chapters, larger pairs of
+six project chapters, larger pairs of
 additional work, then a short window cascade and “your turn.” The live radio
 app keeps its longer greeting; the film's cue is independent in `score.json`.
 
@@ -11,18 +11,24 @@ T-Deck reveal, packet bytes, and spectrum), then the “below the noise” and
 “airtime” shorts. Each gets its own large window. The portrait shorts are
 cropped around the actual content, removing their empty outer margins.
 
-The logical canvas is 1280×720 landscape or 540×960 portrait, rendered at
-1920×1080 or 1080×1920. The whole desktop stays in frame. `mediaLayout.ts`
-fits each window to the reviewed media crop and its chrome; portrait and
-landscape use different arrangements, with no overlapping content until the
-closing recap. Cuts and music share the 14-frame beat grid in `score.json`.
+The browser plays the shared composition through `@remotion/player`. Its logical
+canvas matches the actual viewport aspect ratio, using a height of 720 for
+landscape and a width of 540 for portrait. The wallpaper and taskbar fill the
+screen; `mediaLayout.ts` fits windows to the media ratio without stretching or
+cropping recordings. Resizing preserves playback position. Only Skip remains
+visible during playback; Space pauses/resumes and M toggles sound.
 
 ```sh
+npm run intro:web     # requires original recordings, ffmpeg, Python dependencies
+npm run media:upload # upload the pinned shots and soundtrack before pushing
+```
+
+For optional fixed-aspect exports:
+```sh
 npm run intro:setup
-npm run intro:prepare
 npm run intro:render
 npm run intro:publish
-npm run intro:upload   # before pushing a commit that references new films
+npm run intro:upload
 ```
 
 Run the renderer from `intro-film/` (the npm scripts do this), so it uses that
@@ -46,8 +52,7 @@ The opening uses `src/intro/BanknoteOpening.tsx` and `src/lib/calligraphy.ts`,
 shared with the immediate loading montage and the site's quill. The supplied dollar-bill motion clip opens into four
 banknote engravings under the recorded ink; portrait
 stacks the two words. Source credits live in `public/intro-art/SOURCES.md`.
-The loader starts before the MP4 is ready and playback joins at its elapsed
-opening time, capped at the radio cut, so the name is written only once.
+The loading montage starts while the browser composition loads.
 Reduced motion shows the finished signature with a Play intro button.
 `scripts/signature/from_video.py` extracts ink arrival and pen movement from
 the supplied signature recording, removes the notebook background, shortens
@@ -67,22 +72,22 @@ Electro House Apple Loops in `/Library/Audio/Apple Loops/Apple/02 Electro House`
 node --experimental-strip-types --test scripts/intro-layout.test.mjs
 ```
 
-The MP4s stay out of git. `intro:publish` validates full decodes, web-encodes,
-updates `IntroVideo.tsx`, and records SHA-256 hashes in `published.json`.
-`intro:upload` stores them on the `intro-films` GitHub release; the site build
-fetches and verifies those exact files. `intro:clean` removes reproducible
-intermediates and preserves masters, published videos, and originals.
+MP4s and M4As stay out of git. `scripts/prepare-intro-web.py` emits individual
+HD/mobile shots, posters, and the score, pinning SHA-256 hashes in
+`scripts/release-media.json`. The site build fetches and verifies those exact
+assets. Offline `intro:publish` exports are separate and are not downloaded by
+the website build. `intro:clean` preserves masters and original recordings.
 
 The site shows the intro on ordinary arrivals, saved app hashes, and reloads.
 Specific shared project/video/site links still open their content directly.
-Autoplay is attempted with sound and then muted. If the browser refuses, or
-reduced-motion/data-saving is requested, a visible Play intro button remains.
+Playback starts muted and a click enables sound. Reduced-motion/data-saving
+preferences show a Play intro button.
 A slow load or media error never silently dismisses the intro. Click the film
 for sound; Skip or Escape opens the desktop.
 
 `python3 intro-film/prepare-opening.py` rebuilds the 3.2-second motion layer from
 `ScreenRecording_10-11-2025 12.mov`, trimming its black/UI tail. Its manifest is
 `src/intro/openingMedia.json`; `npm run media:upload` publishes every asset in
-`scripts/release-media.json` before deployment. Captures in `intro-film/captures/`
-show the public Presidio Atlas and Ohlone Unicode apps at desktop/phone sizes.
-Tend, Presidio Atlas, and Ohlone Unicode share one six-bar chapter.
+`scripts/release-media.json` before deployment. Original captures in
+`intro-film/captures/` are retained for a future review; Tend, Presidio Atlas,
+and Ohlone Unicode are excluded from the current intro and curated showcase.

@@ -7,9 +7,9 @@ import { resolve } from "node:path";
 export const selectedApps = [
   "maxmoneycash/lilyshark", "maxmoneycash/orbital-works", "SeamMoney/cash.trading",
   "maxmoneycash/tokenmaxxing", "maxmoneycash/polar-browser-themes", "maxmoneycash/stock-game",
-  "maxmoneycash/market-scout", "maxmoneycash/spectra", "maxmoneycash/tend",
+  "maxmoneycash/market-scout", "maxmoneycash/spectra",
   "maxmoneycash/loom-reach", "SeamMoney/sui-options", "maxmoneycash/options-payoff-motion",
-  "maxmoneycash/ohlone-unicode", "maxmoneycash/army", "SeamMoney/zionbets_frontend",
+  "maxmoneycash/army", "SeamMoney/zionbets_frontend",
   "maxmoneycash/datacenter-globe", "maxmoneycash/NIPAHSCAN",
 ];
 

@@ -1,396 +1,155 @@
-/**
- * The MaxXP intro film: the quill writes over banknotes, the KK6OQA radio sends the
- * callsign in Morse, then the work plays out best first and ever faster until
- * every window minimizes on the live desktop. It hands off directly to the
- * interactive desktop.
- *
- * It plays with sound whenever the browser allows; otherwise it starts muted
- * and a click or tap anywhere turns the sound on. Skip, Escape, and project
- * links hand off to the desktop.
- *
- * Rendered by intro-film/ (Remotion) from the original project recordings.
- */
-import { useCallback, useEffect, useRef, useState } from "react";
+/** The intro's XP desktop is composed at the viewport's actual aspect ratio. */
+import { Component, lazy, Suspense, useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import type { CallbackListener, PlayerRef } from "@remotion/player";
 import { cn } from "../lib/cn";
 import { getSystemVolume } from "./audio";
 import { LoadingMontage } from "../intro/LoadingMontage";
-import { OPENING_SECONDS } from "../intro/BanknoteOpening";
-import sources from "../data/intro-sources.json";
-import chapters from "../intro/chapters.json";
-import score from "../../intro-film/score.json";
-import { navigate, type Route } from "../lib/navigation";
+import { OPENING_FRAMES } from "../intro/BanknoteOpening";
 
-type Quality = "auto" | "mobile" | "hd";
-const CHAPTERS = chapters.map((chapter, index) => ({ ...chapter,
-  start: chapters.slice(0, index).reduce((sum, item) => sum + item.beats, 0) * score.framesPerBeat / 30,
-}));
-
-/** Offer a retry after a slow start; never silently dismiss the film. */
-const STALL_MS = 8000;
-const SKIP_REVEAL_MS = 900;
-
+const ResponsiveFilm = lazy(() => import("../intro/ResponsiveFilm"));
 type Playback = "loading" | "playing" | "manual" | "paused" | "buffering" | "error";
-
-function timeLabel(seconds: number) {
-  const whole = Math.max(0, Math.floor(seconds || 0));
-  return `${Math.floor(whole / 60)}:${String(whole % 60).padStart(2, "0")}`;
-}
-
-function pickSource() {
-  try {
-    const orient = window.innerHeight > window.innerWidth ? "portrait" : "landscape";
-    const connection = (navigator as Navigator & { connection?: { saveData?: boolean; effectiveType?: string } }).connection;
-    const mobile = orient === "portrait" || window.innerWidth <= 900 || connection?.saveData || /^(slow-2g|2g|3g)$/.test(connection?.effectiveType ?? "");
-    return { orient, ...sources[orient], automatic: mobile ? "mobile" as const : "hd" as const };
-  } catch {
-    return { orient: "landscape", ...sources.landscape, automatic: "hd" as const };
-  }
-}
-
-/** Let visitors who prefer less motion or data choose when to start. */
-function prefersManualPlay() {
-  try {
-    const saveData = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData;
-    return Boolean(saveData) || window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  } catch {
-    return false;
-  }
-}
-
 export type IntroEnd = "ended" | "skipped";
 
-/**
- * `requested` means the visitor clicked Watch intro: the film plays even
- * with reduced motion, and with its XP sounds when the browser allows.
- */
-export function IntroVideo({ onFinish, fading, requested = false }: {
-  onFinish: (how: IntroEnd) => void;
-  fading: IntroEnd | null;
-  requested?: boolean;
-}) {
-  const [source] = useState(pickSource);
-  const [quality, setQuality] = useState<Quality>("auto");
-  const sourceUrl = source[quality === "auto" ? source.automatic : quality];
-  const [manualPreference] = useState(() => !requested && prefersManualPlay());
-  const [openingStart, setOpeningStart] = useState(() => performance.now());
-  const [started, setStarted] = useState(false);
-  const [openingDone, setOpeningDone] = useState(false);
-  const [muted, setMuted] = useState(true);
-  const [skipVisible, setSkipVisible] = useState(false);
-  const [playback, setPlayback] = useState<Playback>("loading");
-  const [slow, setSlow] = useState(false);
-  const [position, setPosition] = useState(0);
-  const [duration, setDuration] = useState(0);
-  const [controlsVisible, setControlsVisible] = useState(true);
-  const controlsTimer = useRef<number | undefined>(undefined);
-  const videoRef = useRef<HTMLVideoElement | null>(null);
-  const regionRef = useRef<HTMLDivElement | null>(null);
-  const finishedRef = useRef(false);
-  const joinedOpening = useRef(false);
-  const lastPosition = useRef(0);
-  const restorePosition = useRef<number | null>(null);
-  const resumeAfterLoad = useRef<boolean | null>(null);
+class FilmBoundary extends Component<{ children: ReactNode; onError: () => void }, { failed: boolean }> {
+  state = { failed: false };
+  static getDerivedStateFromError() { return { failed: true }; }
+  componentDidCatch() { this.props.onError(); }
+  render() { return this.state.failed ? null : this.props.children; }
+}
 
-  const finish = useCallback(
-    (how: IntroEnd = "skipped") => {
-      if (finishedRef.current) return;
-      finishedRef.current = true;
-      videoRef.current?.pause();
-      onFinish(how);
-    },
-    [onFinish],
-  );
+export function IntroVideo({ onFinish, fading, requested = false }: {
+  onFinish: (how: IntroEnd) => void; fading: IntroEnd | null; requested?: boolean;
+}) {
+  const region = useRef<HTMLDivElement>(null);
+  const [viewport, setViewport] = useState({ width: window.innerWidth, height: window.innerHeight });
+  const [manualPreference] = useState(() => !requested && (window.matchMedia("(prefers-reduced-motion: reduce)").matches ||
+    Boolean((navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData)));
+  const [mobile] = useState(() => window.innerWidth < 1000 || window.innerHeight > window.innerWidth ||
+    Boolean((navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData));
+  const [player, setPlayer] = useState<PlayerRef | null>(null);
+  const [playback, setPlayback] = useState<Playback>(manualPreference ? "manual" : "loading");
+  const [frame, setFrame] = useState(0);
+  const [started, setStarted] = useState(false);
+  const [slow, setSlow] = useState(false);
+  const [attempt, setAttempt] = useState(0);
+  const [openingStart] = useState(() => performance.now());
+  const [volume] = useState(() => getSystemVolume() / 100);
+  const [skipVisible, setSkipVisible] = useState(false);
+  const lastFrame = useRef(0);
+  const finished = useRef(false);
+  const userStarted = useRef(requested);
+  const initialFrame = useRef(0);
+  const portrait = viewport.height > viewport.width;
+  const needsPlay = playback === "manual" || playback === "paused" || playback === "error";
+  const waiting = playback === "loading" || playback === "buffering";
+
+  const finish = useCallback((how: IntroEnd = "skipped") => {
+    if (finished.current) return;
+    finished.current = true;
+    player?.pause();
+    onFinish(how);
+  }, [onFinish, player]);
+  const fail = useCallback(() => setPlayback("error"), []);
 
   useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
-    let cancelled = false;
-    if (manualPreference) {
-      setPlayback("manual");
+    const element = region.current;
+    if (!element) return;
+    element.focus({ preventScroll: true });
+    const observer = new ResizeObserver(([entry]) => {
+      const { width, height } = entry.contentRect;
+      if (width && height) setViewport({ width, height });
+    });
+    observer.observe(element);
+    const timer = window.setTimeout(() => setSkipVisible(true), 900);
+    return () => { observer.disconnect(); clearTimeout(timer); };
+  }, []);
+
+  useEffect(() => {
+    if (!player) return;
+    const playing = () => { setStarted(true); setPlayback("playing"); };
+    const paused = () => { if (!finished.current) setPlayback("paused"); };
+    const buffering = () => setPlayback("buffering");
+    const resume = () => { if (player.isPlaying()) playing(); };
+    const ended = () => finish("ended");
+    const time: CallbackListener<"timeupdate"> = ({ detail }) => {
+      lastFrame.current = detail.frame;
+      setFrame(detail.frame);
+    };
+    player.addEventListener("play", playing);
+    player.addEventListener("pause", paused);
+    player.addEventListener("waiting", buffering);
+    player.addEventListener("resume", resume);
+    player.addEventListener("ended", ended);
+    player.addEventListener("error", fail);
+    player.addEventListener("timeupdate", time);
+    if (!manualPreference || userStarted.current) {
+      if (userStarted.current) player.unmute();
+      player.play();
+    }
+    return () => {
+      player.removeEventListener("play", playing);
+      player.removeEventListener("pause", paused);
+      player.removeEventListener("waiting", buffering);
+      player.removeEventListener("resume", resume);
+      player.removeEventListener("ended", ended);
+      player.removeEventListener("error", fail);
+      player.removeEventListener("timeupdate", time);
+    };
+  }, [player, manualPreference, finish, fail]);
+
+  useEffect(() => {
+    setSlow(false);
+    if (!waiting) return;
+    const timer = window.setTimeout(() => setSlow(true), 8000);
+    return () => clearTimeout(timer);
+  }, [waiting]);
+
+  const play = useCallback(() => {
+    userStarted.current = true;
+    region.current?.focus({ preventScroll: true });
+    if (playback === "error" || (waiting && slow)) {
+      initialFrame.current = lastFrame.current;
+      setAttempt(value => value + 1);
+      setPlayback("loading");
       return;
     }
-    const playMuted = () => {
-      video.muted = true;
-      setMuted(true);
-      // iOS Low Power Mode can refuse even muted autoplay. Keep the film
-      // available, with an explicit user-gesture play button.
-      void video.play().catch((error: DOMException) => {
-        if (!cancelled && error.name !== "AbortError") setPlayback(video.error ? "error" : "manual");
-      });
-    };
-    // Sound follows the tray volume; the browser may still insist on muted.
-    const volume = getSystemVolume() / 100;
-    if (volume === 0) {
-      playMuted();
-      return () => { cancelled = true; };
-    }
-    video.volume = volume;
-    video.muted = false;
-    void video.play().then(() => { if (!cancelled) setMuted(false); }, (error: DOMException) => {
-      if (!cancelled && error.name !== "AbortError") playMuted();
-    });
-    return () => { cancelled = true; };
-  }, [manualPreference, finish]);
-
-  const unmute = useCallback(() => {
-    const video = videoRef.current;
-    if (!video) return;
-    video.volume = Math.max(0.5, getSystemVolume() / 100);
-    video.muted = false;
-    void video.play().catch((error: DOMException) => {
-      if (!finishedRef.current && error.name !== "AbortError") setPlayback(video.error ? "error" : "manual");
-    });
-    setMuted(false);
-  }, []);
-
-  const play = useCallback((reload = false) => {
-    const video = videoRef.current;
-    if (!video) return;
-    if (!started) {
-      setOpeningStart(performance.now());
-      // A deliberate Play starts at the beginning. Never chase the loading
-      // montage's clock through a series of seeks on a slow connection.
-      joinedOpening.current = true;
-    }
-    if (video.error || reload) {
-      restorePosition.current = lastPosition.current;
-      video.load();
-    }
-    setSlow(false);
-    setPlayback("loading");
-    regionRef.current?.focus({ preventScroll: true });
-    if (!started) unmute();
-    else void video.play().catch((error: DOMException) => {
-      if (!finishedRef.current && error.name !== "AbortError") setPlayback(video.error ? "error" : "paused");
-    });
-  }, [unmute, started]);
-
-  const togglePlayback = useCallback(() => {
-    const video = videoRef.current;
-    if (!video) return;
-    if (video.paused || video.error) play();
-    else video.pause();
-  }, [play]);
-
-  const wakeControls = useCallback(() => {
-    setControlsVisible(true);
-    window.clearTimeout(controlsTimer.current);
-    controlsTimer.current = window.setTimeout(() => setControlsVisible(false), 2800);
-  }, []);
-  useEffect(() => {
-    wakeControls();
-    return () => window.clearTimeout(controlsTimer.current);
-  }, [playback, wakeControls]);
-
-  const changeQuality = (next: Quality) => {
-    const video = videoRef.current;
-    const url = source[next === "auto" ? source.automatic : next];
-    if (video && url !== sourceUrl) {
-      restorePosition.current = restorePosition.current ?? video.currentTime;
-      resumeAfterLoad.current = resumeAfterLoad.current ?? !video.paused;
-      joinedOpening.current = true;
-      setPlayback("loading");
-    }
-    setQuality(next);
-  };
-
-  const seek = (seconds: number) => {
-    const video = videoRef.current;
-    if (!video || !Number.isFinite(video.duration)) return;
-    const target = Math.max(0, Math.min(video.duration - .05, seconds));
-    joinedOpening.current = true;
-    video.currentTime = target;
-    lastPosition.current = target;
-    setPosition(target);
-    setOpeningDone(target >= OPENING_SECONDS);
-    wakeControls();
-  };
+    player?.unmute();
+    player?.play();
+  }, [player, playback, waiting, slow]);
 
   useEffect(() => {
-    const id = window.setTimeout(() => setSkipVisible(true), SKIP_REVEAL_MS);
-    return () => window.clearTimeout(id);
-  }, []);
-
-  useEffect(() => {
-    // Space should operate playback, not activate a preselected Skip button.
-    regionRef.current?.focus({ preventScroll: true });
-  }, []);
-
-  useEffect(() => {
-    setSlow(false);
-    if (playback !== "loading" && playback !== "buffering") return;
-    const id = window.setTimeout(() => setSlow(true), STALL_MS);
-    return () => window.clearTimeout(id);
-  }, [playback]);
-
-  useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
+    const key = (event: KeyboardEvent) => {
       if (event.key === "Escape") finish();
-    };
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [finish]);
-
-  useEffect(() => {
-    const sync = () => {
-      const video = videoRef.current;
-      if (!document.hidden && video && !finishedRef.current && !video.ended && video.paused) {
-        setPlayback(video.error ? "error" : started ? "paused" : "manual");
+      if (event.target !== region.current) return;
+      if (event.key === " " || event.key === "Enter") {
+        event.preventDefault();
+        if (player?.isPlaying()) player.pause(); else play();
+      }
+      if (event.key.toLowerCase() === "m" && player) {
+        if (player.isMuted()) player.unmute(); else player.mute();
       }
     };
-    document.addEventListener("visibilitychange", sync);
-    window.addEventListener("pageshow", sync);
-    return () => {
-      document.removeEventListener("visibilitychange", sync);
-      window.removeEventListener("pageshow", sync);
-    };
-  }, [started]);
+    window.addEventListener("keydown", key);
+    return () => window.removeEventListener("keydown", key);
+  }, [finish, player, play]);
 
-  const needsPlay = playback === "manual" || playback === "paused" || playback === "error";
-  const waiting = playback === "buffering" || playback === "loading";
-  // Browsers round currentTime to microseconds; a seek to an exact frame can
-  // otherwise resolve to the previous chapter. Allow half a frame at 30 fps.
-  const chapter = [...CHAPTERS].reverse().find(item => position + 1 / 60 >= item.start) ?? CHAPTERS[0];
-  const showControls = controlsVisible || playback !== "playing";
-
-  return (
-    <div
-      ref={regionRef}
-      className={cn("intro", `is-${source.orient}`, !openingDone && "is-opening", fading && `is-fading-${fading}`)}
-      role="region"
-      aria-label="MaxXP intro"
-      tabIndex={-1}
-      onPointerMove={wakeControls}
-      onPointerDown={wakeControls}
-      onFocusCapture={wakeControls}
-      onKeyDown={(event) => {
-        if (event.target !== event.currentTarget) return;
-        if (event.key === " " || event.key === "Enter") {
-          event.preventDefault();
-          togglePlayback();
-        }
-      }}
-      onClick={() => {
-        if (needsPlay) play();
-        else if (muted) unmute();
-      }}
-    >
-      <video
-        ref={videoRef}
-        className={cn("intro-video", `is-${source.orient}`)}
-        src={sourceUrl}
-        poster={started ? undefined : source.poster}
-        muted
-        playsInline
-        preload="auto"
-        disablePictureInPicture
-        onLoadedMetadata={(event) => {
-          const video = event.currentTarget;
-          setDuration(video.duration);
-          if (restorePosition.current !== null) {
-            video.currentTime = restorePosition.current;
-            restorePosition.current = null;
-          }
-          if (resumeAfterLoad.current !== null) {
-            const resume = resumeAfterLoad.current;
-            resumeAfterLoad.current = null;
-            if (resume) void video.play().catch(() => setPlayback(video.error ? "error" : "paused"));
-            else setPlayback(started ? "paused" : "manual");
-          }
-        }}
-        onPlaying={() => {
-          // Metadata can arrive long before playable frames. Join the live
-          // artwork only once playback is ready, including after a slow seek.
-          const video = videoRef.current;
-          if (video && !manualPreference && !joinedOpening.current) {
-            joinedOpening.current = true;
-            const join = Math.min(OPENING_SECONDS, (performance.now() - openingStart) / 1000);
-            if (join - video.currentTime > 0.1) {
-              video.currentTime = join;
-              return;
-            }
-          }
-          setStarted(true);
-          setPlayback("playing");
-          setSlow(false);
-        }}
-        onTimeUpdate={(event) => {
-          const video = event.currentTarget;
-          // load() resets currentTime before loadedmetadata restores it.
-          if (restorePosition.current === null) {
-            lastPosition.current = video.currentTime;
-            setPosition(video.currentTime);
-          }
-          if (restorePosition.current === null) setOpeningDone(video.currentTime >= OPENING_SECONDS);
-          if (!video.paused && video.readyState >= 3 && started) setPlayback("playing");
-        }}
-        onPause={(event) => {
-          if (!finishedRef.current && !event.currentTarget.ended && restorePosition.current === null) setPlayback(started ? "paused" : "manual");
-        }}
-        onWaiting={() => { if (!finishedRef.current) setPlayback(started ? "buffering" : "loading"); }}
-        onStalled={(event) => {
-          if (!finishedRef.current && event.currentTarget.readyState < 3) setPlayback(started ? "buffering" : "loading");
-        }}
-        onEnded={() => finish("ended")}
-        onError={() => setPlayback("error")}
-        onVolumeChange={(event) => setMuted(event.currentTarget.muted)}
-        aria-hidden="true"
-      />
-      {!started ? <LoadingMontage startedAt={openingStart} still={needsPlay} portrait={source.orient === "portrait"} /> : null}
-      {needsPlay || (waiting && slow) ? (
-        <div className="intro-play-prompt">
-          {playback === "error" ? <p>Playback was interrupted. Retry from here.</p> : waiting ? <p role="status">Still loading the film…</p> : null}
-          <button type="button" className="xp-control" onClick={(event) => { event.stopPropagation(); play(waiting); }}>
-            {playback === "error" || waiting ? "Retry playback" : started ? "Resume intro" : "Play intro"}
-          </button>
-        </div>
-      ) : null}
-      {started ? (
-        <div className={cn("intro-controls", showControls && "is-visible")} role="group" aria-label="Intro playback" onClick={(event) => event.stopPropagation()}>
-          <button type="button" onClick={togglePlayback} aria-label={needsPlay ? "Resume intro" : "Pause intro"}>
-            {needsPlay ? "Play" : "Pause"}
-          </button>
-          <button type="button" onClick={() => {
-            const video = videoRef.current;
-            if (!video) return;
-            if (video.muted) unmute();
-            else video.muted = true;
-          }} aria-label={muted ? "Turn sound on" : "Mute intro"}>
-            {muted ? "Sound off" : "Sound on"}
-          </button>
-          <span className="intro-time" aria-label="Playback time">{timeLabel(position)} / {timeLabel(duration)}</span>
-          <select aria-label="Video quality" value={quality} onChange={event => changeQuality(event.target.value as Quality)}>
-            <option value="auto">Auto</option><option value="mobile">720p · less data</option><option value="hd">1080p · HD</option>
-          </select>
-        </div>
-      ) : null}
-      {started ? <div className={cn("intro-navigation", showControls && "is-visible")} onClick={event => event.stopPropagation()}>
-        <div className="intro-chapter-row">
-          <select aria-label="Intro chapter" value={chapter.id} onChange={event => seek(CHAPTERS.find(item => item.id === event.target.value)!.start)}>
-            {CHAPTERS.map(item => <option key={item.id} value={item.id}>{timeLabel(item.start)} · {item.label}</option>)}
-          </select>
-          {chapter.route ? <button type="button" onClick={() => {
-            navigate(chapter.route as Route);
-            finish("skipped");
-          }}>{chapter.route.project ? "Explore this project" : "Open in desktop"} →</button> : null}
-        </div>
-        <div className="intro-timeline">
-          <input type="range" min={0} max={duration || 1} step={.1} value={position} aria-label="Seek intro"
-            aria-valuetext={`${timeLabel(position)} of ${timeLabel(duration)} · ${chapter.label}`}
-            onChange={event => seek(Number(event.target.value))} />
-          <div className="intro-chapter-marks" aria-hidden="true">{CHAPTERS.slice(1).map(item => <span key={item.id} style={{ left: `${item.start / (duration || 1) * 100}%` }} />)}</div>
-        </div>
-      </div> : null}
-      <button
-        type="button"
-        className={cn("intro-skip", skipVisible && "is-visible")}
-        onClick={(event) => {
-          event.stopPropagation();
-          finish();
-        }}
-      >
-        Skip
+  return <div ref={region} className={cn("intro", portrait && "is-portrait", frame < OPENING_FRAMES && "is-opening", fading && `is-fading-${fading}`)}
+    role="region" aria-label="MaxXP intro" tabIndex={-1} data-frame={frame} data-playback={playback}
+    onClick={() => { if (needsPlay) play(); else { userStarted.current = true; player?.unmute(); } }}>
+    <FilmBoundary key={attempt} onError={fail}>
+      <Suspense fallback={null}>
+        <ResponsiveFilm width={viewport.width} height={viewport.height} mobile={mobile}
+          initialFrame={initialFrame.current} volume={volume} onReady={setPlayer} />
+      </Suspense>
+    </FilmBoundary>
+    {!started && <LoadingMontage startedAt={openingStart} still={needsPlay} width={viewport.width} height={viewport.height} />}
+    {(needsPlay || (waiting && slow)) && <div className="intro-play-prompt">
+      {playback === "error" ? <p>Playback was interrupted. Retry from here.</p> : waiting ? <p role="status">Still loading the film…</p> : null}
+      <button type="button" className="xp-control" onClick={event => { event.stopPropagation(); play(); }}>
+        {playback === "error" || waiting ? "Retry playback" : started ? "Resume intro" : "Play intro"}
       </button>
-    </div>
-  );
+    </div>}
+    <button type="button" className={cn("intro-skip", skipVisible && "is-visible")}
+      onClick={event => { event.stopPropagation(); finish(); }}>Skip</button>
+  </div>;
 }

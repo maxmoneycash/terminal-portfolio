@@ -120,21 +120,6 @@ export const portfolio = {
       ],
     }] : []),
     {
-      id: "land-language",
-      name: "Land & language",
-      featured: true,
-      category: "Place & language",
-      stack: "Web · maps · language tools",
-      summary: "Tend, Presidio Atlas, and Ohlone Unicode: connected work about place, history, and language.",
-      poster: "/projects/presidio-landscape.jpg",
-      focusPoster: "/projects/presidio-portrait.jpg",
-      destinations: [
-        { label: "Tend", url: "https://tend-zionbet.vercel.app/" },
-        { label: "Presidio Atlas", url: "https://presidio-atlas.vercel.app/#map" },
-        { label: "Ohlone Unicode", url: "https://ohlone-unicode.vercel.app/" },
-      ],
-    },
-    {
       id: "aptos-vs-megaeth",
       name: "Aptos vs MegaETH",
       category: "Trading & benchmarks",

@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-10-11T12:55:23.027Z",
+  "checkedAt": "2026-10-11T19:52:04.279Z",
   "apps": [
     {
       "id": "maxmoneycash/lilyshark",
@@ -44,12 +44,6 @@
       "mode": "embed"
     },
     {
-      "id": "maxmoneycash/tend",
-      "url": "https://tend-zionbet.vercel.app/",
-      "available": true,
-      "mode": "embed"
-    },
-    {
       "id": "maxmoneycash/loom-reach",
       "url": "https://loom-reach.vercel.app/",
       "available": true,
@@ -64,12 +58,6 @@
     {
       "id": "maxmoneycash/options-payoff-motion",
       "url": "https://cipher-payoff-atlas.vercel.app/",
-      "available": true,
-      "mode": "embed"
-    },
-    {
-      "id": "maxmoneycash/ohlone-unicode",
-      "url": "https://ohlone-unicode.vercel.app/",
       "available": true,
       "mode": "embed"
     },

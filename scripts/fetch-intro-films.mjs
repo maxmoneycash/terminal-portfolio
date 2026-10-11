@@ -1,24 +1,18 @@
 // Big videos stay out of git. The intro films and other large demos live on the
 // repo's `intro-films` release and land in public/ before each build, so Vercel
 // serves them as static files. Every file is checked against its manifest
-// (intro-film/published.json, scripts/release-media.json); a mismatch fails the build.
+// (scripts/release-media.json); a mismatch fails the build.
 import { createHash } from "node:crypto";
 import { createReadStream, createWriteStream } from "node:fs";
 import { mkdir, readFile, rename, rm } from "node:fs/promises";
 import { Readable } from "node:stream";
 import { pipeline } from "node:stream/promises";
 
-const manifest = JSON.parse(await readFile(new URL("../intro-film/published.json", import.meta.url), "utf8"));
-const sources = JSON.parse(await readFile(new URL("../src/data/intro-sources.json", import.meta.url), "utf8"));
-const out = new URL("../public/videos/intro/", import.meta.url);
-
-const referenced = [...new Set(Object.values(sources).flatMap(source => [source.hd, source.mobile]).map(path => {
-  if (typeof path !== "string" || !/^\/videos\/intro\/[^/]+\.mp4$/.test(path)) throw new Error(`Invalid intro source: ${path}`);
-  return path.split("/").pop();
-}))];
-const unlisted = referenced.filter(name => !manifest.files[name]);
-if (!referenced.length || unlisted.length) {
-  throw new Error(`intro-sources.json plays films missing from intro-film/published.json: ${unlisted.join(", ") || "none found"}`);
+const intro = JSON.parse(await readFile(new URL("../src/data/intro-media.json", import.meta.url), "utf8"));
+const media = JSON.parse(await readFile(new URL("./release-media.json", import.meta.url), "utf8"));
+const referenced = [...Object.values(intro.clips).flatMap(clip => [clip.src, clip.mobile]), intro.soundtrack];
+if (!Object.keys(intro.clips).length || referenced.some(path => !media.files[path.slice(1)])) {
+  throw new Error("Responsive intro assets must all be pinned in release-media.json");
 }
 
 async function matches(file, expected) {
@@ -30,7 +24,7 @@ async function matches(file, expected) {
   return bytes === expected.bytes && hash.digest("hex") === expected.sha256;
 }
 
-async function download(name, expected, dir = out, source = manifest) {
+async function download(name, expected, dir, source) {
   const file = name.split("/").pop();
   const url = `https://github.com/${source.repo}/releases/download/${source.release}/${file}`;
   const partial = new URL(`${file}.partial`, dir);
@@ -50,19 +44,7 @@ async function download(name, expected, dir = out, source = manifest) {
   }
 }
 
-await mkdir(out, { recursive: true });
-for (const name of referenced) {
-  const expected = manifest.files[name];
-  if (await matches(new URL(name, out), expected)) {
-    console.log(`${name}: already present`);
-    continue;
-  }
-  await download(name, expected);
-  console.log(`${name}: fetched ${(expected.bytes / 1e6).toFixed(1)} MB from the ${manifest.release} release`);
-}
-
-// Other large demos (the Demo Reel and My Projects), by path under public/.
-const media = JSON.parse(await readFile(new URL("./release-media.json", import.meta.url), "utf8"));
+// Intro shots and large project demos, by path under public/.
 for (const [path, expected] of Object.entries(media.files)) {
   const target = new URL(`../public/${path}`, import.meta.url);
   const dir = new URL("./", target);
