@@ -1,0 +1,234 @@
+[
+  {
+    "id": "lilyshark-launch",
+    "title": "Lilyshark: The launch film",
+    "date": "Film",
+    "summary": "The complete 90-second film: a handheld packet analyzer, from radio signals to decoded bytes.",
+    "sourceFilename": "lilyshark-launch-v2.mp4",
+    "poster": "/videos/reels/posters/lilyshark-launch-08cf7e26.jpg",
+    "link": "https://lilyshark.com/",
+    "durationSeconds": 90.0,
+    "sizeBytes": 29623096,
+    "hasAudio": true,
+    "width": 1920,
+    "height": 1080,
+    "sources": [
+      {
+        "src": "/videos/reels/lilyshark-launch-08cf7e26.mp4",
+        "type": "video/mp4",
+        "quality": "HD"
+      }
+    ],
+    "previewSrc": "/videos/reels/lilyshark-preview-a250c115.mp4"
+  },
+  {
+    "id": "lilyshark-01-private-messages",
+    "title": "Lilyshark: Private messages",
+    "date": "Short film",
+    "summary": "What Lilyshark can see in a Meshtastic packet.",
+    "sourceFilename": "01-private-messages.mp4",
+    "poster": "/videos/reels/posters/lilyshark-01-private-messages-dc67c6cc.jpg",
+    "link": "https://lilyshark.com/",
+    "durationSeconds": 31.018,
+    "sizeBytes": 5927456,
+    "hasAudio": true,
+    "width": 720,
+    "height": 1280,
+    "sources": [
+      {
+        "src": "/videos/reels/lilyshark-01-private-messages-dc67c6cc.mp4",
+        "type": "video/mp4",
+        "quality": "720p"
+      }
+    ]
+  },
+  {
+    "id": "lilyshark-02-max-range",
+    "title": "Lilyshark: Radio range",
+    "date": "Short film",
+    "summary": "A visual explanation of range, terrain, and line of sight.",
+    "sourceFilename": "02-max-range.mp4",
+    "poster": "/videos/reels/posters/lilyshark-02-max-range-3017cac6.jpg",
+    "link": "https://lilyshark.com/",
+    "durationSeconds": 35.306,
+    "sizeBytes": 6142624,
+    "hasAudio": true,
+    "width": 720,
+    "height": 1280,
+    "sources": [
+      {
+        "src": "/videos/reels/lilyshark-02-max-range-3017cac6.mp4",
+        "type": "video/mp4",
+        "quality": "720p"
+      }
+    ]
+  },
+  {
+    "id": "lilyshark-03-meshtastic-vs-meshcore",
+    "title": "Lilyshark: Meshtastic vs MeshCore",
+    "date": "Short film",
+    "summary": "How two mesh protocols handle the same radio hardware.",
+    "sourceFilename": "03-meshtastic-vs-meshcore.mp4",
+    "poster": "/videos/reels/posters/lilyshark-03-meshtastic-vs-meshcore-9c50c6dc.jpg",
+    "link": "https://lilyshark.com/",
+    "durationSeconds": 35.008,
+    "sizeBytes": 7151807,
+    "hasAudio": true,
+    "width": 720,
+    "height": 1280,
+    "sources": [
+      {
+        "src": "/videos/reels/lilyshark-03-meshtastic-vs-meshcore-9c50c6dc.mp4",
+        "type": "video/mp4",
+        "quality": "720p"
+      }
+    ]
+  },
+  {
+    "id": "lilyshark-04-who-repeats-first",
+    "title": "Lilyshark: Who repeats first?",
+    "date": "Short film",
+    "summary": "Following a message as it travels through a mesh.",
+    "sourceFilename": "04-who-repeats-first.mp4",
+    "poster": "/videos/reels/posters/lilyshark-04-who-repeats-first-fbabee38.jpg",
+    "link": "https://lilyshark.com/",
+    "durationSeconds": 29.909,
+    "sizeBytes": 6097596,
+    "hasAudio": true,
+    "width": 720,
+    "height": 1280,
+    "sources": [
+      {
+        "src": "/videos/reels/lilyshark-04-who-repeats-first-fbabee38.mp4",
+        "type": "video/mp4",
+        "quality": "720p"
+      }
+    ]
+  },
+  {
+    "id": "lilyshark-05-below-the-noise",
+    "title": "Lilyshark: Below the noise",
+    "date": "Short film",
+    "summary": "Visualizing how LoRa decodes a faint signal.",
+    "sourceFilename": "05-below-the-noise.mp4",
+    "poster": "/videos/reels/posters/lilyshark-05-below-the-noise-933deecb.jpg",
+    "link": "https://lilyshark.com/",
+    "durationSeconds": 29.205,
+    "sizeBytes": 5291544,
+    "hasAudio": true,
+    "width": 720,
+    "height": 1280,
+    "sources": [
+      {
+        "src": "/videos/reels/lilyshark-05-below-the-noise-933deecb.mp4",
+        "type": "video/mp4",
+        "quality": "720p"
+      }
+    ]
+  },
+  {
+    "id": "lilyshark-06-sound-of-lora",
+    "title": "Lilyshark: The sound of LoRa",
+    "date": "Short film",
+    "summary": "A slowed-down packet makes the chirps audible.",
+    "sourceFilename": "06-sound-of-lora.mp4",
+    "poster": "/videos/reels/posters/lilyshark-06-sound-of-lora-1ed90e9e.jpg",
+    "link": "https://lilyshark.com/",
+    "durationSeconds": 25.6,
+    "sizeBytes": 5301003,
+    "hasAudio": true,
+    "width": 720,
+    "height": 1280,
+    "sources": [
+      {
+        "src": "/videos/reels/lilyshark-06-sound-of-lora-1ed90e9e.mp4",
+        "type": "video/mp4",
+        "quality": "720p"
+      }
+    ]
+  },
+  {
+    "id": "lilyshark-07-not-encrypted",
+    "title": "Lilyshark: What is not encrypted?",
+    "date": "Short film",
+    "summary": "A closer look at a packet's visible header.",
+    "sourceFilename": "07-not-encrypted.mp4",
+    "poster": "/videos/reels/posters/lilyshark-07-not-encrypted-70dd07e7.jpg",
+    "link": "https://lilyshark.com/",
+    "durationSeconds": 33.066667,
+    "sizeBytes": 6512443,
+    "hasAudio": true,
+    "width": 720,
+    "height": 1280,
+    "sources": [
+      {
+        "src": "/videos/reels/lilyshark-07-not-encrypted-70dd07e7.mp4",
+        "type": "video/mp4",
+        "quality": "720p"
+      }
+    ]
+  },
+  {
+    "id": "lilyshark-08-airtime",
+    "title": "Lilyshark: Airtime",
+    "date": "Short film",
+    "summary": "Seeing the tradeoff between airtime and signal sensitivity.",
+    "sourceFilename": "08-airtime.mp4",
+    "poster": "/videos/reels/posters/lilyshark-08-airtime-ccd36f2b.jpg",
+    "link": "https://lilyshark.com/",
+    "durationSeconds": 31.85,
+    "sizeBytes": 6080912,
+    "hasAudio": true,
+    "width": 720,
+    "height": 1280,
+    "sources": [
+      {
+        "src": "/videos/reels/lilyshark-08-airtime-ccd36f2b.mp4",
+        "type": "video/mp4",
+        "quality": "720p"
+      }
+    ]
+  },
+  {
+    "id": "lilyshark-09-height-beats-power",
+    "title": "Lilyshark: Height beats power",
+    "date": "Short film",
+    "summary": "A visual comparison of antenna height and transmit power.",
+    "sourceFilename": "09-height-beats-power.mp4",
+    "poster": "/videos/reels/posters/lilyshark-09-height-beats-power-41aaf316.jpg",
+    "link": "https://lilyshark.com/",
+    "durationSeconds": 27.2,
+    "sizeBytes": 4800205,
+    "hasAudio": true,
+    "width": 720,
+    "height": 1280,
+    "sources": [
+      {
+        "src": "/videos/reels/lilyshark-09-height-beats-power-41aaf316.mp4",
+        "type": "video/mp4",
+        "quality": "720p"
+      }
+    ]
+  },
+  {
+    "id": "lilyshark-10-what-is-lilyshark",
+    "title": "Lilyshark: What is Lilyshark?",
+    "date": "Short film",
+    "summary": "A tour of the packet viewer on the LILYGO T-Deck.",
+    "sourceFilename": "10-what-is-lilyshark.mp4",
+    "poster": "/videos/reels/posters/lilyshark-10-what-is-lilyshark-ba617c10.jpg",
+    "link": "https://lilyshark.com/",
+    "durationSeconds": 35.306,
+    "sizeBytes": 6704374,
+    "hasAudio": true,
+    "width": 720,
+    "height": 1280,
+    "sources": [
+      {
+        "src": "/videos/reels/lilyshark-10-what-is-lilyshark-ba617c10.mp4",
+        "type": "video/mp4",
+        "quality": "720p"
+      }
+    ]
+  }
+]

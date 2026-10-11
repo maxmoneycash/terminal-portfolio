@@ -421,40 +421,43 @@
       "title": "Roman - unfolding over Earth",
       "recording": "roman-film.mp4",
       "start": 8.4,
-      "duration": 2.6,
+      "duration": 4.0,
       "crop": [
         0,
         0,
         1920,
         1080
       ],
-      "width": 1920
+      "width": 1920,
+      "portraitFrames": true
     },
     "roman-apart": {
       "title": "Roman - taken apart",
       "recording": "roman-film.mp4",
       "start": 36.7,
-      "duration": 2.6,
+      "duration": 4.0,
       "crop": [
         0,
         0,
         1920,
         1080
       ],
-      "width": 1920
+      "width": 1920,
+      "portraitFrames": true
     },
     "roman-wheel": {
       "title": "Roman - filter wheel",
       "recording": "roman-film.mp4",
       "start": 65.5,
-      "duration": 2.0,
+      "duration": 4.0,
       "crop": [
         0,
         0,
         1920,
         1080
       ],
-      "width": 1920
+      "width": 1920,
+      "portraitFrames": true
     },
     "tdeck-hero": {
       "title": "Lilyshark",

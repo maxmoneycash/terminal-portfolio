@@ -2,6 +2,7 @@ import type { ElementType, ReactNode } from "react";
 import score from "../../intro-film/score.json";
 import openingMedia from "./openingMedia.json";
 import { RecordedSignature } from "./RecordedSignature";
+import { SignalBridge } from "./SignalBridge";
 
 export const OPENING_FRAMES = score.sections[0].bars * 4 * score.framesPerBeat;
 export const OPENING_SECONDS = OPENING_FRAMES / 30;
@@ -22,7 +23,8 @@ export function BanknoteOpening({ frame, width, height, ink, motion, Image = "im
   const portrait = height > width;
   const shot = Math.min(SHOTS.length - 1, Math.max(0, Math.floor((frame - openingMedia.frames) / (2 * BEAT))));
   const writing = Math.max(0, (frame - score.calligraphy.start) / score.calligraphy.frames);
-  const reveal = clamp((frame - 184) / 14);
+  const reveal = clamp((frame - 180) / 10) * (1 - clamp((frame - 198) / 10));
+  const bridge = clamp((frame - (OPENING_FRAMES - 28)) / 27);
   const inset = width * (portrait ? 0.055 : 0.035);
   return (
     <div aria-hidden="true" style={{ position: "absolute", inset: 0, overflow: "hidden", background: "#e9e1ca", color: "#0d1a3d" }}>
@@ -53,6 +55,7 @@ export function BanknoteOpening({ frame, width, height, ink, motion, Image = "im
         height: 1, background: "rgb(33 51 36 / .2)" }}>
         <div style={{ height: "100%", background: "#0d1a3d", transform: `scaleX(${clamp(frame / (OPENING_FRAMES - 1))})`, transformOrigin: "left" }} />
       </div>
+      {bridge > 0 && <SignalBridge width={width} height={height} morph={bridge} />}
     </div>
   );
 }

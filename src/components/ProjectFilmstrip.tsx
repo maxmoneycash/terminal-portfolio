@@ -39,6 +39,7 @@ export function ProjectFilmstrip({ projects, active, selectedId, onOpenSite }: {
   const [blocked, setBlocked] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [properties, setProperties] = useState(false);
+  const [filmsOpen, setFilmsOpen] = useState(false);
   const [hidden, setHidden] = useState(() => typeof document !== "undefined" && document.hidden);
   const videoRef = useRef<HTMLVideoElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
@@ -49,7 +50,7 @@ export function ProjectFilmstrip({ projects, active, selectedId, onOpenSite }: {
   const slide = slides[index] ?? slides[0];
   const [start, end] = slide.project.loop ?? [0, slide.video?.durationSeconds ?? 8];
   // Auto-advance only while the visitor is watching the strip itself.
-  const running = active && !hidden && !still && !expanded && !properties;
+  const running = active && !hidden && !still && !expanded && !properties && !filmsOpen;
 
   const select = useCallback((next: number, remember = false) => {
     const wrapped = (next + slides.length) % slides.length;
@@ -57,6 +58,7 @@ export function ProjectFilmstrip({ projects, active, selectedId, onOpenSite }: {
     setBlocked(false);
     setExpanded(false);
     setProperties(false);
+    setFilmsOpen(false);
     if (remember) navigate({ app: "projects", project: slides[wrapped].id }, true);
   }, [slides]);
   const advance = useCallback(() => select(index + 1), [select, index]);
@@ -152,6 +154,7 @@ export function ProjectFilmstrip({ projects, active, selectedId, onOpenSite }: {
     if (!video) return;
     setExpanded(true);
     setBlocked(false);
+    if (!slide.video?.previewSrc) video.currentTime = 0;
     video.controls = true;
     video.muted = false;
     void video.play().catch(() => {});
@@ -178,7 +181,7 @@ export function ProjectFilmstrip({ projects, active, selectedId, onOpenSite }: {
             key={slide.id}
             ref={videoRef}
             className="filmstrip-media"
-            src={`${video.sources[0].src}#t=${start}`}
+            src={video.previewSrc && !expanded ? video.previewSrc : `${video.sources[0].src}#t=${expanded ? 0 : start}`}
             poster={video.poster}
             muted
             playsInline
@@ -186,6 +189,13 @@ export function ProjectFilmstrip({ projects, active, selectedId, onOpenSite }: {
             disablePictureInPicture
             aria-label={`${project.name} demo`}
             onError={() => setBlocked(true)}
+            onLoadedMetadata={event => {
+              if (expanded) {
+                event.currentTarget.currentTime = 0;
+                event.currentTarget.muted = false;
+                void event.currentTarget.play().catch(() => setBlocked(true));
+              }
+            }}
           />
         ) : (
           <picture key={slide.id}>
@@ -201,6 +211,11 @@ export function ProjectFilmstrip({ projects, active, selectedId, onOpenSite }: {
             </span>
           </button>
         ) : null}
+        {expanded ? <button type="button" className="filmstrip-stage-action filmstrip-return"
+          onClick={() => {
+            if (document.fullscreenElement) void document.exitFullscreen().catch(() => {});
+            setExpanded(false);
+          }}><span>← Back to preview</span></button> : null}
         {!still && !expanded ? (
           <span className="filmstrip-progress" aria-hidden="true">
             <span
@@ -246,7 +261,7 @@ export function ProjectFilmstrip({ projects, active, selectedId, onOpenSite }: {
           </button>
         </div>
         <p>{project.summary}</p>
-        {hasApp || project.code ? (
+        {hasApp || project.code || project.destinations?.length ? (
           <div className="filmstrip-actions">
             {hasApp ? (
               <button type="button" className="xp-control primary" onClick={openSite}>
@@ -258,8 +273,22 @@ export function ProjectFilmstrip({ projects, active, selectedId, onOpenSite }: {
                 <img src={`${gui}/start-menu/github.webp`} alt="" />Source
               </a>
             ) : null}
+            {project.destinations?.map(destination => <button key={destination.url} className="xp-control" type="button"
+              onClick={() => onOpenSite({ name: destination.label, url: destination.url })}>{destination.label} ↗</button>)}
           </div>
         ) : null}
+        {project.films?.length ? <details className="filmstrip-films" open={filmsOpen}
+          onToggle={event => setFilmsOpen(event.currentTarget.open)}>
+          <summary>Full film & {project.films.length - 1} shorts</summary>
+          <div>{project.films.map(id => {
+            const film = portfolio.videos.find(item => item.id === id);
+            return film ? <button key={id} type="button" onClick={() => navigate({ app: "demos", video: id })}>
+              <img src={film.poster} alt="" />
+              <span>{film.title.replace(/^Lilyshark: /, "")}</span>
+              <span>{Math.floor((film.durationSeconds ?? 0) / 60)}:{String(Math.round((film.durationSeconds ?? 0) % 60)).padStart(2, "0")}</span>
+            </button> : null;
+          })}</div>
+        </details> : null}
       </div>
 
       <div className="filmstrip-strip">

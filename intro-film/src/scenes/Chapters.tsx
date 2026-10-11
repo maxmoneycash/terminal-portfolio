@@ -10,6 +10,7 @@ import { BAR, BEAT } from "../beat";
 import { AppWindow, asset, Clip, clipRatio, Desktop, Montage, Still, stillRatio, useOrientation, type Enter } from "../xp";
 import type clipManifest from "../../clips.json";
 import type stillManifest from "../../stills.json";
+import { SignalBridge } from "../../../src/intro/SignalBridge";
 
 type ClipId = keyof typeof clipManifest.clips;
 type StillId = keyof typeof stillManifest.stills;
@@ -88,10 +89,11 @@ function Chapter({ name, panes, length }: { name: string; panes: Pane[]; length:
 
 export function Lilyshark() {
   const { W, H } = useOrientation();
+  const frame = useCurrentFrame();
   const shots = [
-    { id: "tdeck-hero" as const, at: 0 },
-    { id: "tdeck-bytes" as const, at: 2 * BAR },
-    { id: "tdeck-band" as const, at: 4 * BAR },
+    { id: "tdeck-band" as const, at: 0 },
+    { id: "tdeck-hero" as const, at: 2 * BAR },
+    { id: "tdeck-bytes" as const, at: 4 * BAR },
   ];
   const shorts = ["lilyshark-below-noise", "lilyshark-airtime-short"] as const;
   return (
@@ -110,6 +112,7 @@ export function Lilyshark() {
           </AppWindow>
         </Sequence>
       ))}
+      {frame < 14 && <SignalBridge width={W} height={H} opacity={1 - frame / 14} />}
     </Desktop>
   );
 }
@@ -140,18 +143,11 @@ export function Orbital() {
   return (
     <Chapter
       name="Orbital Works"
-      length={3 * BAR}
+      length={6 * BAR}
       panes={[
         {
           title: "Orbital Works — Nancy Grace Roman Space Telescope",
-          body: { montage: [{ id: "roman-earth", at: 0 }, { id: "roman-apart", at: BAR }, { id: "roman-wheel", at: 2 * BAR }] },
-        },
-        {
-          title: "Orbital Works - Internet Explorer",
-          url: "https://orbital-works.vercel.app/",
-          body: { clip: "orbital-site" },
-          at: 0,
-          enter: "right",
+          body: { montage: [{ id: "roman-earth", at: 0 }, { id: "roman-apart", at: 2 * BAR }, { id: "roman-wheel", at: 4 * BAR }] },
         },
       ]}
     />

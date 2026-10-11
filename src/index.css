@@ -4755,6 +4755,7 @@ button.login-footer-left:focus-visible {
   font-size: 11px;
 }
 .filmstrip-stage-action img { width: 18px; height: 18px; }
+.filmstrip-return { inset: 0 0 auto auto; padding: 10px; }
 .filmstrip-stage-action:focus-visible > span { outline: 1px dotted var(--xp-window-surface); outline-offset: 2px; }
 .filmstrip-progress {
   position: absolute;
@@ -4855,9 +4856,16 @@ button.login-footer-left:focus-visible {
   border-color: var(--xp-bevel-dark) var(--xp-bevel-light) var(--xp-bevel-light) var(--xp-bevel-dark);
   background: var(--xp-toolbar-pressed);
 }
-.filmstrip-actions { grid-area: actions; display: flex; gap: 8px; }
+.filmstrip-actions { grid-area: actions; display: flex; flex-wrap: wrap; gap: 8px; }
 .filmstrip-actions .xp-control { gap: 6px; font-size: 11px; white-space: nowrap; }
 .filmstrip-actions img { width: 16px; height: 16px; }
+.filmstrip-films { grid-column: 1 / -1; margin-top: 6px; font-size: 12px; }
+.filmstrip-films summary { width: fit-content; padding: 5px 0; color: var(--xp-blue-900); cursor: pointer; }
+.filmstrip-films > div { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 4px; max-height: 180px; overflow-y: auto; margin-top: 4px; }
+.filmstrip-films button { display: flex; align-items: center; gap: 8px; min-height: 44px; text-align: left; padding: 4px 6px; border: 1px solid var(--xp-divider); background: var(--xp-window-subtle); font: inherit; cursor: pointer; }
+.filmstrip-films button img { width: 42px; height: 32px; object-fit: contain; background: #071426; }
+.filmstrip-films button span:last-child { margin-left: auto; font-variant-numeric: tabular-nums; color: var(--xp-muted); }
+.filmstrip-films button:focus-visible, .filmstrip-films summary:focus-visible { outline: 2px solid var(--xp-highlight); outline-offset: -2px; }
 
 .filmstrip-strip {
   display: grid;

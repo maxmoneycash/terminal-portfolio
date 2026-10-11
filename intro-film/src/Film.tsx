@@ -5,31 +5,18 @@ import { AptosMegaeth, Commits, LandLanguage, Gadgets, Lilyshark, Mainnet, Nipah
 import { Overload } from "./scenes/Overload";
 import { Radio } from "./scenes/Radio";
 import { Sign } from "./scenes/Sign";
+import chapters from "../../src/intro/chapters.json";
 
 /**
  * Scene order and lengths in beats (14 frames each). Sections follow the
  * soundtrack in score.json: the signature 4 bars, the radio 2, then three
- * drops (23, 9, 7) that get faster and denser. Every cut lands on a beat.
+ * drops (26, 9, 7) that get faster and denser. Every cut lands on a beat.
  */
-export const SCENES = [
-  // the signature, then the radio's callsign
-  { name: "sign", beats: 16, component: Sign },
-  { name: "radio", beats: 8, component: Radio },
-  // drop 1: the best work
-  { name: "lilyshark", beats: 40, component: Lilyshark },
-  { name: "commits", beats: 16, component: Commits },
-  { name: "orbital", beats: 12, component: Orbital },
-  { name: "land-language", beats: 24, component: LandLanguage },
-  // drop 2: a project every six beats
-  { name: "aptos", beats: 6, component: AptosMegaeth },
-  { name: "sol2move", beats: 6, component: Sol2Move },
-  { name: "yank", beats: 6, component: Yank },
-  { name: "nipah", beats: 6, component: Nipah },
-  { name: "mainnet", beats: 6, component: Mainnet },
-  { name: "gadgets", beats: 6, component: Gadgets },
-  // drop 3: overload, then "your turn."
-  { name: "overload", beats: 28, component: Overload },
-] as const;
+const components = { sign: Sign, radio: Radio, lilyshark: Lilyshark, commits: Commits, orbital: Orbital,
+  "land-language": LandLanguage, aptos: AptosMegaeth, sol2move: Sol2Move, yank: Yank, nipah: Nipah,
+  mainnet: Mainnet, gadgets: Gadgets, overload: Overload };
+// The same beat map drives the rendered scenes and the site's chapter controls.
+export const SCENES = chapters.map(({ id, beats }) => ({ name: id, beats, component: components[id as keyof typeof components] }));
 
 export const FILM_FRAMES = SCENES.reduce((sum, scene) => sum + scene.beats * BEAT, 0);
 

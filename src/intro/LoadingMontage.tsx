@@ -40,7 +40,7 @@ export function LoadingMontage({ startedAt, still, portrait }: { startedAt: numb
   return (
     <div className="intro-loading-art">
       <div ref={stage} style={{ position: "absolute", left: "50%", top: "50%", width, height, transformOrigin: "center", transform: "translate(-50%, -50%)" }}>
-        <BanknoteOpening frame={still ? OPENING_FRAMES - 1 : frame} width={width} height={height} ink={ink}
+        <BanknoteOpening frame={still ? OPENING_FRAMES - 40 : frame} width={width} height={height} ink={ink}
           motion={!still && <video ref={motion} src={`/${openingMedia.src}`} autoPlay muted playsInline preload="auto"
             onLoadedMetadata={() => {
               const video = motion.current;

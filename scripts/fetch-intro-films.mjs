@@ -9,13 +9,16 @@ import { Readable } from "node:stream";
 import { pipeline } from "node:stream/promises";
 
 const manifest = JSON.parse(await readFile(new URL("../intro-film/published.json", import.meta.url), "utf8"));
-const component = await readFile(new URL("../src/xp/IntroVideo.tsx", import.meta.url), "utf8");
+const sources = JSON.parse(await readFile(new URL("../src/data/intro-sources.json", import.meta.url), "utf8"));
 const out = new URL("../public/videos/intro/", import.meta.url);
 
-const referenced = [...component.matchAll(/"\/videos\/intro\/([^"/]+\.mp4)"/g)].map(match => match[1]);
+const referenced = [...new Set(Object.values(sources).flatMap(source => [source.hd, source.mobile]).map(path => {
+  if (typeof path !== "string" || !/^\/videos\/intro\/[^/]+\.mp4$/.test(path)) throw new Error(`Invalid intro source: ${path}`);
+  return path.split("/").pop();
+}))];
 const unlisted = referenced.filter(name => !manifest.files[name]);
 if (!referenced.length || unlisted.length) {
-  throw new Error(`IntroVideo.tsx plays films missing from intro-film/published.json: ${unlisted.join(", ") || "none found"}`);
+  throw new Error(`intro-sources.json plays films missing from intro-film/published.json: ${unlisted.join(", ") || "none found"}`);
 }
 
 async function matches(file, expected) {

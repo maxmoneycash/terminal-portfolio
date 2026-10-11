@@ -13,6 +13,54 @@
     "videos/reels/commits-sh-workspace-827f94b0.mp4": {
       "sha256": "c123a208dc889f51862cd290f2f59a560825cac48d75d5b451beb8e80bd6e503",
       "bytes": 27354075
+    },
+    "videos/reels/lilyshark-launch-08cf7e26.mp4": {
+      "sha256": "08cf7e26f8a7d2516fe60c465e2dd4b6b5c656ed238afeb365ddbc30a164b725",
+      "bytes": 29623096
+    },
+    "videos/reels/lilyshark-preview-a250c115.mp4": {
+      "sha256": "a250c11533af3a3e1e2d73108442e5ea5fd9c3a1882bdc07cb1c3a2557361af6",
+      "bytes": 3924231
+    },
+    "videos/reels/lilyshark-01-private-messages-dc67c6cc.mp4": {
+      "sha256": "dc67c6ccad499d7f46e9ce45d318e313e87b7403b44d35d02a76b8ba970ba59e",
+      "bytes": 5927456
+    },
+    "videos/reels/lilyshark-02-max-range-3017cac6.mp4": {
+      "sha256": "3017cac6bc0cd0e74e160c8f3acb091705bfea51d7fb373396efa2d5117dbbdb",
+      "bytes": 6142624
+    },
+    "videos/reels/lilyshark-03-meshtastic-vs-meshcore-9c50c6dc.mp4": {
+      "sha256": "9c50c6dcf2a9f0e95144b12bb6e4c70ac594d36efcf1b8ce51caa31b7fbbe8fd",
+      "bytes": 7151807
+    },
+    "videos/reels/lilyshark-04-who-repeats-first-fbabee38.mp4": {
+      "sha256": "fbabee38dc34bcdb7a9d9685205cac47ded03210a190d2ed016c1539e78572ef",
+      "bytes": 6097596
+    },
+    "videos/reels/lilyshark-05-below-the-noise-933deecb.mp4": {
+      "sha256": "933deecbea83306f896afcd42014e9bc0afcf31998d24235459c2c1852e85098",
+      "bytes": 5291544
+    },
+    "videos/reels/lilyshark-06-sound-of-lora-1ed90e9e.mp4": {
+      "sha256": "1ed90e9edecaec1e6565a69fa9fc5a43dd679f4bbe007d344a54e44d389fbdce",
+      "bytes": 5301003
+    },
+    "videos/reels/lilyshark-07-not-encrypted-70dd07e7.mp4": {
+      "sha256": "70dd07e712f98e4bcfea25a6aa9686820249341395545d0fb5e25e63567cccd4",
+      "bytes": 6512443
+    },
+    "videos/reels/lilyshark-08-airtime-ccd36f2b.mp4": {
+      "sha256": "ccd36f2be75d398eb4182c87b8ce2e6359d0068f2a92c8e70768ebe23bbab68d",
+      "bytes": 6080912
+    },
+    "videos/reels/lilyshark-09-height-beats-power-41aaf316.mp4": {
+      "sha256": "41aaf3169cdc8c75bdae1b17e75d666397870059c1a04d82d1e9429e338e342e",
+      "bytes": 4800205
+    },
+    "videos/reels/lilyshark-10-what-is-lilyshark-ba617c10.mp4": {
+      "sha256": "ba617c10f0ffed2469404ae8b3809b6e662cc86be40ab89dfe5453eb01f32045",
+      "bytes": 6704374
     }
   }
 }

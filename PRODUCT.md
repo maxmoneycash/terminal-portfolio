@@ -6,7 +6,7 @@ brand — a portfolio where the design IS the product. The visitor's impression 
 
 ## What it is
 
-maxmohammadi.com: Max Mohammadi's portfolio rendered as a faithful Windows XP desktop ("MaxXP"). A first visit plays the intro film, which logs in and hands off directly to selected work inside a Luna window; shared links and returning visitors open the work directly. Selected work is an XP Filmstrip view: one demo recording loops on the stage, a thumbnail strip picks the next, and build notes live in a Properties sheet. Toolbar views hold working live apps and the complete public GitHub archive. Draggable windows, Start menu, taskbar, all approved demo recordings, resume, contact, and live telemetry remain available.
+maxmohammadi.com: Max Mohammadi's portfolio rendered as a faithful Windows XP desktop ("MaxXP"). Loading the site plays the intro film; shared project links open their work directly. The film offers chapter navigation and smaller mobile or HD playback, then hands off to selected work in the foreground. The radio and quill wait in the taskbar. Selected work is an XP Filmstrip view: one demo recording loops on the stage, a thumbnail strip picks the next, and build notes live in a Properties sheet. Lilyshark includes its full launch film and ten shorts; Tend, Presidio Atlas, and Ohlone Unicode stay together under Land & language. Toolbar views hold working live apps and the complete public GitHub archive. Draggable windows, Start menu, taskbar, all approved demo recordings, resume, contact, and live telemetry remain available.
 
 ## Target audience
 

@@ -1,4 +1,5 @@
 import githubProjects from "./github-projects.json";
+import lilysharkVideos from "./lilyshark-videos.json";
 
 const publicRepo = (owner: string, name: string) => githubProjects.repositories.find(
   (repo) => !repo.private && repo.owner === owner && repo.name === name,
@@ -28,6 +29,9 @@ export type Project = {
   focus?: string;
   /** A still's own phone crop, used on narrow screens and as its thumbnail. */
   focusPoster?: string;
+  /** Related films and destinations, kept with the project in the filmstrip. */
+  films?: string[];
+  destinations?: Array<{ label: string; url: string }>;
 };
 
 export type Role = {
@@ -44,6 +48,8 @@ export type PortfolioVideo = {
   summary: string;
   sourceFilename: string;
   poster: string;
+  /** Small, silent preview; the full film stays available on explicit play. */
+  previewSrc?: string;
   /** Live app the clip demonstrates, shown as a link chip under the caption. */
   link?: string;
   /** Clip length, shown in the caption kicker. */
@@ -87,8 +93,9 @@ export const portfolio = {
       contribution: "Firmware, web analyzer, and native clients.",
       link: lilyshark.homepage || undefined,
       code: lilyshark.url,
-      poster: "/projects/lilyshark.png",
-      focusPoster: "/projects/lilyshark-focus.jpg",
+      demoId: "lilyshark-launch",
+      loop: [0, 18.667] as [number, number],
+      films: lilysharkVideos.map(video => video.id),
       focus: "50% 40%",
       details: [
         { label: "Built", text: "LoRa packet capture and decoding on the T-Deck, with a browser analyzer for inspecting frames and radio measurements." },
@@ -112,6 +119,21 @@ export const portfolio = {
         { label: "Demo", text: "The Nancy Grace Roman Space Telescope: launch, the cruise to L2, its parts pulled apart, and how its instruments will see." },
       ],
     }] : []),
+    {
+      id: "land-language",
+      name: "Land & language",
+      featured: true,
+      category: "Place & language",
+      stack: "Web · maps · language tools",
+      summary: "Tend, Presidio Atlas, and Ohlone Unicode: connected work about place, history, and language.",
+      poster: "/projects/presidio-landscape.jpg",
+      focusPoster: "/projects/presidio-portrait.jpg",
+      destinations: [
+        { label: "Tend", url: "https://tend-zionbet.vercel.app/" },
+        { label: "Presidio Atlas", url: "https://presidio-atlas.vercel.app/#map" },
+        { label: "Ohlone Unicode", url: "https://ohlone-unicode.vercel.app/" },
+      ],
+    },
     {
       id: "aptos-vs-megaeth",
       name: "Aptos vs MegaETH",
@@ -209,6 +231,7 @@ export const portfolio = {
     },
   ] satisfies Project[],
   videos: [
+    ...lilysharkVideos,
     {
       id: "orbital-works",
       title: "Orbital Works: the Roman Space Telescope",

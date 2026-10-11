@@ -140,15 +140,15 @@ export function RadioApp({ active, greet = false, hidden = false }: { active: bo
     }
   }, [commit, muted, tone, upgrade]);
 
-  // Greet once when opened at login.
+  // Greet when the radio is first opened, not while it waits in the taskbar.
   useEffect(() => {
-    if (!greet || greetedRef.current) return;
+    if (!greet || hidden || greetedRef.current) return;
     const id = window.setTimeout(() => {
       greetedRef.current = true;
       start();
     }, 700);
     return () => window.clearTimeout(id);
-  }, [greet, start]);
+  }, [greet, hidden, start]);
 
   // Turning the volume to zero mid-greeting keeps the keying, drops the tone.
   useEffect(() => {

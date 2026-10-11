@@ -1,0 +1,12 @@
+{
+  "landscape": {
+    "hd": "/videos/intro/intro-landscape-hd-ce21a374.mp4",
+    "poster": "/videos/intro/intro-landscape-hd-ce21a374.jpg",
+    "mobile": "/videos/intro/intro-landscape-mobile-12c1bf16.mp4"
+  },
+  "portrait": {
+    "hd": "/videos/intro/intro-portrait-hd-f483da72.mp4",
+    "poster": "/videos/intro/intro-portrait-hd-f483da72.jpg",
+    "mobile": "/videos/intro/intro-portrait-mobile-4dec4c99.mp4"
+  }
+}

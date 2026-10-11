@@ -5,7 +5,8 @@
  * interactive desktop.
  *
  * It plays with sound whenever the browser allows; otherwise it starts muted
- * and a click or tap anywhere turns the sound on. Only Skip or Escape leaves.
+ * and a click or tap anywhere turns the sound on. Skip, Escape, and project
+ * links hand off to the desktop.
  *
  * Rendered by intro-film/ (Remotion) from the original project recordings.
  */
@@ -14,19 +15,15 @@ import { cn } from "../lib/cn";
 import { getSystemVolume } from "./audio";
 import { LoadingMontage } from "../intro/LoadingMontage";
 import { OPENING_SECONDS } from "../intro/BanknoteOpening";
+import sources from "../data/intro-sources.json";
+import chapters from "../intro/chapters.json";
+import score from "../../intro-film/score.json";
+import { navigate, type Route } from "../lib/navigation";
 
-const INTRO = {
-  portrait: {
-    orient: "portrait",
-    src: "/videos/intro/intro-portrait-b4cb73d2.mp4",
-    poster: "/videos/intro/intro-portrait-b4cb73d2.jpg",
-  },
-  landscape: {
-    orient: "landscape",
-    src: "/videos/intro/intro-landscape-12a8c08b.mp4",
-    poster: "/videos/intro/intro-landscape-12a8c08b.jpg",
-  },
-};
+type Quality = "auto" | "mobile" | "hd";
+const CHAPTERS = chapters.map((chapter, index) => ({ ...chapter,
+  start: chapters.slice(0, index).reduce((sum, item) => sum + item.beats, 0) * score.framesPerBeat / 30,
+}));
 
 /** Offer a retry after a slow start; never silently dismiss the film. */
 const STALL_MS = 8000;
@@ -41,9 +38,12 @@ function timeLabel(seconds: number) {
 
 function pickSource() {
   try {
-    return window.innerHeight > window.innerWidth ? INTRO.portrait : INTRO.landscape;
+    const orient = window.innerHeight > window.innerWidth ? "portrait" : "landscape";
+    const connection = (navigator as Navigator & { connection?: { saveData?: boolean; effectiveType?: string } }).connection;
+    const mobile = orient === "portrait" || window.innerWidth <= 900 || connection?.saveData || /^(slow-2g|2g|3g)$/.test(connection?.effectiveType ?? "");
+    return { orient, ...sources[orient], automatic: mobile ? "mobile" as const : "hd" as const };
   } catch {
-    return INTRO.landscape;
+    return { orient: "landscape", ...sources.landscape, automatic: "hd" as const };
   }
 }
 
@@ -69,6 +69,8 @@ export function IntroVideo({ onFinish, fading, requested = false }: {
   requested?: boolean;
 }) {
   const [source] = useState(pickSource);
+  const [quality, setQuality] = useState<Quality>("auto");
+  const sourceUrl = source[quality === "auto" ? source.automatic : quality];
   const [manualPreference] = useState(() => !requested && prefersManualPlay());
   const [openingStart, setOpeningStart] = useState(() => performance.now());
   const [started, setStarted] = useState(false);
@@ -79,12 +81,15 @@ export function IntroVideo({ onFinish, fading, requested = false }: {
   const [slow, setSlow] = useState(false);
   const [position, setPosition] = useState(0);
   const [duration, setDuration] = useState(0);
+  const [controlsVisible, setControlsVisible] = useState(true);
+  const controlsTimer = useRef<number | undefined>(undefined);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const regionRef = useRef<HTMLDivElement | null>(null);
   const finishedRef = useRef(false);
   const joinedOpening = useRef(false);
   const lastPosition = useRef(0);
   const restorePosition = useRef<number | null>(null);
+  const resumeAfterLoad = useRef<boolean | null>(null);
 
   const finish = useCallback(
     (how: IntroEnd = "skipped") => {
@@ -167,6 +172,40 @@ export function IntroVideo({ onFinish, fading, requested = false }: {
     else video.pause();
   }, [play]);
 
+  const wakeControls = useCallback(() => {
+    setControlsVisible(true);
+    window.clearTimeout(controlsTimer.current);
+    controlsTimer.current = window.setTimeout(() => setControlsVisible(false), 2800);
+  }, []);
+  useEffect(() => {
+    wakeControls();
+    return () => window.clearTimeout(controlsTimer.current);
+  }, [playback, wakeControls]);
+
+  const changeQuality = (next: Quality) => {
+    const video = videoRef.current;
+    const url = source[next === "auto" ? source.automatic : next];
+    if (video && url !== sourceUrl) {
+      restorePosition.current = restorePosition.current ?? video.currentTime;
+      resumeAfterLoad.current = resumeAfterLoad.current ?? !video.paused;
+      joinedOpening.current = true;
+      setPlayback("loading");
+    }
+    setQuality(next);
+  };
+
+  const seek = (seconds: number) => {
+    const video = videoRef.current;
+    if (!video || !Number.isFinite(video.duration)) return;
+    const target = Math.max(0, Math.min(video.duration - .05, seconds));
+    joinedOpening.current = true;
+    video.currentTime = target;
+    lastPosition.current = target;
+    setPosition(target);
+    setOpeningDone(target >= OPENING_SECONDS);
+    wakeControls();
+  };
+
   useEffect(() => {
     const id = window.setTimeout(() => setSkipVisible(true), SKIP_REVEAL_MS);
     return () => window.clearTimeout(id);
@@ -209,6 +248,10 @@ export function IntroVideo({ onFinish, fading, requested = false }: {
 
   const needsPlay = playback === "manual" || playback === "paused" || playback === "error";
   const waiting = playback === "buffering" || playback === "loading";
+  // Browsers round currentTime to microseconds; a seek to an exact frame can
+  // otherwise resolve to the previous chapter. Allow half a frame at 30 fps.
+  const chapter = [...CHAPTERS].reverse().find(item => position + 1 / 60 >= item.start) ?? CHAPTERS[0];
+  const showControls = controlsVisible || playback !== "playing";
 
   return (
     <div
@@ -217,6 +260,9 @@ export function IntroVideo({ onFinish, fading, requested = false }: {
       role="region"
       aria-label="MaxXP intro"
       tabIndex={-1}
+      onPointerMove={wakeControls}
+      onPointerDown={wakeControls}
+      onFocusCapture={wakeControls}
       onKeyDown={(event) => {
         if (event.target !== event.currentTarget) return;
         if (event.key === " " || event.key === "Enter") {
@@ -232,8 +278,8 @@ export function IntroVideo({ onFinish, fading, requested = false }: {
       <video
         ref={videoRef}
         className={cn("intro-video", `is-${source.orient}`)}
-        src={source.src}
-        poster={source.poster}
+        src={sourceUrl}
+        poster={started ? undefined : source.poster}
         muted
         playsInline
         preload="auto"
@@ -244,6 +290,12 @@ export function IntroVideo({ onFinish, fading, requested = false }: {
           if (restorePosition.current !== null) {
             video.currentTime = restorePosition.current;
             restorePosition.current = null;
+          }
+          if (resumeAfterLoad.current !== null) {
+            const resume = resumeAfterLoad.current;
+            resumeAfterLoad.current = null;
+            if (resume) void video.play().catch(() => setPlayback(video.error ? "error" : "paused"));
+            else setPlayback(started ? "paused" : "manual");
           }
         }}
         onPlaying={() => {
@@ -269,11 +321,11 @@ export function IntroVideo({ onFinish, fading, requested = false }: {
             lastPosition.current = video.currentTime;
             setPosition(video.currentTime);
           }
-          if (video.currentTime >= OPENING_SECONDS) setOpeningDone(true);
+          if (restorePosition.current === null) setOpeningDone(video.currentTime >= OPENING_SECONDS);
           if (!video.paused && video.readyState >= 3 && started) setPlayback("playing");
         }}
         onPause={(event) => {
-          if (!finishedRef.current && !event.currentTarget.ended) setPlayback(started ? "paused" : "manual");
+          if (!finishedRef.current && !event.currentTarget.ended && restorePosition.current === null) setPlayback(started ? "paused" : "manual");
         }}
         onWaiting={() => { if (!finishedRef.current) setPlayback(started ? "buffering" : "loading"); }}
         onStalled={(event) => {
@@ -294,7 +346,7 @@ export function IntroVideo({ onFinish, fading, requested = false }: {
         </div>
       ) : null}
       {started ? (
-        <div className="intro-controls" role="group" aria-label="Intro playback" onClick={(event) => event.stopPropagation()}>
+        <div className={cn("intro-controls", showControls && "is-visible")} role="group" aria-label="Intro playback" onClick={(event) => event.stopPropagation()}>
           <button type="button" onClick={togglePlayback} aria-label={needsPlay ? "Resume intro" : "Pause intro"}>
             {needsPlay ? "Play" : "Pause"}
           </button>
@@ -307,8 +359,28 @@ export function IntroVideo({ onFinish, fading, requested = false }: {
             {muted ? "Sound off" : "Sound on"}
           </button>
           <span className="intro-time" aria-label="Playback time">{timeLabel(position)} / {timeLabel(duration)}</span>
+          <select aria-label="Video quality" value={quality} onChange={event => changeQuality(event.target.value as Quality)}>
+            <option value="auto">Auto</option><option value="mobile">720p · less data</option><option value="hd">1080p · HD</option>
+          </select>
         </div>
       ) : null}
+      {started ? <div className={cn("intro-navigation", showControls && "is-visible")} onClick={event => event.stopPropagation()}>
+        <div className="intro-chapter-row">
+          <select aria-label="Intro chapter" value={chapter.id} onChange={event => seek(CHAPTERS.find(item => item.id === event.target.value)!.start)}>
+            {CHAPTERS.map(item => <option key={item.id} value={item.id}>{timeLabel(item.start)} · {item.label}</option>)}
+          </select>
+          {chapter.route ? <button type="button" onClick={() => {
+            navigate(chapter.route as Route);
+            finish("skipped");
+          }}>{chapter.route.project ? "Explore this project" : "Open in desktop"} →</button> : null}
+        </div>
+        <div className="intro-timeline">
+          <input type="range" min={0} max={duration || 1} step={.1} value={position} aria-label="Seek intro"
+            aria-valuetext={`${timeLabel(position)} of ${timeLabel(duration)} · ${chapter.label}`}
+            onChange={event => seek(Number(event.target.value))} />
+          <div className="intro-chapter-marks" aria-hidden="true">{CHAPTERS.slice(1).map(item => <span key={item.id} style={{ left: `${item.start / (duration || 1) * 100}%` }} />)}</div>
+        </div>
+      </div> : null}
       <button
         type="button"
         className={cn("intro-skip", skipVisible && "is-visible")}

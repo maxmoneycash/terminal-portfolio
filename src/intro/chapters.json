@@ -1,0 +1,114 @@
+[
+  {
+    "id": "sign",
+    "label": "Signature",
+    "beats": 16
+  },
+  {
+    "id": "radio",
+    "label": "KK6OQA",
+    "beats": 8,
+    "route": {
+      "app": "radio"
+    }
+  },
+  {
+    "id": "lilyshark",
+    "label": "Lilyshark",
+    "beats": 40,
+    "route": {
+      "app": "projects",
+      "project": "lilyshark"
+    }
+  },
+  {
+    "id": "commits",
+    "label": "commits.sh",
+    "beats": 16,
+    "route": {
+      "app": "projects",
+      "project": "commits-sh"
+    }
+  },
+  {
+    "id": "orbital",
+    "label": "Roman telescope",
+    "beats": 24,
+    "route": {
+      "app": "projects",
+      "project": "orbital-works"
+    }
+  },
+  {
+    "id": "land-language",
+    "label": "Land & language",
+    "beats": 24,
+    "route": {
+      "app": "projects",
+      "project": "land-language"
+    }
+  },
+  {
+    "id": "aptos",
+    "label": "Aptos vs MegaETH",
+    "beats": 6,
+    "route": {
+      "app": "projects",
+      "project": "aptos-vs-megaeth"
+    }
+  },
+  {
+    "id": "sol2move",
+    "label": "Sol2Move",
+    "beats": 6,
+    "route": {
+      "app": "projects",
+      "project": "sol2move"
+    }
+  },
+  {
+    "id": "yank",
+    "label": "Yank",
+    "beats": 6,
+    "route": {
+      "app": "projects",
+      "view": "all"
+    }
+  },
+  {
+    "id": "nipah",
+    "label": "NipahScan",
+    "beats": 6,
+    "route": {
+      "app": "projects",
+      "project": "nipahscan"
+    }
+  },
+  {
+    "id": "mainnet",
+    "label": "Mainnet Capital",
+    "beats": 6,
+    "route": {
+      "app": "projects",
+      "view": "all"
+    }
+  },
+  {
+    "id": "gadgets",
+    "label": "Experiments",
+    "beats": 6,
+    "route": {
+      "app": "projects",
+      "view": "all"
+    }
+  },
+  {
+    "id": "overload",
+    "label": "More work",
+    "beats": 28,
+    "route": {
+      "app": "projects",
+      "view": "all"
+    }
+  }
+]

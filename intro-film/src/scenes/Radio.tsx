@@ -5,6 +5,7 @@ import { caretVisible } from "../lib";
 import { cueAt } from "../morseCue";
 import { AppWindow, asset, Desktop, SceneStart, useOrientation } from "../xp";
 import { PowerSdrScreen, type RadioState } from "../../../src/radio/PowerSdrScreen";
+import { SignalBridge } from "../../../src/intro/SignalBridge";
 
 const RECORDED = new Date(2026, 9, 8, 15, 14, 0);
 /** Both windows minimize on the last beat before drop 1. */
@@ -89,6 +90,8 @@ export function Radio() {
           <span style={{ opacity: caretVisible(frame) ? 1 : 0 }}>█</span>
         </div>
       </AppWindow>
+      {frame < 18 && <SignalBridge width={W} height={H} opacity={1 - frame / 18} />}
+      {frame >= 8 * BEAT - 14 && <SignalBridge width={W} height={H} opacity={(frame - (8 * BEAT - 14)) / 13} />}
     </Desktop>
   );
 }

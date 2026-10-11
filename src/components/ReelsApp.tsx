@@ -14,7 +14,7 @@ import { Tooltip } from "./Tooltip";
 import { navigate, readRoute, routeHash, useRoute } from "../lib/navigation";
 import { CopyLink } from "./CopyLink";
 
-const featuredVideoId = "aptos-vs-megaeth";
+const featuredVideoId = "lilyshark-launch";
 
 /** Slides this far from the active one keep a live <video>; the rest show a poster. */
 const MOUNT_RADIUS = 1;

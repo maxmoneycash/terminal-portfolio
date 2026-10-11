@@ -40,9 +40,8 @@ type DragState =
 const TASKBAR_HEIGHT = 30;
 
 /**
- * The desktop at login: My Projects, with the KK6OQA radio in front greeting
- * in CW and the quill writing the name beside it. A shared link opens its
- * own app instead.
+ * The desktop at login: the work is in front; radio and quill are ready in
+ * the taskbar. A shared link opens its own app instead.
  */
 function createLoginWindows(z: number): WindowRecord[] {
   const projects = createProjectsWindow(z);
@@ -57,15 +56,15 @@ function createLoginWindows(z: number): WindowRecord[] {
   const y = Math.max(8, Math.round((vh - TASKBAR_HEIGHT - height) / 2) - 12);
   return [
     projects,
-    { id: "radio", x, y, width, height, z: z + 1, minimized: false, maximized: false },
+    { id: "radio", x, y, width, height, z: z - 1, minimized: true, maximized: false },
     {
       id: "quill",
       x: Math.max(8, Math.min(vw - quill.width - 8, x + width + 16)),
       y: Math.min(y + 24, vh - TASKBAR_HEIGHT - quill.height - 8),
       width: quill.width,
       height: quill.height,
-      z: z + 2,
-      minimized: false,
+      z: z - 2,
+      minimized: true,
       maximized: false,
     },
   ];
@@ -128,7 +127,7 @@ function App() {
     const opened = createLoginWindows(zRef.current + 1);
     zRef.current += opened.length;
     setWindows(opened);
-    setActiveWindow(opened.some((record) => record.id === "radio") ? "radio" : "projects");
+    setActiveWindow("projects");
     setStartOpen(false);
   }, []);
 
@@ -203,7 +202,7 @@ function App() {
 
   useEffect(() => {
     if (flow.phase !== "desktop") return;
-    // No link to follow: keep the login layout (the radio stays in front).
+    // No link to follow: keep My Projects in front.
     if (!window.location.hash) return;
     if (route.app === "browser") setBrowserProject(siteForId(route.site) ?? null);
     openApp(route.app);
@@ -446,7 +445,7 @@ function App() {
                     openApp={openApp}
                     onOpenSite={openSite}
                     browserProject={browserProject}
-                    active={activeWindow === record.id && !record.minimized && !introOpen}
+                    active={desktopVisible && activeWindow === record.id && !record.minimized && !introOpen}
                     onWatchIntro={() => {
                       introTriggerRef.current = document.activeElement as HTMLElement;
                       setIntroOpen(true);
