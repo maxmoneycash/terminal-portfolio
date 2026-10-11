@@ -1,5 +1,5 @@
 /**
- * The MaxXP intro film: the quill writes the name, the KK6OQA radio sends the
+ * The MaxXP intro film: the quill writes over banknotes, the KK6OQA radio sends the
  * callsign in Morse, then the work plays out best first and ever faster until
  * every window minimizes on the live desktop. It hands off directly to the
  * interactive desktop.
@@ -12,17 +12,19 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { cn } from "../lib/cn";
 import { getSystemVolume } from "./audio";
+import { LoadingMontage } from "../intro/LoadingMontage";
+import { OPENING_SECONDS } from "../intro/BanknoteOpening";
 
 const INTRO = {
   portrait: {
     orient: "portrait",
-    src: "/videos/intro/intro-portrait-dd7917a0.mp4",
-    poster: "/videos/intro/intro-portrait-dd7917a0.jpg",
+    src: "/videos/intro/intro-portrait-9a89a40e.mp4",
+    poster: "/videos/intro/intro-portrait-9a89a40e.jpg",
   },
   landscape: {
     orient: "landscape",
-    src: "/videos/intro/intro-landscape-0c6034b9.mp4",
-    poster: "/videos/intro/intro-landscape-0c6034b9.jpg",
+    src: "/videos/intro/intro-landscape-65a27e3a.mp4",
+    poster: "/videos/intro/intro-landscape-65a27e3a.jpg",
   },
 };
 
@@ -62,7 +64,10 @@ export function IntroVideo({ onFinish, fading, requested = false }: {
   requested?: boolean;
 }) {
   const [source] = useState(pickSource);
+  const [manualPreference] = useState(() => !requested && prefersManualPlay());
+  const [openingStart, setOpeningStart] = useState(() => performance.now());
   const [started, setStarted] = useState(false);
+  const [openingDone, setOpeningDone] = useState(false);
   const [muted, setMuted] = useState(true);
   const [skipVisible, setSkipVisible] = useState(false);
   const [hintVisible, setHintVisible] = useState(true);
@@ -85,7 +90,7 @@ export function IntroVideo({ onFinish, fading, requested = false }: {
     const video = videoRef.current;
     if (!video) return;
     let cancelled = false;
-    if (!requested && prefersManualPlay()) {
+    if (manualPreference) {
       setPlayback("manual");
       return;
     }
@@ -106,7 +111,7 @@ export function IntroVideo({ onFinish, fading, requested = false }: {
     video.muted = false;
     void video.play().then(() => { if (!cancelled) setMuted(false); }, () => { if (!cancelled) playMuted(); });
     return () => { cancelled = true; };
-  }, [requested, finish]);
+  }, [manualPreference, finish]);
 
   const unmute = useCallback(() => {
     const video = videoRef.current;
@@ -120,10 +125,14 @@ export function IntroVideo({ onFinish, fading, requested = false }: {
   const play = useCallback(() => {
     const video = videoRef.current;
     if (!video) return;
+    if (!started) {
+      setOpeningStart(performance.now());
+      video.currentTime = 0;
+    }
     if (video.error) video.load();
     setPlayback("loading");
     unmute();
-  }, [unmute]);
+  }, [unmute, started]);
 
   useEffect(() => {
     const id = window.setTimeout(() => setSkipVisible(true), SKIP_REVEAL_MS);
@@ -157,7 +166,7 @@ export function IntroVideo({ onFinish, fading, requested = false }: {
 
   return (
     <div
-      className={cn("intro", `is-${source.orient}`, fading && `is-fading-${fading}`)}
+      className={cn("intro", `is-${source.orient}`, !openingDone && "is-opening", fading && `is-fading-${fading}`)}
       role="region"
       aria-label="MaxXP intro"
       onClick={() => {
@@ -174,11 +183,26 @@ export function IntroVideo({ onFinish, fading, requested = false }: {
         playsInline
         preload="auto"
         disablePictureInPicture
-        onPlaying={() => { setStarted(true); setPlayback("playing"); }}
+        onPlaying={() => {
+          // Metadata can arrive long before playable frames. Join the live
+          // artwork only once playback is ready, including after a slow seek.
+          const video = videoRef.current;
+          if (video && !manualPreference && !started) {
+            const join = Math.min(OPENING_SECONDS, (performance.now() - openingStart) / 1000);
+            if (join - video.currentTime > 0.1) {
+              video.currentTime = join;
+              return;
+            }
+          }
+          setStarted(true);
+          setPlayback("playing");
+        }}
+        onTimeUpdate={() => { if ((videoRef.current?.currentTime ?? 0) >= OPENING_SECONDS) setOpeningDone(true); }}
         onEnded={() => finish("ended")}
         onError={() => setPlayback("error")}
         aria-hidden="true"
       />
+      {!started ? <LoadingMontage startedAt={openingStart} still={manualPreference || playback === "manual" || playback === "error"} portrait={source.orient === "portrait"} /> : null}
       {playback === "manual" || playback === "error" ? (
         <div className="intro-play-prompt">
           {playback === "error" ? <p>The intro couldn’t load.</p> : null}

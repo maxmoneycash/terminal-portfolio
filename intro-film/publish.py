@@ -20,7 +20,7 @@ OUT = ROOT / "public" / "videos" / "intro"
 COMPONENT = ROOT / "src" / "xp" / "IntroVideo.tsx"
 MANIFEST = HERE / "published.json"
 TARGETS = {"landscape": (1920, 1080), "portrait": (1080, 1920)}
-# An early frame of the quill writing in Paint, before the radio scene.
+# An early frame of the quill writing over banknote engravings.
 POSTER_AT = 0.8
 
 

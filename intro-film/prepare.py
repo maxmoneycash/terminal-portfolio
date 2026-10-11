@@ -129,6 +129,7 @@ def main() -> None:
     for name in ("maxwell_mohammadi_signature_full_canvas.svg", "quill-pen-transparent.png"):
         shutil.copy2(ROOT / "public" / name, PUBLIC / name)
     shutil.copytree(ROOT / "public" / "signature", PUBLIC / "signature", dirs_exist_ok=True)
+    shutil.copytree(ROOT / "public" / "intro-art", PUBLIC / "intro-art", dirs_exist_ok=True)
     clips = json.loads((HERE / "clips.json").read_text())["clips"]
     only = set(sys.argv[1:])
     jobs = {k: v for k, v in clips.items() if not only or k in only}

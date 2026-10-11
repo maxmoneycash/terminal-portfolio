@@ -39,7 +39,7 @@ const BOOT_PRELOAD_IMAGES = [
 ];
 
 // Boot timeline (ms), measured from boot-flow start.
-const PREBOOT_MS = 400; // black pre-boot beat before the intro
+const PREBOOT_MS = 0; // Mount the artwork immediately; no black pre-boot pause.
 // Login happens in the film. Reveal the already-warmed desktop immediately.
 const INTRO_HANDOFF_MS = 220;
 
@@ -366,7 +366,7 @@ export function BootScreens({ flow }: { flow: BootFlow }): JSX.Element | null {
 
   if (view.stage === "desktop" && !view.introFading && !logoffDialog) return null;
 
-  const showIntro = view.stage === "boot" || view.introFading !== null;
+  const showIntro = view.stage === "preboot" || view.stage === "boot" || view.introFading !== null;
   const showLogin =
     view.stage === "login" ||
     view.stage === "login-fade" ||
@@ -383,10 +383,6 @@ export function BootScreens({ flow }: { flow: BootFlow }): JSX.Element | null {
 
   return (
     <>
-      {view.stage === "preboot" && (
-        <div className="pre-boot-overlay-style" id="pre-boot-overlay" />
-      )}
-
       {showLogin && (
         <div id="login-screen">
           <div

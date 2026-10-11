@@ -1,6 +1,6 @@
 # MaxXP intro film
 
-A 71-second XP desktop film: Max's recorded signature, **KK6OQA** in Morse,
+A 71-second XP desktop film: a banknote montage under Max's recorded signature, **KK6OQA** in Morse,
 a 19-second Lilyshark feature, commits.sh, Orbital Works, six project chapters, larger pairs of
 additional work, then a short window cascade and “your turn.” The live radio
 app keeps its longer greeting; the film's cue is independent in `score.json`.
@@ -35,7 +35,13 @@ Screenshots, `~/Downloads`, or `~/Movies/Orbital Works`. Review each changed
 crop across its entire time span: windows sometimes move in the source.
 Never publish other desktop windows or unreviewed source footage.
 
-The opening uses `src/lib/calligraphy.ts`, shared with the site's quill.
+The opening uses `src/intro/BanknoteOpening.tsx` and `src/lib/calligraphy.ts`,
+shared with the immediate loading montage and the site's quill. Eight supplied
+banknote engravings change every two beats under the recorded ink; portrait
+stacks the two words. Source credits live in `public/intro-art/SOURCES.md`.
+The loader starts before the MP4 is ready and playback joins at its elapsed
+opening time, capped at the radio cut, so the name is written only once.
+Reduced motion shows the finished signature with a Play intro button.
 `scripts/signature/from_video.py` extracts ink arrival and pen movement from
 the supplied signature recording, removes the notebook background, shortens
 pauses, and retimes the writing to 5.6 seconds. It writes the content-hashed

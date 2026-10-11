@@ -46,6 +46,8 @@ function fingerprint(options = picture) {
     path.join(here, "remotion.config.ts"),
   );
   walk(path.join(here, "../public/signature"));
+  walk(path.join(here, "../public/intro-art"));
+  walk(path.join(here, "../src/intro"));
   for (const file of files.sort()) hash.update(file).update(fs.readFileSync(file));
   for (const name of fs.readdirSync(path.join(publicDir, "clips")).sort()) {
     hash.update(name).update(String(fs.statSync(path.join(publicDir, "clips", name)).size));

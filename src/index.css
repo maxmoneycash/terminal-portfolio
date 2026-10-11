@@ -4940,7 +4940,8 @@ button.login-footer-left:focus-visible {
     border-bottom: 0;
   }
   .projects-status button { min-height: 34px; padding-inline: 6px; }
-  .filmstrip-media { object-fit: cover; object-position: var(--focus); }
+  /* Preserve the whole demo on phones, including the 3D model’s edges. */
+  .filmstrip-media { object-fit: contain; }
   .filmstrip-caption {
     grid-template-columns: minmax(0, 1fr);
     grid-template-areas: "title" "summary" "actions";

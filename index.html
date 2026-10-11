@@ -8,6 +8,15 @@
       content="Max Mohammadi — product engineer. Onchain products, developer tools, and trading infrastructure."
     />
     <link rel="icon" href="/xp/gui/boot/favicon.png" />
+    <link rel="preload" as="image" href="/intro-art/gold.webp" fetchpriority="high" />
+    <link rel="preload" as="image" href="/signature/ink-90980b8b126d.png" />
+    <style>
+      html, body { background: #e9e1ca; }
+      #root:empty::before {
+        content: ""; position: fixed; inset: 0;
+        background: radial-gradient(ellipse, rgb(246 239 218 / .9), rgb(234 222 191 / .28)), url('/intro-art/gold.webp') center / cover;
+      }
+    </style>
     <link
       rel="preload"
       as="image"

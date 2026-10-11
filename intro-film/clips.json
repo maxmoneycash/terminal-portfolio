@@ -459,7 +459,7 @@
     "roman-apart": {
       "title": "Roman - taken apart",
       "recording": "roman-film.mp4",
-      "start": 34.0,
+      "start": 36.7,
       "duration": 2.6,
       "crop": [
         0,
@@ -485,7 +485,7 @@
     "tdeck-hero": {
       "title": "Lilyshark",
       "recording": "lilyshark-launch-v2.mp4",
-      "start": 6,
+      "start": 10.5,
       "duration": 4.0,
       "width": 1920,
       "crop": [

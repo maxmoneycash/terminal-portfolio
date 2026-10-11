@@ -8,18 +8,6 @@
  */
 
 /* ------------------------------------------------------------------ */
-/* Shared overlays                                                     */
-/* ------------------------------------------------------------------ */
-
-#pre-boot-overlay,
-.pre-boot-overlay-style {
-  position: fixed;
-  inset: 0;
-  z-index: 9000;
-  background: #000;
-}
-
-/* ------------------------------------------------------------------ */
 /* Intro: finishes on Bliss and reveals the live desktop               */
 /* ------------------------------------------------------------------ */
 
@@ -63,20 +51,35 @@
   background: #000;
 }
 
+.intro-loading-art {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: #e9e1ca;
+  pointer-events: none;
+}
+/* The quill's positioned anchor has no intrinsic width. */
+.intro-loading-art img { max-width: none; }
+
+.intro.is-opening,
+.intro.is-opening .intro-video { background: #e9e1ca; }
+
 .intro-play-prompt {
   position: absolute;
   inset: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-end;
+  padding-bottom: calc((100cqh - var(--film-h)) / 2 + var(--film-h) * .23);
   gap: 12px;
-  background: rgb(0 0 0 / 0.28);
-  color: #fff;
+  background: transparent;
+  color: #0d1a3d;
 }
 
 .intro-play-prompt p { margin: 0; font-size: 13px; }
 .intro-play-prompt .xp-control { min-height: 44px; padding: 0 24px; font-size: 14px; }
+.intro:not(.is-opening) .intro-play-prompt { color: #fff; background: rgb(0 0 0 / .28); }
 
 /* The film's own frame inside the (letterboxed) viewport, so the controls
    sit on the film itself: Skip on its taskbar, the hint just inside the top. */
