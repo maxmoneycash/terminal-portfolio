@@ -138,35 +138,43 @@
   box-shadow: none;
 }
 
-/* "Click for sound": small, over the sky at the top of the film, gone in a few seconds. */
-.intro-sound {
+.intro-skip.is-visible {
+  opacity: 1;
+}
+
+.intro-controls {
   position: absolute;
-  top: calc((100cqh - var(--film-h)) / 2 + 10px);
-  left: 50%;
-  display: inline-flex;
+  top: calc((100cqh - var(--film-h)) / 2 + 8px);
+  right: calc((100cqw - var(--film-w)) / 2 + 8px);
+  display: flex;
   align-items: center;
-  gap: 5px;
-  margin: 0;
-  padding: 3px 8px;
-  border-radius: 9px;
-  background: rgb(0 0 0 / 0.42);
+  gap: 2px;
+  padding: 2px 8px 2px 2px;
+  border: 1px solid rgb(255 255 255 / .25);
+  border-radius: 4px;
+  background: rgb(8 18 38 / .8);
   color: #fff;
   font: 11px/1.2 Tahoma, Verdana, sans-serif;
-  white-space: nowrap;
-  transform: translateX(-50%);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 500ms ease;
+  cursor: default;
 }
 
-.intro-sound img {
-  display: block;
-  image-rendering: pixelated;
+.intro-controls button {
+  min-height: 32px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 2px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
 }
 
-.intro-skip.is-visible,
-.intro-sound.is-visible {
-  opacity: 1;
+.intro-controls button:hover { background: rgb(255 255 255 / .16); }
+.intro-controls button:focus-visible { outline: 2px solid #fff; outline-offset: -3px; }
+.intro-time { padding-left: 6px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+@media (pointer: coarse) {
+  .intro-controls button { min-height: 44px; }
 }
 
 /* ------------------------------------------------------------------ */

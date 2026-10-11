@@ -181,7 +181,7 @@ export function useBootFlow(callbacks: {
   }, [initial.restored, notifyLoginComplete]);
 
   // Full boot sequence. Re-runs whenever `bootRun` increments (login-screen restart).
-  // The intro decides when boot ends (it finished, was skipped, or stalled).
+  // Only finishing or explicitly skipping the intro ends boot.
   useEffect(() => {
     if (initial.restored && bootRun === 0) return;
     BOOT_PRELOAD_IMAGES.forEach((src) => {
