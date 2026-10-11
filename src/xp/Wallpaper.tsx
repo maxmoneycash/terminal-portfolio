@@ -1,20 +1,12 @@
 /**
- * Desktop wallpaper: an animated Bliss loop over a static still.
- *
- * The still paints first (and doubles as the poster), so the desktop never
- * flashes empty while the loop buffers. Orientation picks the matching source
- * — the loop is natively portrait, with a 16:9 crop for landscape.
- *
- * Motion policy: "auto" follows prefers-reduced-motion and Save-Data, which is
- * the accessible default. Because that hides the loop entirely for anyone with
- * Reduce Motion enabled system-wide, the desktop context menu can pin it "on"
- * or "off"; that explicit choice wins and persists. Having a visible control
- * also satisfies the pause/stop requirement for long auto-playing motion.
+ * One animated background, kept mounted so pausing retains the current frame.
+ * Posters come from the loop itself; the stock XP photograph is not used.
+ * Auto follows reduced-motion and Save-Data; an explicit on/off choice wins.
  */
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
-const STILL_LANDSCAPE = "/xp/gui/bgs/bliss-desktop.webp";
-const STILL_PORTRAIT = "/xp/gui/bgs/bliss-mobile.webp";
+const POSTER_LANDSCAPE = "/xp/video/bliss-loop-landscape.webp";
+const POSTER_PORTRAIT = "/xp/video/bliss-loop-portrait.webp";
 const LOOP_LANDSCAPE = "/xp/video/bliss-loop-landscape.mp4";
 const LOOP_PORTRAIT = "/xp/video/bliss-loop-portrait.mp4";
 
@@ -105,25 +97,18 @@ export function shouldAnimateWallpaper(pref: WallpaperMotion) {
 
 export function Wallpaper({ active = true }: { active?: boolean }) {
   const [visible, setVisible] = useState(!document.hidden);
-  const [ready, setReady] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
   useEffect(() => {
     const sync = () => setVisible(!document.hidden);
     document.addEventListener("visibilitychange", sync);
     return () => document.removeEventListener("visibilitychange", sync);
   }, []);
-  useEffect(() => {
-    setReady(false);
-    if (!active || !visible) return;
-    const timer = window.setTimeout(() => setReady(true), 2000);
-    return () => window.clearTimeout(timer);
-  }, [active, visible]);
   const [portrait, setPortrait] = useState(
     () => typeof window !== "undefined" && window.matchMedia("(orientation: portrait)").matches,
   );
   const [pref, setPref] = useState<WallpaperMotion>(getWallpaperMotion);
   const [paper, setPaper] = useState<WallpaperPaper>(getWallpaperPaper);
   const [animate, setAnimate] = useState(() => shouldAnimateWallpaper(getWallpaperMotion()));
-  const [loopReady, setLoopReady] = useState(false);
 
   useEffect(() => subscribeWallpaperMotion(setPref), []);
   useEffect(() => subscribeWallpaperPaper(setPaper), []);
@@ -144,12 +129,17 @@ export function Wallpaper({ active = true }: { active?: boolean }) {
     };
   }, [pref]);
 
-  useEffect(() => {
-    if (!animate || !ready || !active || !visible) setLoopReady(false);
-  }, [animate, ready, active, visible]);
-
-  const still = portrait ? STILL_PORTRAIT : STILL_LANDSCAPE;
+  const poster = portrait ? POSTER_PORTRAIT : POSTER_LANDSCAPE;
   const loop = portrait ? LOOP_PORTRAIT : LOOP_LANDSCAPE;
+  const shouldPlay = animate && active && visible && paper !== "none";
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    if (shouldPlay) void video.play().catch(() => {});
+    else video.pause();
+    return () => video.pause();
+  }, [shouldPlay, loop, paper]);
 
   if (paper === "none") {
     // XP's "(None)" wallpaper: the default Luna desktop teal.
@@ -162,25 +152,20 @@ export function Wallpaper({ active = true }: { active?: boolean }) {
 
   return (
     <div className="xp-wallpaper" aria-hidden="true">
-      <img className="xp-wallpaper-still" src={still} alt="" decoding="async" />
-      {animate && ready && active && visible ? (
-        <video
-          key={loop}
-          className={`xp-wallpaper-loop${loopReady ? " is-ready" : ""}`}
-          src={loop}
-          poster={still}
-          autoPlay
-          muted
-          loop
-          playsInline
-          preload="auto"
-          onCanPlay={(event) => {
-            // Some engines hold autoplay until the element is interactive.
-            void event.currentTarget.play().catch(() => {});
-          }}
-          onPlaying={() => setLoopReady(true)}
-        />
-      ) : null}
+      <video
+        ref={videoRef}
+        key={loop}
+        className="xp-wallpaper-loop"
+        src={loop}
+        poster={poster}
+        muted
+        loop
+        playsInline
+        preload={shouldPlay ? "auto" : "metadata"}
+        onCanPlay={(event) => {
+          if (shouldPlay) void event.currentTarget.play().catch(() => {});
+        }}
+      />
       <div className="xp-wallpaper-grade" />
     </div>
   );

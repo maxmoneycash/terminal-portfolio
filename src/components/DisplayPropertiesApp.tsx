@@ -1,6 +1,6 @@
 /**
  * Display Properties — the XP dialog, wired to real shell state: wallpaper
- * (Bliss animated / still / none), the Mystify screensaver with wait time and
+ * (Bliss animated / paused / none), the Mystify screensaver with wait time and
  * live preview, and CRT effects under Appearance. Changes apply immediately;
  * OK closes the window.
  */
@@ -28,16 +28,16 @@ import {
 
 type Tab = "desktop" | "screensaver" | "appearance";
 
-type PaperChoice = "bliss-animated" | "bliss-still" | "none";
+type PaperChoice = "bliss-animated" | "bliss-paused" | "none";
 
 function currentPaperChoice(paper: WallpaperPaper, motion: WallpaperMotion): PaperChoice {
   if (paper === "none") return "none";
-  return motion === "off" ? "bliss-still" : "bliss-animated";
+  return motion === "off" ? "bliss-paused" : "bliss-animated";
 }
 
 const PAPER_OPTIONS: { id: PaperChoice; label: string }[] = [
   { id: "bliss-animated", label: "Bliss (animated)" },
-  { id: "bliss-still", label: "Bliss" },
+  { id: "bliss-paused", label: "Bliss (paused)" },
   { id: "none", label: "(None)" },
 ];
 
@@ -99,7 +99,7 @@ export function DisplayPropertiesApp() {
             ) : choice === "none" ? (
               <div className="display-monitor-solid" />
             ) : (
-              <img src="/xp/gui/bgs/bliss-desktop.webp" alt="" />
+              <img src="/xp/video/bliss-loop-landscape.webp" alt="" />
             )}
           </div>
           <div className="display-monitor-stand" />

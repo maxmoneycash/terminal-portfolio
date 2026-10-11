@@ -410,7 +410,7 @@ function App() {
         aria-hidden={!desktopVisible || introOpen}
         inert={!desktopVisible || introOpen}
       >
-        <Wallpaper active={desktopVisible && !introOpen && !windows.some(record => !record.minimized)} />
+        <Wallpaper active={desktopVisible && !introOpen} />
 
         <DesktopIcons
           openApp={openApp}

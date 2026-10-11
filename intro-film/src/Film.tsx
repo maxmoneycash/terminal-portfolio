@@ -34,7 +34,7 @@ export function Film() {
   const flash = dropFlash(frame);
   return (
     <AbsoluteFill style={{ background: "#3a6ea5" }}>
-      {web && <AbsoluteFill style={{ background: `url(/xp/gui/bgs/bliss-${height > width ? "mobile" : "desktop"}.webp) center / cover` }}>
+      {web && <AbsoluteFill style={{ background: `url(/xp/video/bliss-loop-${height > width ? "portrait" : "landscape"}.webp) center / cover` }}>
         <Loop durationInFrames={web.wallpaperFrames}>
           <OffthreadVideo src={`/xp/video/bliss-loop-${height > width ? "portrait" : "landscape"}.mp4`} muted
             pauseWhenBuffering={false} style={{ width: "100%", height: "100%", objectFit: "cover" }} />

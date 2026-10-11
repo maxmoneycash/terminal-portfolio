@@ -32,8 +32,8 @@ const BOOT_PRELOAD_IMAGES = [
   `${xp}/gui/taskbar/start-button.webp`,
   `${xp}/gui/taskbar/taskbar-bg.webp`,
   `${xp}/gui/taskbar/system-tray-bg.webp`,
-  `${xp}/gui/bgs/bliss-desktop.webp`,
-  `${xp}/gui/bgs/bliss-mobile.webp`,
+  `${xp}/video/bliss-loop-landscape.webp`,
+  `${xp}/video/bliss-loop-portrait.webp`,
   "/projects/lilyshark.png",
   "/projects/lilyshark-focus.jpg",
 ];
