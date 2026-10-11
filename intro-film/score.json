@@ -35,5 +35,14 @@
   "calligraphy": {
     "start": 4,
     "frames": 94
-  }
+  },
+  "dialogue": [
+    {
+      "clip": "lilyshark-max",
+      "start": 266,
+      "cameraStart": 280,
+      "return": 448,
+      "gainDb": 2
+    }
+  ]
 }

@@ -40,6 +40,7 @@ export function ProjectFilmstrip({ projects, active, selectedId, onOpenSite }: {
   const [expanded, setExpanded] = useState(false);
   const [properties, setProperties] = useState(false);
   const [filmsOpen, setFilmsOpen] = useState(false);
+  const [photo, setPhoto] = useState<{ id: string; index: number; manual: boolean } | null>(null);
   const [hidden, setHidden] = useState(() => typeof document !== "undefined" && document.hidden);
   const videoRef = useRef<HTMLVideoElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
@@ -48,9 +49,11 @@ export function ProjectFilmstrip({ projects, active, selectedId, onOpenSite }: {
   const okRef = useRef<HTMLButtonElement>(null);
 
   const slide = slides[index] ?? slides[0];
+  const photoIndex = photo?.id === slide.id ? photo.index : 0;
+  const screenshot = slide.project.screenshots?.[photoIndex];
   const [start, end] = slide.project.loop ?? [0, slide.video?.durationSeconds ?? 8];
   // Auto-advance only while the visitor is watching the strip itself.
-  const running = active && !hidden && !still && !expanded && !properties && !filmsOpen;
+  const running = active && !hidden && !still && !expanded && !properties && !filmsOpen && !(photo?.id === slide.id && photo.manual);
 
   const select = useCallback((next: number, remember = false) => {
     const wrapped = (next + slides.length) % slides.length;
@@ -59,6 +62,7 @@ export function ProjectFilmstrip({ projects, active, selectedId, onOpenSite }: {
     setExpanded(false);
     setProperties(false);
     setFilmsOpen(false);
+    setPhoto(null);
     if (remember) navigate({ app: "projects", project: slides[wrapped].id }, true);
   }, [slides]);
   const advance = useCallback(() => select(index + 1), [select, index]);
@@ -200,7 +204,8 @@ export function ProjectFilmstrip({ projects, active, selectedId, onOpenSite }: {
         ) : (
           <picture key={slide.id}>
             {project.focusPoster ? <source media="(max-width: 620px)" srcSet={project.focusPoster} /> : null}
-            <img className={running ? "filmstrip-media is-drifting" : "filmstrip-media"} src={slide.poster} alt={`${project.name} screenshot`} />
+            <img key={screenshot?.src ?? slide.poster} className={running && !screenshot ? "filmstrip-media is-drifting" : "filmstrip-media"}
+              src={screenshot?.src ?? slide.poster} alt={`${project.name} — ${screenshot?.label ?? "screenshot"}`} />
           </picture>
         )}
         {!expanded && (video || project.link) ? (
@@ -219,11 +224,14 @@ export function ProjectFilmstrip({ projects, active, selectedId, onOpenSite }: {
         {!still && !expanded ? (
           <span className="filmstrip-progress" aria-hidden="true">
             <span
-              key={`${slide.id}-${blocked || !video}`}
+              key={`${slide.id}-${photoIndex}-${blocked || !video}`}
               ref={progressRef}
               className={!video || blocked ? "is-timed" : undefined}
               style={{ animationDuration: `${STILL_MS}ms`, animationPlayState: running ? "running" : "paused" }}
-              onAnimationEnd={advance}
+              onAnimationEnd={() => {
+                if (photoIndex + 1 < (project.screenshots?.length ?? 0)) setPhoto({ id: slide.id, index: photoIndex + 1, manual: false });
+                else advance();
+              }}
             />
           </span>
         ) : null}
@@ -261,6 +269,12 @@ export function ProjectFilmstrip({ projects, active, selectedId, onOpenSite }: {
           </button>
         </div>
         <p>{project.summary}</p>
+        {project.screenshots?.length ? <div className="filmstrip-shots" aria-label={`${project.name} screenshots`}>
+          {project.screenshots.map((shot, i) => <button key={shot.src} type="button" className="xp-control"
+            aria-pressed={photoIndex === i} onClick={() => setPhoto({ id: slide.id, index: i, manual: true })}>
+            <img src={shot.src} alt="" /><span>{shot.label}</span>
+          </button>)}
+        </div> : null}
         {hasApp || project.code || project.destinations?.length ? (
           <div className="filmstrip-actions">
             {hasApp ? (

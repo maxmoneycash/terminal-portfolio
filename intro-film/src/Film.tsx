@@ -1,7 +1,7 @@
-import { AbsoluteFill, Audio, interpolate, Loop, OffthreadVideo, Sequence, staticFile, useCurrentFrame, useVideoConfig } from "remotion";
+import { AbsoluteFill, Audio, Loop, OffthreadVideo, Sequence, staticFile, useCurrentFrame, useVideoConfig } from "remotion";
 import { BEAT, dropFlash } from "./beat";
 import { SceneStart } from "./xp";
-import { AptosMegaeth, Commits, Gadgets, Lilyshark, LILYSHARK_VOICE_FRAMES, Mainnet, Nipah, Orbital, Sol2Move, Yank } from "./scenes/Chapters";
+import { AptosMegaeth, Commits, Gadgets, Lilyshark, Mainnet, Nipah, Orbital, Sol2Move, Yank } from "./scenes/Chapters";
 import { Overload } from "./scenes/Overload";
 import { Radio } from "./scenes/Radio";
 import { Sign } from "./scenes/Sign";
@@ -32,9 +32,6 @@ export function Film() {
   const { width, height } = useVideoConfig();
   const web = useWebPlayback();
   const flash = dropFlash(frame);
-  const voiceStart = SCENE_STARTS.lilyshark;
-  const musicVolume = interpolate(frame, [voiceStart - 6, voiceStart + 4, voiceStart + LILYSHARK_VOICE_FRAMES, voiceStart + LILYSHARK_VOICE_FRAMES + 12],
-    [0.9, 0.09, 0.09, 0.9], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
   return (
     <AbsoluteFill style={{ background: "#3a6ea5" }}>
       {web && <AbsoluteFill style={{ background: `url(/xp/gui/bgs/bliss-${height > width ? "mobile" : "desktop"}.webp) center / cover` }}>
@@ -53,7 +50,8 @@ export function Film() {
         ))}
       </AbsoluteFill>
       {flash > 0.01 ? <AbsoluteFill style={{ background: "#fff", opacity: 0.55 * flash, pointerEvents: "none" }} /> : null}
-      <Audio src={web ? web.soundtrack : staticFile("music/soundtrack.wav")} volume={musicVolume} pauseWhenBuffering />
+      {/* Music and dialogue are mixed together on the beat grid in music.py. */}
+      <Audio src={web ? web.soundtrack : staticFile("music/soundtrack.wav")} volume={0.9} pauseWhenBuffering />
     </AbsoluteFill>
   );
 }

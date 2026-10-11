@@ -252,6 +252,39 @@ def limit(audio: np.ndarray, ceiling_db: float = -1.0) -> np.ndarray:
     return np.clip(audio * np.minimum(held, smooth), -ceiling, ceiling)
 
 
+def dialogue() -> tuple[np.ndarray, np.ndarray]:
+    """Natural-speed phrases and a beat-aligned arrangement envelope.
+
+    One mastered stream keeps voice, music and picture locked together in the
+    browser. Leave the drums moving; make room in the synths instead of fading
+    the whole song to near-silence whenever Max speaks.
+    """
+    voice = np.zeros((2, LENGTH))
+    envelope = np.zeros(LENGTH)
+    for cue in SCORE.get("dialogue", []):
+        path = OUT.parent.parent / "clips" / f"{cue['clip']}.mp4"
+        raw = subprocess.check_output([
+            "ffmpeg", "-v", "error", "-i", str(path), "-vn", "-ar", str(SR),
+            "-ac", "2", "-f", "f32le", "-",
+        ])
+        phrase = np.frombuffer(raw, dtype=np.float32).reshape(-1, 2).T.copy()
+        # Millisecond edges remove edit clicks without trimming words or breaths.
+        edge = min(int(SR * .008), phrase.shape[1] // 2)
+        phrase[:, :edge] *= np.linspace(0, 1, edge)
+        phrase[:, -edge:] *= np.linspace(1, 0, edge)
+        start = round(cue["start"] * SR / 30)
+        end = start + phrase.shape[1]
+        lift = round(cue["return"] * SR / 30)
+        if not 0 <= start < end < lift <= LENGTH:
+            raise ValueError(f"Dialogue {cue['clip']} must finish before its musical return")
+        voice[:, start:end] += phrase * db(cue.get("gainDb", 0))
+        attack = max(0, start - BEAT)
+        envelope[attack:start] = (1 - np.cos(np.linspace(0, np.pi, start - attack))) / 2
+        envelope[start:end] = 1
+        envelope[end:lift] = (1 + np.cos(np.linspace(0, np.pi, lift - end))) / 2
+    return voice, envelope
+
+
 def main() -> None:
     SG, RA, D1, D2, D3 = (bar_of(n) for n in ("sign", "radio", "drop1", "drop2", "drop3"))
     END = TOTAL_BARS
@@ -342,6 +375,14 @@ def main() -> None:
         start, tone = cw(cue)
         fx[:, start:start + tone.shape[1]] += tone
 
+    voice, speaking = dialogue()
+    # Keep the tempo and percussion continuous beneath the demonstration.
+    # The lead and bass recede more, then return on the spectrum shot's downbeat.
+    drums *= db(-10 * speaking)
+    low *= db(-12 * speaking)
+    music *= db(-20 * speaking)
+    fx *= db(-14 * speaking)
+
     low = static_filter(low, 30, "highpass")
     # Synths up and sub down a little: most visitors hear this on phone speakers.
     mix = drums * db(-1) + low * db(-4.5) + music * db(0) + fx * db(-3)
@@ -352,6 +393,7 @@ def main() -> None:
     # Loudness: aim near -14 LUFS-ish (RMS of the drops), then a -1 dBFS ceiling.
     drops = np.concatenate([mix[:, int(a * BAR):int(b * BAR)] for a, b in ((D1, D2), (D2, D3), (D3, END - 1))], axis=1)
     mix *= db(-13.0) / (np.sqrt((drops ** 2).mean()) + 1e-9)
+    mix += voice
     mix = limit(mix, -1.0)
     mix = mix[:, : TOTAL_BARS * BAR + int(1.2 * SR)]
 

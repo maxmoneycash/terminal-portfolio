@@ -21,6 +21,7 @@ export type Project = {
   category?: string;
   featured?: boolean;
   poster?: string;
+  screenshots?: Array<{ src: string; label: string }>;
   contribution?: string;
   details?: Array<{ label: string; text: string }>;
   /** Filmstrip loop: the stretch of the demo recording that plays, in seconds. */
@@ -209,10 +210,19 @@ export const portfolio = {
       link: txComposer?.url,
     },
     {
+      id: "whop-finance",
       name: "Whop Finance",
+      featured: true,
+      category: "Payments",
       stack: "Aptos · Whop · Aave V3 · Panora",
       summary: "A finance demo for creator payments, yield, and agent banking.",
       link: "https://whop.finance/",
+      poster: "/projects/whop-finance/globe.webp",
+      screenshots: [
+        { src: "/projects/whop-finance/globe.webp", label: "Global payments" },
+        { src: "/projects/whop-finance/payments.webp", label: "Send on Aptos" },
+        { src: "/projects/whop-finance/docs.webp", label: "Developer docs" },
+      ],
     },
   ] satisfies Project[],
   videos: [

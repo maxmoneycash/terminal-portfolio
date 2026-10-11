@@ -74,12 +74,6 @@ export function Clip({ id, from = 0, fit = "contain", position = "50% 50%", styl
   );
 }
 
-/** The original, natural-speed voice continues under the following device shots. */
-export function ClipAudio({ id }: { id: ClipId }) {
-  const web = useWebPlayback();
-  return <Audio src={web ? web.clips[id][web.mobile ? "mobile" : "src"] : staticFile(`clips/${id}.mp4`)} pauseWhenBuffering />;
-}
-
 /* ------------------------------------------------------------------ */
 /* Window                                                              */
 /* ------------------------------------------------------------------ */

@@ -85,6 +85,11 @@
       "mobile": "/videos/intro-shots/tdeck-band-mobile-6f44965d.mp4",
       "poster": "/videos/intro-shots/tdeck-band-b60de2cc.jpg"
     },
+    "tdeck-airtime": {
+      "src": "/videos/intro-shots/tdeck-airtime-src-461a8cc3.mp4",
+      "mobile": "/videos/intro-shots/tdeck-airtime-mobile-87e3e328.mp4",
+      "poster": "/videos/intro-shots/tdeck-airtime-5166b238.jpg"
+    },
     "commits-sh-workspace": {
       "src": "/videos/intro-shots/commits-sh-workspace-src-7c237f18.mp4",
       "mobile": "/videos/intro-shots/commits-sh-workspace-mobile-ebf6c88a.mp4",
@@ -101,20 +106,25 @@
       "poster": "/videos/intro-shots/roman-detectors-e6271acd.jpg"
     },
     "lilyshark-max": {
-      "src": "/videos/intro-shots/lilyshark-max-src-d6699fca.mp4",
-      "mobile": "/videos/intro-shots/lilyshark-max-mobile-4c02730c.mp4",
-      "poster": "/videos/intro-shots/lilyshark-max-96ba93b0.jpg"
+      "src": "/videos/intro-shots/lilyshark-max-src-2176b7c1.mp4",
+      "mobile": "/videos/intro-shots/lilyshark-max-mobile-08c2a476.mp4",
+      "poster": "/videos/intro-shots/lilyshark-max-b4acd085.jpg"
+    },
+    "lilyshark-scan": {
+      "src": "/videos/intro-shots/lilyshark-scan-src-3faa21f4.mp4",
+      "mobile": "/videos/intro-shots/lilyshark-scan-mobile-43a16aa8.mp4",
+      "poster": "/videos/intro-shots/lilyshark-scan-c5304a89.jpg"
     }
   },
   "stills": {
     "content-rewards": "/videos/intro-shots/content-rewards-9ccd198a.jpg",
     "cash-trading-btc": "/videos/intro-shots/cash-trading-btc-78ece83b.jpg",
     "turbotokens": "/videos/intro-shots/turbotokens-e5dc649b.jpg",
-    "whop-finance": "/videos/intro-shots/whop-finance-3f7c1593.jpg",
+    "whop-finance": "/videos/intro-shots/whop-finance-dce808df.jpg",
     "gadgets-catalog": "/videos/intro-shots/gadgets-catalog-5229dd8e.jpg",
     "gadgets-huskylens": "/videos/intro-shots/gadgets-huskylens-97c546b4.jpg",
     "roman-image": "/videos/intro-shots/roman-image-2576d4c5.jpg"
   },
-  "soundtrack": "/videos/intro-shots/score-1495dbb8.m4a",
+  "soundtrack": "/videos/intro-shots/score-2c859158.m4a",
   "wallpaperFrames": 415
 }

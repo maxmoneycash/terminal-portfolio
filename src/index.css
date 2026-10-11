@@ -4733,6 +4733,10 @@ button.login-footer-left:focus-visible {
   transform-origin: var(--focus);
   animation: filmstrip-in 200ms var(--ease-out-strong), filmstrip-drift 7s linear forwards;
 }
+.filmstrip-shots { display: flex; gap: 6px; flex-wrap: wrap; margin: 8px 0; }
+.filmstrip-shots .xp-control { display: flex; gap: 6px; align-items: center; }
+.filmstrip-shots img { width: 44px; height: 28px; object-fit: contain; }
+.filmstrip-shots [aria-pressed="true"] { outline: 2px solid #316ac5; outline-offset: -2px; }
 .filmstrip-stage-action {
   position: absolute;
   inset: 0;

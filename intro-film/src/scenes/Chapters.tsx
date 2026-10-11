@@ -7,13 +7,13 @@
 import { Sequence, useCurrentFrame } from "remotion";
 import { mediaLayout, storyLayout } from "../mediaLayout";
 import { BAR, BEAT } from "../beat";
-import { AppWindow, asset, Clip, ClipAudio, clipInfo, clipRatio, Desktop, Montage, Still, stillRatio, useOrientation, type Enter } from "../xp";
+import { AppWindow, asset, Clip, clipRatio, Desktop, Montage, Still, stillRatio, useOrientation, type Enter } from "../xp";
+import score from "../../score.json";
 import type clipManifest from "../../clips.json";
 import type stillManifest from "../../stills.json";
 
 type ClipId = keyof typeof clipManifest.clips;
 type StillId = keyof typeof stillManifest.stills;
-export const LILYSHARK_VOICE_FRAMES = Math.ceil(clipInfo("lilyshark-max").duration * 30);
 
 /** Window chrome heights: title bar + frame, and IE's address bar. */
 const TITLE = 33;
@@ -102,21 +102,24 @@ export function Lilyshark() {
   const length = 9 * BAR;
   const box = storyLayout(clipRatio("tdeck-hero"), W, H);
   const shots = [
-    { id: "lilyshark-max" as const, at: 0 },
-    { id: "tdeck-hero" as const, at: 3 * BAR },
-    { id: "tdeck-band" as const, at: 5 * BAR },
-    { id: "tdeck-bytes" as const, at: 7 * BAR },
+    { id: "tdeck-hero" as const, at: 0 },
+    // Voice enters one beat before this picture cut; preserve lip sync.
+    { id: "lilyshark-max" as const, at: BAR, from: (score.dialogue[0].cameraStart - score.dialogue[0].start) / 30 },
+    { id: "lilyshark-scan" as const, at: 3 * BAR },
+    { id: "tdeck-band" as const, at: 4 * BAR },
+    { id: "tdeck-bytes" as const, at: 6 * BAR },
+    { id: "tdeck-airtime" as const, at: 8 * BAR },
   ];
   const caption = frame < 3 * BAR ? "I built Lilyshark to see what my radio was hearing."
-    : frame < 5 * BAR ? "A handheld packet analyzer for mesh radio."
-    : frame < 7 * BAR ? "See activity across the radio band."
-    : "Inspect the packets behind the signals.";
+    : frame < 4 * BAR ? "Scan the radio spectrum."
+    : frame < 6 * BAR ? "See activity across the radio band."
+    : frame < 8 * BAR ? "Inspect the packets behind the signals."
+    : "Measure packet airtime.";
   return <Desktop icons={false} tasks={[{ title: "Lilyshark", icon: PLAYER, active: true }]}>
     <StoryCaption text={caption} box={box} />
     <AppWindow {...box} at={0} out={length - 8} title="Lilyshark — packet analyzer" icon={PLAYER}>
       <Montage shots={shots} until={length} />
     </AppWindow>
-    <Sequence durationInFrames={LILYSHARK_VOICE_FRAMES}><ClipAudio id="lilyshark-max" /></Sequence>
   </Desktop>;
 }
 

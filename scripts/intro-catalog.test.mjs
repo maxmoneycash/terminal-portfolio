@@ -32,6 +32,22 @@ test('Roman holds full frames without looping; commits retains the whole workspa
   assert.ok(Math.abs(commits.duration / commits.speed - seconds) < .05);
 });
 
+test('the spoken demo leads the camera cut and finishes before the musical return', () => {
+  const lilyStart = chapters.slice(0, 2).reduce((sum, chapter) => sum + chapter.beats * score.framesPerBeat, 0);
+  const lilyEnd = lilyStart + chapters.find(chapter => chapter.id === 'lilyshark').beats * score.framesPerBeat;
+  for (const cue of score.dialogue) {
+    const clip = clips[cue.clip];
+    assert.equal(clip.speed ?? 1, 1);
+    assert.ok(clip.duration < 6, 'Keep the demonstration a brief complete phrase');
+    assert.ok(cue.start >= lilyStart);
+    assert.equal(cue.cameraStart - cue.start, score.framesPerBeat, 'One beat of voice before the camera cut');
+    assert.equal(cue.cameraStart % score.framesPerBeat, 0);
+    assert.equal(cue.return % (4 * score.framesPerBeat), 0);
+    assert.ok(cue.start + Math.ceil(clip.duration * 30) < cue.return);
+    assert.ok(cue.return < lilyEnd, 'Keep a musical finish with the 3D footage');
+  }
+});
+
 test('responsive shots and soundtrack are pinned, with posters available immediately', () => {
   const media = read('../src/data/intro-media.json');
   const files = read('./release-media.json').files;
