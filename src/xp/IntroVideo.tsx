@@ -154,7 +154,10 @@ export function IntroVideo({ onFinish, fading, requested = false }: {
     setSlow(false);
     setPlayback("loading");
     regionRef.current?.focus({ preventScroll: true });
-    unmute();
+    if (!started) unmute();
+    else void video.play().catch((error: DOMException) => {
+      if (!finishedRef.current && error.name !== "AbortError") setPlayback(video.error ? "error" : "paused");
+    });
   }, [unmute, started]);
 
   const togglePlayback = useCallback(() => {
