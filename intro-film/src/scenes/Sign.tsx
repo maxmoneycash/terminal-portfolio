@@ -16,7 +16,7 @@ const CLOSE = 15 * BEAT - 4;
 export function Sign() {
   const frame = useCurrentFrame();
   const { W, H, portrait } = useOrientation();
-  const win = portrait ? { x: 10, y: 250, w: W - 20, h: 400 } : { x: 54, y: 92, w: W - 108, h: 470 };
+  const win = portrait ? { x: 10, y: 208, w: W - 20, h: 494 } : { x: 54, y: 92, w: W - 108, h: 470 };
   const sigW = portrait ? win.w - 60 : win.w - 120;
   const fadeIn = progress(frame, 0, 8);
   return (

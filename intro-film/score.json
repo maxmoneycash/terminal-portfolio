@@ -7,15 +7,15 @@
     },
     {
       "name": "radio",
-      "bars": 9
+      "bars": 2
     },
     {
       "name": "drop1",
-      "bars": 8
+      "bars": 15
     },
     {
       "name": "drop2",
-      "bars": 6
+      "bars": 9
     },
     {
       "name": "drop3",
@@ -25,9 +25,9 @@
   "morse": [
     {
       "id": "radio",
-      "text": "KK6OQA HI, I'M MAX! EAST BAY NATIVE ON THE MT DIABLO HAM RADIO REPEATER",
-      "start": 246,
-      "framesPerUnit": 0.72,
+      "text": "KK6OQA",
+      "start": 236,
+      "framesPerUnit": 1,
       "pitch": 622.25,
       "gainDb": -8
     }

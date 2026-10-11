@@ -4,7 +4,8 @@
  * minimize together before the next project opens, so it is always clear
  * which recordings belong together.
  */
-import { useCurrentFrame } from "remotion";
+import { Sequence, useCurrentFrame } from "remotion";
+import { mediaLayout } from "../mediaLayout";
 import { BAR, BEAT } from "../beat";
 import { AppWindow, asset, Clip, clipRatio, Desktop, Montage, Still, stillRatio, useOrientation, type Enter } from "../xp";
 import type clipManifest from "../../clips.json";
@@ -29,9 +30,6 @@ type Pane = {
   title: string;
   /** Internet Explorer with this address. */
   url?: string;
-  /** Width; height follows the content's shape. Landscape and portrait. */
-  land: { x: number; y: number; w: number };
-  port: { x: number; y: number; w: number };
   at?: number;
   enter?: Enter;
 };
@@ -54,20 +52,18 @@ function Content({ body, until }: { body: Body; until: number }) {
 /** One project: its windows in, its name in the taskbar, then all minimize. */
 function Chapter({ name, panes, length }: { name: string; panes: Pane[]; length: number }) {
   const frame = useCurrentFrame();
-  const { portrait } = useOrientation();
+  const { W, H, portrait } = useOrientation();
+  const boxes = mediaLayout(panes.map(p => ratioOf(p.body)), W, H, panes.map(p => TITLE + (p.url ? ADDRESS : 0)));
   const out = length - 8;
   const taskX = portrait ? 150 : 190;
   return (
     <Desktop tasks={frame < out + 7 ? [{ title: name, icon: iconOf(panes[0]), active: true }] : []}>
       {panes.map((pane, i) => {
-        const box = portrait ? pane.port : pane.land;
-        const chrome = pane.url ? ADDRESS : 0;
-        const h = Math.round((box.w - 6) / ratioOf(pane.body)) + TITLE + chrome;
+        const box = boxes[i];
         return (
           <AppWindow
             key={i}
             {...box}
-            h={h}
             at={pane.at ?? 0}
             out={out + i}
             taskX={taskX}
@@ -91,28 +87,30 @@ function Chapter({ name, panes, length }: { name: string; panes: Pane[]; length:
 /* ------------------------------------------------------------------ */
 
 export function Lilyshark() {
+  const { W, H } = useOrientation();
+  const shots = [
+    { id: "tdeck-hero" as const, at: 0 },
+    { id: "tdeck-bytes" as const, at: 2 * BAR },
+    { id: "tdeck-band" as const, at: 4 * BAR },
+  ];
+  const shorts = ["lilyshark-below-noise", "lilyshark-airtime-short"] as const;
   return (
-    <Chapter
-      name="Lilyshark"
-      length={3 * BAR}
-      panes={[
-        {
-          title: "Lilyshark — LoRa mesh analyzer for the T-Deck",
-          body: { montage: [{ id: "tdeck-hero", at: 0 }, { id: "tdeck-bytes", at: BAR }, { id: "tdeck-band", at: 2 * BAR }] },
-          land: { x: 160, y: 22, w: 900 },
-          port: { x: 10, y: 34, w: 520 },
-        },
-        {
-          title: "Lilyshark - Mesh Radio Analyzer - Internet Explorer",
-          url: "https://lilyshark.com/",
-          body: { clip: "lilyshark-intro", from: 0.4 },
-          land: { x: 772, y: 318, w: 472 },
-          port: { x: 22, y: 392, w: 496 },
-          at: BAR + 2 * BEAT,
-          enter: "right",
-        },
-      ]}
-    />
+    <Desktop tasks={[{ title: "Lilyshark", icon: PLAYER, active: true }]}>
+      <Sequence durationInFrames={6 * BAR} layout="none">
+        <AppWindow {...mediaLayout([clipRatio("tdeck-hero")], W, H)[0]} at={0} out={6 * BAR - 8}
+          title="Lilyshark — Wireshark for mesh radio" icon={PLAYER}>
+          <Montage shots={shots} until={6 * BAR} />
+        </AppWindow>
+      </Sequence>
+      {shorts.map((id, i) => (
+        <Sequence key={id} from={(6 + i * 2) * BAR} durationInFrames={2 * BAR} layout="none">
+          <AppWindow {...mediaLayout([clipRatio(id)], W, H)[0]} at={0} out={2 * BAR - 8}
+            title={i ? "Lilyshark — why airtime matters" : "Lilyshark — hearing below the noise"} icon={PLAYER}>
+            <Clip id={id} />
+          </AppWindow>
+        </Sequence>
+      ))}
+    </Desktop>
   );
 }
 
@@ -126,15 +124,11 @@ export function Commits() {
           title: "commits.sh — $MAXMONEYCASH - Internet Explorer",
           url: "https://commits.sh/maxmoneycash",
           body: { clip: "commits-sh-ticker" },
-          land: { x: 70, y: 22, w: 660 },
-          port: { x: 10, y: 20, w: 520 },
         },
         {
           title: "commits.sh — menu bar",
           body: { clip: "commits-sh-menubar" },
-          land: { x: 860, y: 40, w: 340 },
-          port: { x: 252, y: 472, w: 270 },
-          at: BEAT + 6,
+          at: 5,
           enter: "top",
         },
       ]}
@@ -151,16 +145,12 @@ export function Orbital() {
         {
           title: "Orbital Works — Nancy Grace Roman Space Telescope",
           body: { montage: [{ id: "roman-earth", at: 0 }, { id: "roman-apart", at: BAR }, { id: "roman-wheel", at: 2 * BAR }] },
-          land: { x: 160, y: 22, w: 860 },
-          port: { x: 10, y: 34, w: 520 },
         },
         {
           title: "Orbital Works - Internet Explorer",
           url: "https://orbital-works.vercel.app/",
           body: { clip: "orbital-site" },
-          land: { x: 724, y: 300, w: 520 },
-          port: { x: 22, y: 398, w: 496 },
-          at: BAR,
+          at: 0,
           enter: "right",
         },
       ]}
@@ -169,20 +159,18 @@ export function Orbital() {
 }
 
 /* ------------------------------------------------------------------ */
-/* Drop 2: a project a bar                                             */
+/* Drop 2: a project every six beats                                   */
 /* ------------------------------------------------------------------ */
 
 export function AptosMegaeth() {
   return (
     <Chapter
       name="Aptos vs MegaETH"
-      length={BAR}
+      length={6 * BEAT}
       panes={[{
         title: "Aptos vs MegaETH - Internet Explorer",
         url: "https://aptos-polymarket.vercel.app/",
         body: { clip: "aptos-vs-megaeth" },
-        land: { x: 190, y: 36, w: 900 },
-        port: { x: 10, y: 250, w: 520 },
       }]}
     />
   );
@@ -192,21 +180,17 @@ export function Sol2Move() {
   return (
     <Chapter
       name="Sol2Move"
-      length={BAR}
+      length={6 * BEAT}
       panes={[
         {
           title: "Sol2Move — Solidity to Aptos Move",
           body: { clip: "sol2move-first-run" },
-          land: { x: 150, y: 40, w: 760 },
-          port: { x: 10, y: 60, w: 520 },
           enter: "left",
         },
         {
           title: "Sol2Move — generated Move",
           body: { clip: "sol2move-generated-code" },
-          land: { x: 850, y: 292, w: 380 },
-          port: { x: 160, y: 500, w: 362 },
-          at: BEAT + 4,
+          at: 5,
           enter: "right",
         },
       ]}
@@ -218,13 +202,11 @@ export function Yank() {
   return (
     <Chapter
       name="yank"
-      length={BAR}
+      length={6 * BEAT}
       panes={[{
         title: "yank — cloning getone.one - Internet Explorer",
         url: "https://yank.design/",
         body: { clip: "yank-clone" },
-        land: { x: 190, y: 40, w: 900 },
-        port: { x: 10, y: 270, w: 520 },
         enter: "right",
       }]}
     />
@@ -235,12 +217,10 @@ export function Nipah() {
   return (
     <Chapter
       name="NipahScan"
-      length={BAR}
+      length={6 * BEAT}
       panes={[{
         title: "NipahScan — Nipah virus surveillance",
         body: { clip: "nipahscan" },
-        land: { x: 190, y: 50, w: 900 },
-        port: { x: 10, y: 290, w: 520 },
       }]}
     />
   );
@@ -250,21 +230,17 @@ export function Mainnet() {
   return (
     <Chapter
       name="Aptos mainnet"
-      length={BAR}
+      length={6 * BEAT}
       panes={[
         {
           title: "Aptos mainnet — Block Machine",
           body: { clip: "aptos-block-machine" },
-          land: { x: 40, y: 40, w: 860 },
-          port: { x: 10, y: 60, w: 520 },
           enter: "left",
         },
         {
           title: "Aptos mainnet — validators",
           body: { clip: "aptos-validator-globe" },
-          land: { x: 820, y: 296, w: 420 },
-          port: { x: 90, y: 440, w: 432 },
-          at: BEAT + 4,
+          at: 5,
           enter: "bottom",
         },
       ]}
@@ -276,22 +252,18 @@ export function Gadgets() {
   return (
     <Chapter
       name="gadgets.sh"
-      length={BAR}
+      length={6 * BEAT}
       panes={[
         {
           title: "gadgets.sh - Internet Explorer",
           url: "https://gadgets.sh/",
           body: { still: "gadgets-catalog" },
-          land: { x: 160, y: 40, w: 860 },
-          port: { x: 10, y: 60, w: 520 },
           enter: "right",
         },
         {
           title: "gadgets.sh — HuskyLens 2",
           body: { still: "gadgets-huskylens" },
-          land: { x: 970, y: 210, w: 270 },
-          port: { x: 300, y: 420, w: 222 },
-          at: BEAT + 4,
+          at: 5,
           enter: "bottom",
         },
       ]}

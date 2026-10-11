@@ -8,10 +8,10 @@ import { PowerSdrScreen, type RadioState } from "../../../src/radio/PowerSdrScre
 
 const RECORDED = new Date(2026, 9, 8, 15, 14, 0);
 /** Both windows minimize on the last beat before drop 1. */
-const OUT = 36 * BEAT - 9;
+const OUT = 8 * BEAT - 9;
 
 /**
- * KK6OQA's radio, sound on: the greeting goes out in Morse while the decoder
+ * KK6OQA's radio, sound on: the callsign goes out in Morse while the decoder
  * spells it out large enough to read along. Then it minimizes for the work.
  */
 export function Radio() {
@@ -33,12 +33,12 @@ export function Radio() {
     mode: "CW",
     zoom: 1,
     muted: false,
-    wpm: 50,
+    wpm: 36,
     pitch: 622,
   };
 
-  const radio = portrait ? { x: 6, y: 8, w: W - 12, h: 640 } : { x: 22, y: 30, w: 806, h: 526 };
-  const decoder = portrait ? { x: 14, y: 664, w: W - 28, h: 250 } : { x: 846, y: 44, w: W - 846 - 22, h: 600 };
+  const radio = portrait ? { x: 10, y: 38, w: W - 20, h: 702 } : { x: (W - 806) / 2, y: 22, w: 806, h: 526 };
+  const decoder = portrait ? { x: 20, y: 754, w: W - 40, h: 120 } : { x: 390, y: 570, w: 500, h: 102 };
   const taskX = portrait ? 140 : 200;
   const text = morse.text;
 
@@ -56,7 +56,7 @@ export function Radio() {
         taskX={taskX}
         title="KK6OQA Radio"
         icon={asset("desktop/radio.svg")}
-        chrome={{ menu: ["Setup", "Memory", "Wave", "Equalizer", "XVTRs", "CWX"], status: "KK6OQA · 20 m CW · 50 WPM" }}
+        chrome={{ menu: ["Setup", "Memory", "Wave", "Equalizer", "XVTRs", "CWX"], status: "KK6OQA · 20 m CW · 36 WPM" }}
         bodyStyle={{ background: "#1c1d20", overflow: "hidden" }}
       >
         {portrait ? <PowerSdrScreen state={state} compact /> : <PowerSdrScreen state={state} />}
@@ -76,10 +76,11 @@ export function Radio() {
           style={{
             position: "absolute",
             inset: 0,
-            padding: portrait ? "14px 16px" : "22px 22px",
+            padding: "12px 20px",
+            textAlign: "center",
             color: "#7dff9b",
             textShadow: "0 0 10px rgb(80 255 140 / 0.55)",
-            font: `700 ${portrait ? 30 : 40}px/1.22 Consolas, "Lucida Console", monospace`,
+            font: `700 ${portrait ? 46 : 44}px/1.22 Consolas, "Lucida Console", monospace`,
             letterSpacing: 0.5,
             wordBreak: "break-word",
           }}

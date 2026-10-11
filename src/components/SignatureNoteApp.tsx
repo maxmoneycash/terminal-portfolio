@@ -8,9 +8,8 @@ const quillAsset = "/quill-pen-transparent.png";
 const DRY = 0.6;
 
 /**
- * The quill writes the signature stroke by stroke, the way a hand would:
- * each capital, then each word in one flow, the crossing and the dot, and
- * the flourish last (see lib/calligraphy).
+ * The quill follows the real handwriting, including pen lifts and the
+ * flourish, using the same retimed recording as the intro film.
  */
 export function AnimatedSignature({ runId }: { runId: number }) {
   const stageRef = useRef<HTMLDivElement>(null);
@@ -84,7 +83,7 @@ export function AnimatedSignature({ runId }: { runId: number }) {
   }, [ink, reduceMotion, runId]);
 
   return (
-    <div className="signature-stage" ref={stageRef} role="img" aria-label={`Animated signature: ${portfolio.name}`}>
+    <div className="signature-stage" style={{ aspectRatio: `${signature.width} / ${signature.height}` }} ref={stageRef} role="img" aria-label={`Animated signature: ${portfolio.name}`}>
       <canvas className="signature-canvas" ref={canvasRef} />
       {!reduceMotion ? (
         <div className="signature-quill-anchor" ref={quillRef} style={{ opacity: 0 }}>

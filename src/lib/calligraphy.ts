@@ -1,270 +1,109 @@
-/**
- * The quill writing "Maxwell Mohammadi". signatureStrokes.json (built by
- * scripts/signature from the traced signature) holds the pen's strokes in
- * writing order: centre lines with the ink's width and the moment the pen
- * reaches every point. Ink is the signature itself, revealed along those
- * strokes, so the result matches the signature exactly while the motion
- * follows a hand.
- *
- * Pure functions of time, shared by the site's quill window and the intro
- * film; no site imports.
- */
-import strokes from "./signatureStrokes.json";
+/** Recorded handwriting, retimed once and shared by the site and intro film. */
+import recording from "./signatureRecording.json";
 
-export type Stroke = {
-  kind: "letter" | "extra" | "dot" | "swash";
-  word: number;
-  x: number[];
-  y: number[];
-  w: number[];
-  t: number[];
-};
-
-export type Signature = {
-  width: number;
-  height: number;
-  duration: number;
-  split: number;
-  embolden: number;
-  bounds: [number, number, number, number];
-  strokes: Stroke[];
-};
-
-export const signature = strokes as unknown as Signature;
-
+export const signature = recording;
 export const INK = "#0d1a3d";
 export const SHEEN = "#3f68d8";
-const SVG_URL = "/maxwell_mohammadi_signature_full_canvas.svg";
+export type Pen = { x: number; y: number; lift: number; heading: number; word: number };
+export type View = { scale: number; dx: number; dy: number; word?: number };
+type Layer = { canvas: HTMLCanvasElement; pixels: ImageData; at: number };
+type Ink = { times: Uint16Array; coverage: Uint8Array; words: Uint8Array; indices: number[]; layers: Map<number, Layer> };
+const images = new WeakMap<HTMLImageElement, Ink>();
 
-/** The signature as an image in ink colour, slightly bolder than the trace. */
-export function loadInk(url = SVG_URL, color = INK): Promise<HTMLImageElement> {
-  return fetch(url)
-    .then((r) => r.text())
-    .then(
-      (text) =>
-        new Promise<HTMLImageElement>((resolve, reject) => {
-          const svg = text.replace('fill="#000000"', `fill="${color}" stroke="${color}" stroke-width="${signature.embolden}" stroke-linejoin="round"`);
-          const image = new Image();
-          image.onload = () => resolve(image);
-          image.onerror = () => reject(new Error("signature ink"));
-          image.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
-        }),
-    );
+/** The opaque atlas stores arrival time in R/G and ink coverage in B. */
+export function loadInk(url = signature.atlas): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => {
+      try {
+        const layer = document.createElement("canvas");
+        layer.width = signature.width;
+        layer.height = signature.height;
+        const ctx = layer.getContext("2d", { willReadFrequently: true });
+        if (!ctx) throw new Error("Signature canvas unavailable");
+        ctx.drawImage(image, 0, 0);
+        const data = ctx.getImageData(0, 0, layer.width, layer.height).data;
+        const times = new Uint16Array(layer.width * layer.height);
+        const coverage = new Uint8Array(times.length);
+        const indices: number[] = [];
+        const words = new Uint8Array(times.length);
+        for (let i = 0; i < times.length; i++) {
+          const encoded = data[i * 4] * 256 + data[i * 4 + 1];
+          times[i] = encoded & 32767;
+          words[i] = encoded >> 15;
+          coverage[i] = data[i * 4 + 2];
+          if (coverage[i]) indices.push(i);
+        }
+        images.set(image, { times, coverage, words, indices, layers: new Map() });
+        resolve(image);
+      } catch (error) { reject(error); }
+    };
+    image.onerror = () => reject(new Error("Signature ink could not load"));
+    image.src = url;
+  });
 }
 
-/** Which line of a two-line layout a point belongs to: the swash splits by x. */
-export function wordOf(stroke: Stroke, x: number) {
-  return stroke.word >= 0 ? stroke.word : x < signature.split ? 0 : 1;
-}
-
-export type Pen = {
-  x: number;
-  y: number;
-  /** 0 on the paper, up to 1 at the top of a hop between strokes. */
-  lift: number;
-  /** Direction of travel, radians. */
-  heading: number;
-  word: number;
-};
-
-function lerp(a: number, b: number, u: number) {
-  return a + (b - a) * u;
-}
-
-/** Index of the last point at or before time t (t inside the stroke). */
-function seek(times: number[], t: number) {
-  let lo = 0;
-  let hi = times.length - 1;
+function seek(t: number) {
+  const points = signature.pen;
+  let lo = 0, hi = points.length - 1;
   while (lo < hi) {
     const mid = (lo + hi + 1) >> 1;
-    if (times[mid] <= t) lo = mid;
-    else hi = mid - 1;
+    if (points[mid][0] <= t) lo = mid; else hi = mid - 1;
   }
   return lo;
 }
+const breaks = new Set(signature.breaks);
+const overlaps = new Map(signature.overlaps.map(([index, time]) => [index, time]));
 
-/** Where the quill tip is at time t (seconds), in signature coordinates. */
-export function penAt(t: number, data: Signature = signature): Pen {
-  const list = data.strokes;
-  const first = list[0];
-  if (t <= first.t[0]) return { x: first.x[0], y: first.y[0], lift: 1, heading: 0, word: wordOf(first, first.x[0]) };
-  for (let s = 0; s < list.length; s += 1) {
-    const st = list[s];
-    const end = st.t[st.t.length - 1];
-    if (t <= end) {
-      const i = seek(st.t, t);
-      const j = Math.min(i + 1, st.t.length - 1);
-      const u = j === i ? 0 : (t - st.t[i]) / Math.max(1e-6, st.t[j] - st.t[i]);
-      const x = lerp(st.x[i], st.x[j], u);
-      const y = lerp(st.y[i], st.y[j], u);
-      const a = Math.max(0, i - 3);
-      const b = Math.min(st.x.length - 1, i + 4);
-      return { x, y, lift: 0, heading: Math.atan2(st.y[b] - st.y[a], st.x[b] - st.x[a]), word: wordOf(st, x) };
-    }
-    const next = list[s + 1];
-    if (next && t < next.t[0]) {
-      // A hop: the quill rises, travels, and comes down at the next stroke.
-      const u = (t - end) / Math.max(1e-6, next.t[0] - end);
-      const e = u * u * (3 - 2 * u);
-      const x = lerp(st.x[st.x.length - 1], next.x[0], e);
-      return {
-        x,
-        y: lerp(st.y[st.y.length - 1], next.y[0], e),
-        lift: Math.sin(Math.PI * u),
-        heading: Math.atan2(next.y[0] - st.y[st.y.length - 1], next.x[0] - st.x[st.x.length - 1]),
-        word: u < 0.5 ? wordOf(st, st.x[st.x.length - 1]) : wordOf(next, next.x[0]),
-      };
-    }
-  }
-  const last = list[list.length - 1];
-  const n = last.x.length - 1;
-  return { x: last.x[n], y: last.y[n], lift: 1, heading: 0, word: wordOf(last, last.x[n]) };
+/** Follow the newly recorded ink; travel above the page between strokes. */
+export function penAt(t: number): Pen {
+  const points = signature.pen;
+  const i = seek(t), j = Math.min(i + 1, points.length - 1);
+  const a = points[i], b = points[j];
+  const u = Math.max(0, Math.min(1, (t - a[0]) / Math.max(0.0001, b[0] - a[0])));
+  const lifted = breaks.has(j) && i !== j;
+  const e = lifted ? u * u * (3 - 2 * u) : u;
+  const x = a[1] + (b[1] - a[1]) * e;
+  const y = a[2] + (b[2] - a[2]) * e;
+  return { x, y, lift: t <= 0 || t >= signature.duration ? 1 : lifted ? Math.sin(Math.PI * u) : 0,
+    heading: Math.atan2(b[2] - a[2], b[1] - a[1]), word: u < 0.5 ? a[3] : b[3] };
 }
 
-export type View = {
-  /** Display pixels per signature unit. */
-  scale: number;
-  /** Where signature (0, 0) lands, display pixels. */
-  dx: number;
-  dy: number;
-  /** Only strokes (and swash points) on this line, for a two-line layout. */
-  word?: number;
-};
-
-/** Paint the pen's strokes up to time t into `mask` (alpha = reach). */
-function paintStrokes(ctx: CanvasRenderingContext2D, t: number, view: View, data: Signature, fresh?: number) {
-  ctx.lineCap = "round";
-  ctx.lineJoin = "round";
-  ctx.strokeStyle = "#000";
-  for (const st of data.strokes) {
-    if (st.t[0] > t) break;
-    const n = st.x.length;
-    const px = (i: number) => view.dx + st.x[i] * view.scale;
-    const py = (i: number) => view.dy + st.y[i] * view.scale;
-    let width = -1;
-    let open = false;
-    for (let i = 0; i + 1 < n && st.t[i] <= t; i += 1) {
-      if (view.word !== undefined && wordOf(st, st.x[i]) !== view.word) {
-        if (open) ctx.stroke();
-        open = false;
-        continue;
-      }
-      if (fresh !== undefined && t - st.t[i + 1] > fresh) continue;
-      let x1 = px(i + 1);
-      let y1 = py(i + 1);
-      if (st.t[i + 1] > t) {
-        const u = (t - st.t[i]) / Math.max(1e-6, st.t[i + 1] - st.t[i]);
-        x1 = lerp(px(i), x1, u);
-        y1 = lerp(py(i), y1, u);
-      }
-      // Batch runs of nearly equal width into one path.
-      const w = Math.max(0.6, Math.round(st.w[i] * view.scale * 4) / 4);
-      if (fresh !== undefined) {
-        if (open) ctx.stroke();
-        ctx.globalAlpha = Math.max(0, 1 - (t - st.t[i]) / fresh);
-        ctx.lineWidth = w;
-        ctx.beginPath();
-        ctx.moveTo(px(i), py(i));
-        ctx.lineTo(x1, y1);
-        ctx.stroke();
-        open = false;
-        continue;
-      }
-      if (!open || w !== width) {
-        if (open) ctx.stroke();
-        ctx.lineWidth = w;
-        ctx.beginPath();
-        ctx.moveTo(px(i), py(i));
-        width = w;
-        open = true;
-      }
-      ctx.lineTo(x1, y1);
-    }
-    if (open) ctx.stroke();
-    // A dot is a tap: it lands whole.
-    if (st.kind === "dot" && st.t[0] <= t && (view.word === undefined || st.word === view.word)) {
-      ctx.globalAlpha = 1;
-      ctx.lineWidth = Math.max(...st.w) * view.scale;
-      ctx.beginPath();
-      ctx.moveTo(px(0), py(0));
-      ctx.lineTo(px(n - 1), py(n - 1));
-      ctx.stroke();
-    }
+/** Deterministic at any timestamp, including backwards seeks during rendering. */
+export function drawSignature(ctx: CanvasRenderingContext2D, image: HTMLImageElement, t: number, view: View, ratio = 1) {
+  const ink = images.get(image);
+  if (!ink) return;
+  const key = view.word ?? -1;
+  let layer = ink.layers.get(key);
+  if (!layer) {
+    const canvas = document.createElement("canvas");
+    canvas.width = signature.width;
+    canvas.height = signature.height;
+    layer = { canvas, pixels: canvas.getContext("2d")!.createImageData(canvas.width, canvas.height), at: -Infinity };
+    ink.layers.set(key, layer);
   }
-  ctx.globalAlpha = 1;
+  if (layer.at !== t) {
+    const data = layer.pixels.data;
+    for (const i of ink.indices) {
+      const crossing = key === 1 ? overlaps.get(i) : undefined;
+      const age = t - ((crossing ?? ink.times[i]) - 1) / 32766 * signature.duration;
+      const fresh = Math.max(0, 1 - age / 0.4) * 0.35;
+      data[i * 4] = Math.round(13 + 50 * fresh);
+      data[i * 4 + 1] = Math.round(26 + 78 * fresh);
+      data[i * 4 + 2] = Math.round(61 + 155 * fresh);
+      data[i * 4 + 3] = t > 0 && age >= 0 && (key < 0 || ink.words[i] === key || crossing !== undefined) ? ink.coverage[i] : 0;
+    }
+    layer.canvas.getContext("2d")!.putImageData(layer.pixels, 0, 0);
+    layer.at = t;
+  }
+  ctx.save();
+  ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+  ctx.imageSmoothingQuality = "high";
+  ctx.drawImage(layer.canvas, view.dx, view.dy, signature.width * view.scale, signature.height * view.scale);
+  ctx.restore();
 }
 
-const scratch = new Map<string, HTMLCanvasElement>();
-
-function canvasFor(key: string, width: number, height: number) {
-  let c = scratch.get(key);
-  if (!c) {
-    c = document.createElement("canvas");
-    scratch.set(key, c);
-  }
-  if (c.width !== width || c.height !== height) {
-    c.width = width;
-    c.height = height;
-  }
-  return c;
-}
-
-/**
- * Draw the signature as written by time t (seconds) onto ctx, whose canvas
- * pixels are `ratio` times the view's display pixels. Fresh ink carries a
- * brief wet sheen.
- */
-export function drawSignature(ctx: CanvasRenderingContext2D, ink: CanvasImageSource, t: number, view: View, ratio = 1, data: Signature = signature) {
-  const { width, height } = ctx.canvas;
-  const at = { ...view, scale: view.scale * ratio, dx: view.dx * ratio, dy: view.dy * ratio };
-  const mask = canvasFor("mask", width, height);
-  const layer = canvasFor("layer", width, height);
-  const mctx = mask.getContext("2d");
-  const lctx = layer.getContext("2d");
-  if (!mctx || !lctx) return;
-  for (const pass of ["ink", "sheen"] as const) {
-    mctx.setTransform(1, 0, 0, 1, 0, 0);
-    mctx.clearRect(0, 0, width, height);
-    paintStrokes(mctx, t, at, data, pass === "sheen" ? 0.45 : undefined);
-    lctx.setTransform(1, 0, 0, 1, 0, 0);
-    lctx.globalCompositeOperation = "source-over";
-    lctx.clearRect(0, 0, width, height);
-    lctx.imageSmoothingQuality = "high";
-    lctx.drawImage(ink, at.dx, at.dy, data.width * at.scale, data.height * at.scale);
-    if (pass === "sheen") {
-      lctx.globalCompositeOperation = "source-in";
-      lctx.fillStyle = SHEEN;
-      lctx.fillRect(0, 0, width, height);
-    }
-    lctx.globalCompositeOperation = "destination-in";
-    lctx.drawImage(mask, 0, 0);
-    ctx.save();
-    ctx.setTransform(1, 0, 0, 1, 0, 0);
-    ctx.globalAlpha = pass === "ink" ? 1 : 0.55;
-    ctx.drawImage(layer, 0, 0);
-    ctx.restore();
-  }
-}
-
-/** The ink's extent for one line of a two-line layout (or the whole name). */
-export function boundsOf(word?: number, data: Signature = signature) {
-  if (word === undefined) {
-    const [x0, y0, x1, y1] = data.bounds;
-    return { x0, y0, x1, y1 };
-  }
-  let x0 = Infinity;
-  let y0 = Infinity;
-  let x1 = -Infinity;
-  let y1 = -Infinity;
-  for (const st of data.strokes) {
-    for (let i = 0; i < st.x.length; i += 1) {
-      if (wordOf(st, st.x[i]) !== word) continue;
-      const r = st.w[i] / 2;
-      x0 = Math.min(x0, st.x[i] - r);
-      x1 = Math.max(x1, st.x[i] + r);
-      y0 = Math.min(y0, st.y[i] - r);
-      y1 = Math.max(y1, st.y[i] + r);
-    }
-  }
+export function boundsOf(word?: number) {
+  const [x0, y0, x1, y1] = word === undefined ? signature.bounds : signature.wordBounds[word];
   return { x0, y0, x1, y1 };
 }

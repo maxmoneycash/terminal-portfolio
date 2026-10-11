@@ -1,6 +1,6 @@
 /**
  * The MaxXP intro film: the quill writes the name, the KK6OQA radio sends the
- * greeting in Morse, then the work plays out best first and ever faster until
+ * callsign in Morse, then the work plays out best first and ever faster until
  * every window minimizes on the live desktop. It hands off directly to the
  * interactive desktop.
  *
@@ -16,17 +16,17 @@ import { getSystemVolume } from "./audio";
 const INTRO = {
   portrait: {
     orient: "portrait",
-    src: "/videos/intro/intro-portrait-2c25a15e.mp4",
-    poster: "/videos/intro/intro-portrait-2c25a15e.jpg",
+    src: "/videos/intro/intro-portrait-dd7917a0.mp4",
+    poster: "/videos/intro/intro-portrait-dd7917a0.jpg",
   },
   landscape: {
     orient: "landscape",
-    src: "/videos/intro/intro-landscape-ddee72e6.mp4",
-    poster: "/videos/intro/intro-landscape-ddee72e6.jpg",
+    src: "/videos/intro/intro-landscape-0c6034b9.mp4",
+    poster: "/videos/intro/intro-landscape-0c6034b9.jpg",
   },
 };
 
-/** If playback hasn't started by now (slow network), open the desktop. */
+/** Offer a retry after a slow start; never silently dismiss the film. */
 const STALL_MS = 8000;
 const SKIP_REVEAL_MS = 900;
 /** How long the "Click for sound" hint stays up once the film starts. */
@@ -40,8 +40,8 @@ function pickSource() {
   }
 }
 
-/** Visitors who asked for less motion or less data skip an intro they didn't request. */
-function prefersSkip() {
+/** Let visitors who prefer less motion or data choose when to start. */
+function prefersManualPlay() {
   try {
     const saveData = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData;
     return Boolean(saveData) || window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -66,6 +66,7 @@ export function IntroVideo({ onFinish, fading, requested = false }: {
   const [muted, setMuted] = useState(true);
   const [skipVisible, setSkipVisible] = useState(false);
   const [hintVisible, setHintVisible] = useState(true);
+  const [playback, setPlayback] = useState<"loading" | "playing" | "manual" | "error">("loading");
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const skipRef = useRef<HTMLButtonElement | null>(null);
   const finishedRef = useRef(false);
@@ -83,25 +84,28 @@ export function IntroVideo({ onFinish, fading, requested = false }: {
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
-    if (!requested && prefersSkip()) {
-      finish();
+    let cancelled = false;
+    if (!requested && prefersManualPlay()) {
+      setPlayback("manual");
       return;
     }
     const playMuted = () => {
       video.muted = true;
       setMuted(true);
-      // Autoplay refused (e.g. iOS Low Power Mode): go straight to the desktop.
-      video.play().catch(() => finish());
+      // iOS Low Power Mode can refuse even muted autoplay. Keep the film
+      // available, with an explicit user-gesture play button.
+      void video.play().catch(() => { if (!cancelled) setPlayback(video.error ? "error" : "manual"); });
     };
     // Sound follows the tray volume; the browser may still insist on muted.
     const volume = getSystemVolume() / 100;
     if (volume === 0) {
       playMuted();
-      return;
+      return () => { cancelled = true; };
     }
     video.volume = volume;
     video.muted = false;
-    video.play().then(() => setMuted(false), playMuted);
+    void video.play().then(() => { if (!cancelled) setMuted(false); }, () => { if (!cancelled) playMuted(); });
+    return () => { cancelled = true; };
   }, [requested, finish]);
 
   const unmute = useCallback(() => {
@@ -109,9 +113,17 @@ export function IntroVideo({ onFinish, fading, requested = false }: {
     if (!video) return;
     video.volume = Math.max(0.5, getSystemVolume() / 100);
     video.muted = false;
-    void video.play().catch(() => {});
+    void video.play().catch(() => setPlayback(video.error ? "error" : "manual"));
     setMuted(false);
   }, []);
+
+  const play = useCallback(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    if (video.error) video.load();
+    setPlayback("loading");
+    unmute();
+  }, [unmute]);
 
   useEffect(() => {
     const id = window.setTimeout(() => setSkipVisible(true), SKIP_REVEAL_MS);
@@ -130,10 +142,10 @@ export function IntroVideo({ onFinish, fading, requested = false }: {
   }, []);
 
   useEffect(() => {
-    if (started) return;
-    const id = window.setTimeout(() => finish(), STALL_MS);
+    if (started || playback !== "loading") return;
+    const id = window.setTimeout(() => setPlayback("manual"), STALL_MS);
     return () => window.clearTimeout(id);
-  }, [started, finish]);
+  }, [started, playback]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -149,7 +161,8 @@ export function IntroVideo({ onFinish, fading, requested = false }: {
       role="region"
       aria-label="MaxXP intro"
       onClick={() => {
-        if (muted) unmute();
+        if (playback === "manual" || playback === "error") play();
+        else if (muted) unmute();
       }}
     >
       <video
@@ -161,11 +174,19 @@ export function IntroVideo({ onFinish, fading, requested = false }: {
         playsInline
         preload="auto"
         disablePictureInPicture
-        onPlaying={() => setStarted(true)}
+        onPlaying={() => { setStarted(true); setPlayback("playing"); }}
         onEnded={() => finish("ended")}
-        onError={() => finish()}
+        onError={() => setPlayback("error")}
         aria-hidden="true"
       />
+      {playback === "manual" || playback === "error" ? (
+        <div className="intro-play-prompt">
+          {playback === "error" ? <p>The intro couldn’t load.</p> : null}
+          <button type="button" className="xp-control" onClick={(event) => { event.stopPropagation(); play(); }}>
+            {playback === "error" ? "Retry intro" : "Play intro"}
+          </button>
+        </div>
+      ) : null}
       {muted && started ? (
         <p className={cn("intro-sound", hintVisible && "is-visible")} aria-live="polite">
           <img src="/xp/gui/tray/volume.webp" alt="" width={12} height={12} />

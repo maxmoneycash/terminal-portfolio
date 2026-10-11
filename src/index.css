@@ -2566,7 +2566,7 @@ button.login-footer-left:focus-visible {
 
 .signature-stage {
   position: relative;
-  width: min(132%, 880px);
+  width: min(94%, 880px);
   aspect-ratio: 4 / 1;
   user-select: none;
 }
@@ -4980,12 +4980,10 @@ button.login-footer-left:focus-visible {
   cursor: var(--xp-cursor-hand), pointer;
 }
 
-/* The signature canvas has wide margins and the ink sits low: scale past
-   the margins and lift it to the middle, like the welcome note. */
+/* The recorded ink is tightly cropped; keep the full signature in view. */
 .quill-app .signature-stage {
-  width: 136%;
+  width: 90%;
   max-width: none;
-  transform: translateY(-14%);
 }
 
 .quill-app .signature-quill-anchor img {

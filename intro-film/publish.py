@@ -20,7 +20,7 @@ OUT = ROOT / "public" / "videos" / "intro"
 COMPONENT = ROOT / "src" / "xp" / "IntroVideo.tsx"
 MANIFEST = HERE / "published.json"
 TARGETS = {"landscape": (1920, 1080), "portrait": (1080, 1920)}
-# A boot-screen frame: the MaxXP logo with the progress bar running.
+# An early frame of the quill writing in Paint, before the radio scene.
 POSTER_AT = 0.8
 
 

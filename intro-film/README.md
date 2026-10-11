@@ -1,76 +1,68 @@
 # MaxXP intro film
 
-The site's intro: XP boots, logs in, and the projects play out through XP
-itself — a nine-minute Claude Code session timelapsed to eight seconds,
-Lilyshark announced as new hardware, the gadgets.sh catalog, real
-terminal sessions in command windows, commits.sh rising out of the tray, yank
-cloning a site from an MSN Messenger toast, an Internet Explorer address bar,
-a Confirm File Replace dialog, Orbital Works' Roman telescope as a screen
-saver, a My Pictures slideshow of app screenshots, the Solitaire victory
-cascade, Task Manager's "Commit Charge" — until every window closes on the
-live desktop. It is styled
-after an XP-themed music video; no footage from that video is used.
+A 71-second XP desktop film: Max's recorded signature, **KK6OQA** in Morse,
+a 19-second Lilyshark feature, commits.sh, Orbital Works, six project chapters, larger pairs of
+additional work, then a short window cascade and “your turn.” The live radio
+app keeps its longer greeting; the film's cue is independent in `score.json`.
 
-Everything is drawn as real DOM (Luna chrome in `src/xp.css`) and rendered
-with Remotion, so the UI stays sharp at any camera zoom. The logical canvas is
-XP's 96-DPI size (1280×720 landscape, 540×960 portrait); renders scale it to
-1920×1080 and 1080×1920.
+Lilyshark uses three longer extracts from `lilyshark-launch-v2.mp4` (the
+T-Deck reveal, packet bytes, and spectrum), then the “below the noise” and
+“airtime” shorts. Each gets its own large window. The portrait shorts are
+cropped around the actual content, removing their empty outer margins.
+
+The logical canvas is 1280×720 landscape or 540×960 portrait, rendered at
+1920×1080 or 1080×1920. The whole desktop stays in frame. `mediaLayout.ts`
+fits each window to the reviewed media crop and its chrome; portrait and
+landscape use different arrangements, with no overlapping content until the
+closing recap. Cuts and music share the 14-frame beat grid in `score.json`.
 
 ```sh
-npm run intro:setup     # once: install Remotion in intro-film/
-npm run intro:prepare   # cut clips, wallpaper loop, sounds, commits.sh stats, soundtrack
-npm run intro:render    # both orientations (~8 min each)
-npm run intro:publish   # web encode, validate, swap hashed assets into the site
+npm run intro:setup
+npm run intro:prepare
+npm run intro:render
+npm run intro:publish
+npm run intro:upload   # before pushing a commit that references new films
 ```
 
-`npm run intro:build` runs all four and then `intro:clean`.
+Run the renderer from `intro-film/` (the npm scripts do this), so it uses that
+project's installed Remotion renderer. Match Node's architecture to the local
+npm dependencies. This checkout uses native ARM Node 22.
 
-## Music and the beat grid
+`prepare.py` crops source recordings and screenshots into
+`.intro-build/film/public`. `clips.json` and `stills.json` record source-pixel
+crops and exact source names. Originals are found in `~/Screenshots`, iCloud
+Screenshots, `~/Downloads`, or `~/Movies/Orbital Works`. Review each changed
+crop across its entire time span: windows sometimes move in the source.
+Never publish other desktop windows or unreviewed source footage.
 
-`score.json` is the film's beat grid: 128.57 BPM, so one beat is exactly 14
-frames at 30 fps, in sections (intro, three drops, a breakdown, a space break
-for Roman). Every scene in `src/Film.tsx` lasts whole beats and cuts on bar
-lines; `src/beat.ts` gives scenes `beats(n)` and drives the kick punch and drop
-flashes. `music.py` arranges the soundtrack on the same grid from GarageBand's
-Electro House loops (C minor; GarageBand's license allows them in your own
-soundtracks), adds synthesized impacts, risers and crashes, and keys the Morse
-cues in `score.json` (KK6OQA over the boot screen, DE KK6OQA on the first drop)
-as a sidetone. It needs GarageBand's loop library at
-`/Library/Audio/Apple Loops/Apple/02 Electro House`.
+The opening uses `src/lib/calligraphy.ts`, shared with the site's quill.
+`scripts/signature/from_video.py` extracts ink arrival and pen movement from
+the supplied signature recording, removes the notebook background, shortens
+pauses, and retimes the writing to 5.6 seconds. It writes the content-hashed
+ink atlas in `public/signature/` and `src/lib/signatureRecording.json`.
+Portrait lines are separated by recorded stroke time, keeping the flourish
+intact. The older manual trace tools remain available as source history.
 
-The station scene imports the site's radio (`src/radio/`) and signature ink
-(`src/lib/signatureInk.ts`), so the film and the live app look the same; the
-render fingerprint covers those files too.
+The extraction and soundtrack need Python with NumPy, SciPy and Pillow
+(`scripts/signature/requirements.txt`). The soundtrack also uses GarageBand's
+Electro House Apple Loops in `/Library/Audio/Apple Loops/Apple/02 Electro House`.
 
-The MP4s stay out of git. `intro:publish` records their SHA-256 in
-`published.json`; `npm run intro:upload` puts them on the repo's `intro-films`
-release (run it before pushing), and `npm run build` fetches and verifies them
-into `public/videos/intro/`. `npm run intro:fetch` does the same for local dev.
+```sh
+# From the repository root, review frames from one reused bundle:
+(cd intro-film && node stills.mjs portrait ../.intro-build/review 100 200 310 430)
+# Layout bounds, aspect ratios, and overlap regression checks (Node 22+):
+node --experimental-strip-types --test scripts/intro-layout.test.mjs
+```
 
-- **Clips.** `clips.json` lists each recording, start time and source-pixel
-  crop. `prepare.py` finds the originals in `~/Screenshots`, the iCloud
-  Screenshots folder, or `~/Downloads`, and cuts them into
-  `.intro-build/film/public/clips` (never into the website). Keep crops inside
-  the app: several recordings also contain terminals, server addresses, or
-  other windows. Review every frame of a changed window before publishing.
-  `recordings.json` accounts for every supplied recording.
-- **Timelapse.** A clip with `"speed"` in `clips.json` is sped up by dropping
-  frames (no blending), so every frame stays legible; `duration` is source time.
-- **Screenshots.** `stills.json` lists each screenshot (exact filename, crop,
-  and the repository its code lives in). Only projects with authored code on
-  this machine belong in the film; reconstructions of other companies' UIs
-  don't. Match filenames exactly: macOS names differ only by AM/PM.
-- **Wallpaper.** The film uses the live desktop's animated Bliss loop.
-  `public/xp/gui/bgs/bliss-desktop.webp` has a Microsoft logo baked in; don't
-  use it here.
-- **Scenes.** `src/Film.tsx` sets the order and lengths; each scene is one file
-  in `src/scenes/`. Sounds are the site's XP sounds, cued with `<Sfx>` next to
-  the event they belong to.
-- **Review.** `node stills.mjs landscape <dir> <frame…>` renders stills from
-  one reused bundle; `npm run studio` opens Remotion Studio.
+The MP4s stay out of git. `intro:publish` validates full decodes, web-encodes,
+updates `IntroVideo.tsx`, and records SHA-256 hashes in `published.json`.
+`intro:upload` stores them on the `intro-films` GitHub release; the site build
+fetches and verifies those exact files. `intro:clean` removes reproducible
+intermediates and preserves masters, published videos, and originals.
 
-The site plays the film muted when it opens automatically (`?forceBoot=true`)
-and with sound when the visitor clicks Watch intro.
-
-Remotion is free for individuals and companies of up to three people; larger
-teams need a company license.
+The site shows the intro on ordinary arrivals, saved app hashes, and reloads.
+Specific shared project/video/site links still open their content directly.
+Autoplay is attempted with sound and then muted. If the browser refuses, or
+reduced-motion/data-saving is requested, a visible Play intro button remains.
+A slow load or media error never silently dismisses the intro. Click the film
+for sound; Skip or Escape opens the desktop.

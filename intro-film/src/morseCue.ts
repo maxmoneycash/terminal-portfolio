@@ -1,5 +1,5 @@
 /**
- * The film's Morse: the greeting at about 50 WPM over the radio scene. The
+ * The film's Morse: KK6OQA at 36 WPM over the radio scene. The
  * soundtrack plays the same cue (music.py), so the TX lamp, the waterfall
  * and the beeps land together.
  */

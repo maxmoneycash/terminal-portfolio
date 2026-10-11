@@ -105,7 +105,11 @@ function resolveInitialBoot(): InitialBoot {
     // Arriving on a shared link to a project opens the work directly. A reload is
     // not an arrival: the desktop writes routes into the hash as windows open and
     // take focus, so reloading always replays the intro.
-    if (url.hash.length > 1 && !isReload()) {
+    const route = new URLSearchParams(url.hash.slice(1));
+    // Focusing a desktop window leaves #app=... behind. Only a link to a
+    // specific piece of work bypasses the film on a fresh navigation.
+    const sharedWork = ["project", "video", "site"].some((key) => route.has(key));
+    if (sharedWork && !isReload()) {
       return { stage: "desktop", restored: true };
     }
   } catch {

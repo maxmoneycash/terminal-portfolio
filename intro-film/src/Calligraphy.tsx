@@ -1,12 +1,10 @@
 /**
- * The quill writing "Maxwell Mohammadi", stroke by stroke, with the same pen
- * strokes and renderer as the site's quill window (src/lib/calligraphy):
- * each capital, each word in one flow, the x's crossing and the i's dot, the
- * flourish last. The quill rides the pen and lifts between strokes. Pure
- * function of `progress`.
+ * The quill follows the recorded "Max Mohammadi" signature with the same
+ * timing and renderer as the site's quill window (src/lib/calligraphy).
+ * The quill rides the pen and lifts between strokes. Pure function of progress.
  */
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { continueRender, delayRender, Img, staticFile } from "remotion";
+import { cancelRender, continueRender, delayRender, Img, staticFile } from "remotion";
 import { boundsOf, drawSignature, loadInk, penAt, signature } from "../../src/lib/calligraphy";
 
 let inkCache: HTMLImageElement | null = null;
@@ -17,12 +15,12 @@ function useInk() {
   const [handle] = useState(() => (inkCache ? null : delayRender("Loading the signature ink")));
   useEffect(() => {
     if (inkCache) return;
-    loading ??= loadInk(staticFile("maxwell_mohammadi_signature_full_canvas.svg"));
+    loading ??= loadInk(staticFile(signature.atlas.slice(1)));
     void loading.then((image) => {
       inkCache = image;
       setInk(image);
       if (handle !== null) continueRender(handle);
-    });
+    }).catch(cancelRender);
   }, [handle]);
   return ink;
 }
@@ -34,7 +32,7 @@ export function Calligraphy({ progress, width, twoLines = false, quill = 1 }: {
   progress: number;
   /** Display width of the signature block. */
   width: number;
-  /** Portrait: "Maxwell" over "Mohammadi". */
+  /** Portrait: "Max" over "Mohammadi". */
   twoLines?: boolean;
   /** Quill size multiplier. */
   quill?: number;
@@ -54,7 +52,7 @@ export function Calligraphy({ progress, width, twoLines = false, quill = 1 }: {
     const scale = width / Math.max(a.x1 - a.x0, b.x1 - b.x0);
     return [
       { ...a, left: 0, top: 0, scale, word: 0 },
-      { ...b, left: width - (b.x1 - b.x0) * scale, top: (a.y1 - a.y0) * scale * 0.92, scale, word: 1 },
+      { ...b, left: width - (b.x1 - b.x0) * scale, top: (a.y1 - a.y0) * scale * 1.10, scale, word: 1 },
     ];
   })();
   const height = Math.max(...lines.map((l) => l.top + (l.y1 - l.y0) * l.scale));

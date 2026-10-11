@@ -32,12 +32,12 @@
       "start": 24,
       "duration": 6.0,
       "crop": [
-        380,
-        120,
-        2890,
-        2110
+        420,
+        150,
+        1340,
+        1620
       ],
-      "width": 2400
+      "width": 1340
     },
     "sol2move-boringvault": {
       "title": "Sol2Move \u2014 compiler results",
@@ -107,13 +107,13 @@
     "nipahscan": {
       "title": "NipahScan",
       "recording": "Screen Recording 2026-02-21 at 10.57*",
-      "start": 29.2,
+      "start": 47,
       "duration": 6.0,
       "crop": [
-        130,
-        100,
-        3380,
-        2110
+        188,
+        252,
+        3260,
+        1200
       ],
       "width": 2400
     },
@@ -393,15 +393,15 @@
     "yank-clone": {
       "title": "yank-clone",
       "recording": "Screen Recording 2026-10-07 at 9.29*",
-      "start": 14.5,
-      "duration": 8.0,
+      "start": 34,
+      "duration": 4,
       "crop": [
-        28,
-        108,
-        3372,
-        2096
+        1392,
+        828,
+        1840,
+        1080
       ],
-      "width": 2400
+      "width": 1840
     },
     "yank-apart": {
       "title": "yank-apart",
@@ -485,8 +485,8 @@
     "tdeck-hero": {
       "title": "Lilyshark",
       "recording": "lilyshark-launch-v2.mp4",
-      "start": 7.3,
-      "duration": 2.4,
+      "start": 6,
+      "duration": 4.0,
       "width": 1920,
       "crop": [
         0,
@@ -498,8 +498,8 @@
     "tdeck-bytes": {
       "title": "Lilyshark",
       "recording": "lilyshark-launch-v2.mp4",
-      "start": 25.0,
-      "duration": 2.4,
+      "start": 24,
+      "duration": 4.0,
       "width": 1920,
       "crop": [
         0,
@@ -511,8 +511,8 @@
     "tdeck-band": {
       "title": "Lilyshark",
       "recording": "lilyshark-launch-v2.mp4",
-      "start": 44.6,
-      "duration": 2.4,
+      "start": 46,
+      "duration": 4.0,
       "width": 1920,
       "crop": [
         0,
@@ -545,6 +545,32 @@
         0,
         1920,
         1080
+      ]
+    },
+    "lilyshark-below-noise": {
+      "title": "Lilyshark \u2014 below the noise",
+      "recording": "lilyshark-shorts/05-below-the-noise.mp4",
+      "start": 14,
+      "duration": 4.0,
+      "width": 1080,
+      "crop": [
+        0,
+        170,
+        1080,
+        1360
+      ]
+    },
+    "lilyshark-airtime-short": {
+      "title": "Lilyshark \u2014 airtime",
+      "recording": "lilyshark-shorts/08-airtime.mp4",
+      "start": 14,
+      "duration": 4.0,
+      "width": 1080,
+      "crop": [
+        0,
+        170,
+        1080,
+        1360
       ]
     }
   }

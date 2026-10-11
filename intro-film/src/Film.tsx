@@ -8,24 +8,24 @@ import { Sign } from "./scenes/Sign";
 
 /**
  * Scene order and lengths in beats (14 frames each). Sections follow the
- * soundtrack in score.json: the signature 4 bars, the radio 9, then three
- * drops (8, 6, 8) that get faster and denser. Every cut lands on a beat.
+ * soundtrack in score.json: the signature 4 bars, the radio 2, then three
+ * drops (15, 9, 8) that get faster and denser. Every cut lands on a beat.
  */
 export const SCENES = [
-  // the signature, then the radio's greeting
+  // the signature, then the radio's callsign
   { name: "sign", beats: 16, component: Sign },
-  { name: "radio", beats: 36, component: Radio },
+  { name: "radio", beats: 8, component: Radio },
   // drop 1: the best work
-  { name: "lilyshark", beats: 12, component: Lilyshark },
+  { name: "lilyshark", beats: 40, component: Lilyshark },
   { name: "commits", beats: 8, component: Commits },
   { name: "orbital", beats: 12, component: Orbital },
-  // drop 2: a project a bar
-  { name: "aptos", beats: 4, component: AptosMegaeth },
-  { name: "sol2move", beats: 4, component: Sol2Move },
-  { name: "yank", beats: 4, component: Yank },
-  { name: "nipah", beats: 4, component: Nipah },
-  { name: "mainnet", beats: 4, component: Mainnet },
-  { name: "gadgets", beats: 4, component: Gadgets },
+  // drop 2: a project every six beats
+  { name: "aptos", beats: 6, component: AptosMegaeth },
+  { name: "sol2move", beats: 6, component: Sol2Move },
+  { name: "yank", beats: 6, component: Yank },
+  { name: "nipah", beats: 6, component: Nipah },
+  { name: "mainnet", beats: 6, component: Mainnet },
+  { name: "gadgets", beats: 6, component: Gadgets },
   // drop 3: overload, then "your turn."
   { name: "overload", beats: 32, component: Overload },
 ] as const;

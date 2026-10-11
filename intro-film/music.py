@@ -160,18 +160,15 @@ def cw(cue: dict) -> tuple[int, np.ndarray]:
 def quill_scratch() -> tuple[int, np.ndarray]:
     """Nib noise that follows the pen: louder when it moves fast, silent on
     lifts. Same strokes and timing as the film's calligraphy
-    (src/lib/signatureStrokes.json)."""
+    (src/lib/signatureRecording.json)."""
     spec = SCORE["calligraphy"]
-    strokes = json.loads((ROOT / "src" / "lib" / "signatureStrokes.json").read_text())["strokes"]
+    data = json.loads((ROOT / "src/lib/signatureRecording.json").read_text())
+    pen = np.array(data["pen"])
     n = int(spec["frames"] / 30 * SR)
-    times, speeds = [0.0], [0.0]
-    for st in strokes:
-        t = np.array(st["t"])
-        xy = np.c_[st["x"], st["y"]]
-        v = np.r_[0.0, np.hypot(*np.diff(xy, axis=0).T) / np.maximum(np.diff(t), 1e-4)]
-        # Silent just before and after each stroke: the nib leaves the paper.
-        times += [t[0] - 1e-3, *t.tolist(), t[-1] + 1e-3]
-        speeds += [0.0, *v.tolist(), 0.0]
+    times = pen[:, 0]
+    speeds = np.r_[0.0, np.hypot(*np.diff(pen[:, 1:3], axis=0).T) / np.maximum(np.diff(times), 1e-4)]
+    for i in data["breaks"]:
+        speeds[max(0, i-1):i+1] = 0
     order = np.argsort(times, kind="stable")
     times, speeds = np.array(times)[order], np.array(speeds)[order]
     speeds = np.minimum(speeds, np.percentile(speeds[speeds > 0], 95))
@@ -289,13 +286,9 @@ def main() -> None:
     place(music, pad, RA, D1 - RA, -9)
     place(music, strum, RA, D1 - RA, -12)
     sweep(music, RA, D1 - RA, 700, 9000)
-    place(drums, hats, RA + 1, D1 - RA - 3, -15)
-    place(drums, beat2, RA + 3, D1 - RA - 5, -13)
-    drums[:, int((RA + 3) * BAR):int((D1 - 2) * BAR)] = static_filter(drums[:, int((RA + 3) * BAR):int((D1 - 2) * BAR)], 700, "highpass")
-    place(low, bass, RA + 5, D1 - RA - 7, -11)
-    low[:, int((RA + 5) * BAR):int((D1 - 2) * BAR)] = static_filter(low[:, int((RA + 5) * BAR):int((D1 - 2) * BAR)], 300, "lowpass")
-    place(drums, roll, D1 - 2, 2, -9)
-    fx[:, int((D1 - 2) * BAR):int(D1 * BAR)] += riser(2) * db(-9)
+    place(drums, hats, RA, D1 - RA, -18)
+    place(drums, roll, D1 - 0.5, 0.5, -14)
+    fx[:, int((D1 - 0.5) * BAR):int(D1 * BAR)] += riser(0.5) * db(-14)
 
     # Drop 1, the best work: beat, bass and lead; the topper joins halfway.
     place(drums, beat, D1, D2 - D1, 0)
@@ -304,7 +297,7 @@ def main() -> None:
     place(music, lead, D1, D2 - D1, -6)
     place(drums, roll, D2 - 1, 1, -11)
 
-    # Drop 2: the anthem, a project a bar.
+    # Drop 2: the anthem, a project every six beats.
     place(drums, beat, D2, D3 - D2, 0)
     place(drums, top, D2, D3 - D2, -9)
     place(low, bass, D2, D3 - D2, -2)
@@ -344,7 +337,7 @@ def main() -> None:
         cr = crash()
         fx[:, int(d * BAR):int(d * BAR) + cr.shape[1]] += cr * db(-10)
 
-    # The greeting in Morse over the radio.
+    # The callsign in Morse over the radio.
     for cue in SCORE.get("morse", []):
         start, tone = cw(cue)
         fx[:, start:start + tone.shape[1]] += tone

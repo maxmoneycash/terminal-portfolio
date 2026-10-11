@@ -39,12 +39,13 @@ function fingerprint(options = picture) {
   walk(path.join(here, "../src/radio"));
   files.push(
     path.join(here, "../src/lib/calligraphy.ts"),
-    path.join(here, "../src/lib/signatureStrokes.json"),
+    path.join(here, "../src/lib/signatureRecording.json"),
     path.join(here, "clips.json"),
     path.join(here, "stills.json"),
     path.join(here, "score.json"),
     path.join(here, "remotion.config.ts"),
   );
+  walk(path.join(here, "../public/signature"));
   for (const file of files.sort()) hash.update(file).update(fs.readFileSync(file));
   for (const name of fs.readdirSync(path.join(publicDir, "clips")).sort()) {
     hash.update(name).update(String(fs.statSync(path.join(publicDir, "clips", name)).size));
