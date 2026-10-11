@@ -114,6 +114,11 @@
       "src": "/videos/intro-shots/lilyshark-scan-src-3faa21f4.mp4",
       "mobile": "/videos/intro-shots/lilyshark-scan-mobile-43a16aa8.mp4",
       "poster": "/videos/intro-shots/lilyshark-scan-c5304a89.jpg"
+    },
+    "lilyshark-on-camera": {
+      "src": "/videos/intro-shots/lilyshark-on-camera-src-80910d81.mp4",
+      "mobile": "/videos/intro-shots/lilyshark-on-camera-mobile-21f7b196.mp4",
+      "poster": "/videos/intro-shots/lilyshark-on-camera-59981e3a.jpg"
     }
   },
   "stills": {
@@ -125,6 +130,6 @@
     "gadgets-huskylens": "/videos/intro-shots/gadgets-huskylens-97c546b4.jpg",
     "roman-image": "/videos/intro-shots/roman-image-2576d4c5.jpg"
   },
-  "soundtrack": "/videos/intro-shots/score-2c859158.m4a",
+  "soundtrack": "/videos/intro-shots/score-cdcd8685.m4a",
   "wallpaperFrames": 415
 }

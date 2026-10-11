@@ -39,9 +39,9 @@
   "dialogue": [
     {
       "clip": "lilyshark-max",
-      "start": 266,
-      "cameraStart": 280,
-      "return": 448,
+      "start": 322,
+      "cameraStart": 378,
+      "return": 504,
       "gainDb": 2
     }
   ]

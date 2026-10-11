@@ -258,9 +258,17 @@
       "sha256": "43a16aa8b8f44e66cc02bfed6e92219165821ba04fcb74397967f6e42ea9892b",
       "bytes": 183584
     },
-    "videos/intro-shots/score-2c859158.m4a": {
-      "sha256": "2c859158158ea8190df86f6dc5b61f930974d621b6ed9c2c054b194da3d1d0e4",
-      "bytes": 1224073
+    "videos/intro-shots/lilyshark-on-camera-src-80910d81.mp4": {
+      "sha256": "80910d81fa8fbd7cfe8fc4df95c0c68048ae9edc12e322276c81074d91693499",
+      "bytes": 685048
+    },
+    "videos/intro-shots/lilyshark-on-camera-mobile-21f7b196.mp4": {
+      "sha256": "21f7b196d209594586e140146fb03e42fd3548ff871d599afa525816d18ad575",
+      "bytes": 169592
+    },
+    "videos/intro-shots/score-cdcd8685.m4a": {
+      "sha256": "cdcd8685e647f9829c55eebed98cd1ea0112ae38057d6edb587dbf256d292b21",
+      "bytes": 1224642
     }
   }
 }

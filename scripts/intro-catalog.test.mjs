@@ -40,7 +40,7 @@ test('the spoken demo leads the camera cut and finishes before the musical retur
     assert.equal(clip.speed ?? 1, 1);
     assert.ok(clip.duration < 6, 'Keep the demonstration a brief complete phrase');
     assert.ok(cue.start >= lilyStart);
-    assert.equal(cue.cameraStart - cue.start, score.framesPerBeat, 'One beat of voice before the camera cut');
+    assert.equal(cue.cameraStart - cue.start, 4 * score.framesPerBeat, 'Voice leads over the 3D shot before the device close-up');
     assert.equal(cue.cameraStart % score.framesPerBeat, 0);
     assert.equal(cue.return % (4 * score.framesPerBeat), 0);
     assert.ok(cue.start + Math.ceil(clip.duration * 30) < cue.return);
