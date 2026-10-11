@@ -9,10 +9,14 @@ export type View = { scale: number; dx: number; dy: number; word?: number };
 type Layer = { canvas: HTMLCanvasElement; pixels: ImageData; at: number };
 type Ink = { times: Uint16Array; coverage: Uint8Array; words: Uint8Array; indices: number[]; layers: Map<number, Layer> };
 const images = new WeakMap<HTMLImageElement, Ink>();
+const requests = new Map<string, Promise<HTMLImageElement>>();
 
 /** The opaque atlas stores arrival time in R/G and ink coverage in B. */
 export function loadInk(url = signature.atlas): Promise<HTMLImageElement> {
-  return new Promise((resolve, reject) => {
+  const key = new URL(url, document.baseURI).href;
+  const cached = requests.get(key);
+  if (cached) return cached;
+  const request = new Promise<HTMLImageElement>((resolve, reject) => {
     const image = new Image();
     image.onload = () => {
       try {
@@ -39,8 +43,11 @@ export function loadInk(url = signature.atlas): Promise<HTMLImageElement> {
       } catch (error) { reject(error); }
     };
     image.onerror = () => reject(new Error("Signature ink could not load"));
-    image.src = url;
+    image.src = key;
   });
+  requests.set(key, request);
+  void request.catch(() => requests.delete(key));
+  return request;
 }
 
 function seek(t: number) {

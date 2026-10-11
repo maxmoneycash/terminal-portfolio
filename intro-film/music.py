@@ -276,7 +276,7 @@ def main() -> None:
     # The signature: an airy pad opening up, washed in reverb, and the quill.
     opening = np.zeros((2, LENGTH))
     place(opening, pad, SG, RA - SG, -7, fade_in=1.0)
-    place(opening, strum, SG + 2, 2, -13)
+    place(opening, strum, SG + 1, RA - SG - 1, -13)
     sweep(opening, SG, RA - SG, 300, 7000)
     music += reverb(opening, 3.0, 0.4)
     start, scratch = quill_scratch()

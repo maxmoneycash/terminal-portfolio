@@ -79,10 +79,12 @@ def main():
     items = [("launch", "The launch film", "The complete 90-second film: a handheld packet analyzer, from radio signals to decoded bytes."), *SHORTS]
     with ThreadPoolExecutor(max_workers=2) as pool:
         results = list(pool.map(prepare, items))
-    (ROOT / "src/data/lilyshark-videos.json").write_text(json.dumps([data for data, _ in results], indent=2) + "\n")
+    catalog = ROOT / "src/data/lilyshark-videos.json"
+    camera = [v for v in json.loads(catalog.read_text()) if v["id"].startswith("lilyshark-camera-")] if catalog.exists() else []
+    catalog.write_text(json.dumps([data for data, _ in results] + camera, indent=2) + "\n")
     path = ROOT / "scripts/release-media.json"
     manifest = json.loads(path.read_text())
-    manifest["files"] = {key: value for key, value in manifest["files"].items() if not key.startswith("videos/reels/lilyshark-")}
+    manifest["files"] = {key: value for key, value in manifest["files"].items() if not key.startswith("videos/reels/lilyshark-") or key.startswith("videos/reels/lilyshark-camera-")}
     for _, media in results: manifest["files"].update(media)
     path.write_text(json.dumps(manifest, indent=2) + "\n")
 

@@ -2,7 +2,7 @@
   {
     "id": "sign",
     "label": "Signature",
-    "beats": 16
+    "beats": 8
   },
   {
     "id": "radio",
@@ -12,7 +12,7 @@
   {
     "id": "lilyshark",
     "label": "Lilyshark",
-    "beats": 40
+    "beats": 36
   },
   {
     "id": "commits",
@@ -22,7 +22,7 @@
   {
     "id": "orbital",
     "label": "Roman telescope",
-    "beats": 24
+    "beats": 32
   },
   {
     "id": "aptos",
@@ -57,6 +57,6 @@
   {
     "id": "overload",
     "label": "More work",
-    "beats": 28
+    "beats": 24
   }
 ]

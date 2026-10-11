@@ -3,7 +3,7 @@
   "sections": [
     {
       "name": "sign",
-      "bars": 4
+      "bars": 2
     },
     {
       "name": "radio",
@@ -11,7 +11,7 @@
     },
     {
       "name": "drop1",
-      "bars": 20
+      "bars": 21
     },
     {
       "name": "drop2",
@@ -19,21 +19,21 @@
     },
     {
       "name": "drop3",
-      "bars": 7
+      "bars": 6
     }
   ],
   "morse": [
     {
       "id": "radio",
       "text": "KK6OQA",
-      "start": 236,
+      "start": 124,
       "framesPerUnit": 1,
       "pitch": 622.25,
       "gainDb": -8
     }
   ],
   "calligraphy": {
-    "start": 12,
-    "frames": 168
+    "start": 4,
+    "frames": 94
   }
 }

@@ -5,15 +5,15 @@
  * which recordings belong together.
  */
 import { Sequence, useCurrentFrame } from "remotion";
-import { mediaLayout } from "../mediaLayout";
+import { mediaLayout, storyLayout } from "../mediaLayout";
 import { BAR, BEAT } from "../beat";
-import { AppWindow, asset, Clip, clipRatio, Desktop, Montage, Still, stillRatio, useOrientation, type Enter } from "../xp";
+import { AppWindow, asset, Clip, ClipAudio, clipInfo, clipRatio, Desktop, Montage, Still, stillRatio, useOrientation, type Enter } from "../xp";
 import type clipManifest from "../../clips.json";
 import type stillManifest from "../../stills.json";
-import { SignalBridge } from "../../../src/intro/SignalBridge";
 
 type ClipId = keyof typeof clipManifest.clips;
 type StillId = keyof typeof stillManifest.stills;
+export const LILYSHARK_VOICE_FRAMES = Math.ceil(clipInfo("lilyshark-max").duration * 30);
 
 /** Window chrome heights: title bar + frame, and IE's address bar. */
 const TITLE = 33;
@@ -87,34 +87,37 @@ function Chapter({ name, panes, length }: { name: string; panes: Pane[]; length:
 /* Drop 1: the best three                                              */
 /* ------------------------------------------------------------------ */
 
+/** Context lives on the wallpaper, with room reserved above the video. */
+function StoryCaption({ text, box }: { text: string; box: { x: number; y: number; w: number } }) {
+  const { portrait } = useOrientation();
+  return <div data-story-caption style={{ position: "absolute", left: box.x + 10, top: box.y - 102,
+    width: box.w - 20, height: 88, display: "flex", alignItems: "center", justifyContent: "center",
+    textAlign: "center", color: "white", font: `600 ${portrait ? 29 : 28}px/1.25 Tahoma, sans-serif`,
+    textShadow: "0 2px 3px #133450, 0 0 14px #133450" }}>{text}</div>;
+}
+
 export function Lilyshark() {
   const { W, H } = useOrientation();
   const frame = useCurrentFrame();
+  const length = 9 * BAR;
+  const box = storyLayout(clipRatio("tdeck-hero"), W, H);
   const shots = [
-    { id: "tdeck-band" as const, at: 0 },
-    { id: "tdeck-hero" as const, at: 2 * BAR },
-    { id: "tdeck-bytes" as const, at: 4 * BAR },
+    { id: "lilyshark-max" as const, at: 0 },
+    { id: "tdeck-hero" as const, at: 3 * BAR },
+    { id: "tdeck-band" as const, at: 5 * BAR },
+    { id: "tdeck-bytes" as const, at: 7 * BAR },
   ];
-  const shorts = ["lilyshark-below-noise", "lilyshark-airtime-short"] as const;
-  return (
-    <Desktop tasks={[{ title: "Lilyshark", icon: PLAYER, active: true }]}>
-      <Sequence durationInFrames={6 * BAR} layout="none">
-        <AppWindow {...mediaLayout([clipRatio("tdeck-hero")], W, H)[0]} at={0} out={6 * BAR - 8}
-          title="Lilyshark — Wireshark for mesh radio" icon={PLAYER}>
-          <Montage shots={shots} until={6 * BAR} />
-        </AppWindow>
-      </Sequence>
-      {shorts.map((id, i) => (
-        <Sequence key={id} from={(6 + i * 2) * BAR} durationInFrames={2 * BAR} layout="none">
-          <AppWindow {...mediaLayout([clipRatio(id)], W, H)[0]} at={0} out={2 * BAR - 8}
-            title={i ? "Lilyshark — why airtime matters" : "Lilyshark — hearing below the noise"} icon={PLAYER}>
-            <Clip id={id} />
-          </AppWindow>
-        </Sequence>
-      ))}
-      {frame < 14 && <SignalBridge width={W} height={H} opacity={1 - frame / 14} />}
-    </Desktop>
-  );
+  const caption = frame < 3 * BAR ? "I built Lilyshark to see what my radio was hearing."
+    : frame < 5 * BAR ? "A handheld packet analyzer for mesh radio."
+    : frame < 7 * BAR ? "See activity across the radio band."
+    : "Inspect the packets behind the signals.";
+  return <Desktop icons={false} tasks={[{ title: "Lilyshark", icon: PLAYER, active: true }]}>
+    <StoryCaption text={caption} box={box} />
+    <AppWindow {...box} at={0} out={length - 8} title="Lilyshark — packet analyzer" icon={PLAYER}>
+      <Montage shots={shots} until={length} />
+    </AppWindow>
+    <Sequence durationInFrames={LILYSHARK_VOICE_FRAMES}><ClipAudio id="lilyshark-max" /></Sequence>
+  </Desktop>;
 }
 
 export function Commits() {
@@ -125,18 +128,21 @@ export function Commits() {
 }
 
 export function Orbital() {
-  return (
-    <Chapter
-      name="Orbital Works"
-      length={6 * BAR}
-      panes={[
-        {
-          title: "Orbital Works — Nancy Grace Roman Space Telescope",
-          body: { montage: [{ id: "roman-earth", at: 0 }, { id: "roman-apart", at: 2 * BAR }, { id: "roman-wheel", at: 4 * BAR }] },
-        },
-      ]}
-    />
-  );
+  const { W, H } = useOrientation();
+  const frame = useCurrentFrame();
+  const step = Math.min(3, Math.floor(frame / (2 * BAR)));
+  const captions = ["Inside the Nancy Grace Roman Space Telescope.", "Follow starlight through the mirrors.",
+    "Through the filter, onto the detector array.", "The simulated sky image in my app."];
+  const box = storyLayout(step === 3 ? stillRatio("roman-image") : clipRatio("roman-apart"), W, H);
+  return <Desktop icons={false} tasks={[{ title: "Orbital Works", icon: PLAYER, active: true }]}>
+    <StoryCaption text={captions[step]} box={box} />
+    <AppWindow {...box} at={0} out={8 * BAR - 8} title="Orbital Works — Roman telescope" icon={PLAYER}>
+      <Sequence durationInFrames={6 * BAR}>
+        <Montage shots={[{ id: "roman-apart", at: 0 }, { id: "roman-optics", at: 2 * BAR }, { id: "roman-detectors", at: 4 * BAR }]} until={6 * BAR} />
+      </Sequence>
+      <Sequence from={6 * BAR} durationInFrames={2 * BAR}><Still id="roman-image" /></Sequence>
+    </AppWindow>
+  </Desktop>;
 }
 
 /* ------------------------------------------------------------------ */

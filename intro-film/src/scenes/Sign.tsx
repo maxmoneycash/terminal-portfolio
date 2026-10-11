@@ -10,7 +10,7 @@ export function Sign() {
   const { W, H } = useOrientation();
   const ink = useInk();
   return <BanknoteOpening frame={frame} width={W} height={H} ink={ink} Image={Img} asset={staticFile}
-    motion={<OffthreadVideo src={staticFile(openingMedia.src)} muted
+    motion={<OffthreadVideo src={staticFile(openingMedia.src)} muted pauseWhenBuffering={false}
       playbackRate={openingMedia.duration / (openingMedia.frames / 30)}
       style={{ width: "100%", height: "100%", objectFit: "cover" }} />} />;
 }

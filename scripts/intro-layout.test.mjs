@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readFileSync } from 'node:fs';
 import { filmDimensions } from '../src/intro/filmDimensions.ts';
-import { mediaLayout } from '../intro-film/src/mediaLayout.ts';
+import { mediaLayout, storyLayout } from '../intro-film/src/mediaLayout.ts';
 const clips = JSON.parse(readFileSync(new URL('../intro-film/clips.json', import.meta.url))).clips;
 const stills = JSON.parse(readFileSync(new URL('../intro-film/stills.json', import.meta.url))).stills;
 const ratios = Object.values({...clips, ...stills}).map(({crop}) => crop[2] / crop[3]);
@@ -28,6 +28,19 @@ for (const [width, height] of [[1280,720], [1440,900], [1950,1160], [1024,768], 
           assert.ok(a.x+a.w <= b.x || b.x+b.w <= a.x || a.y+a.h <= b.y || b.y+b.h <= a.y, 'Related views must not cover one another');
         }
       }
+    }
+  });
+}
+
+for (const [width, height] of [[1440,900], [2560,1080], [390,844], [768,1024], [844,390]]) {
+  test(`story captions and full source frames fit at ${width}x${height}`, () => {
+    const {width: W, height: H} = filmDimensions(width, height);
+    for (const ratio of [16 / 9, 780 / 440]) {
+      const box = storyLayout(ratio, W, H);
+      assert.ok(box.y >= 102 && box.y + box.h <= H - 30);
+      assert.ok(box.x >= 0 && box.x + box.w <= W);
+      assert.ok(Math.abs((box.w - 6) / ratio - (box.h - 33)) <= 2);
+      assert.ok(box.w / W > .5, 'The featured video should stay large');
     }
   });
 }

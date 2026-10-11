@@ -19,7 +19,7 @@ sha = hashlib.sha256(out.read_bytes()).hexdigest()
 name = f'intro-art/banknote-motion-{sha[:8]}.mp4'
 target = ROOT / 'public' / name
 out.replace(target)
-(ROOT / 'src/intro/openingMedia.json').write_text(json.dumps({'src': name, 'duration': 3.2, 'frames': 112}, indent=2) + '\n')
+(ROOT / 'src/intro/openingMedia.json').write_text(json.dumps({'src': name, 'duration': 3.2, 'frames': 48}, indent=2) + '\n')
 p = ROOT / 'scripts/release-media.json'
 manifest = json.loads(p.read_text())
 manifest['files'] = {k: v for k, v in manifest['files'].items() if not k.startswith('intro-art/banknote-motion-')}

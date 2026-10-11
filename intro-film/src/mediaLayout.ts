@@ -38,3 +38,8 @@ export function mediaLayout(ratios: number[], W: number, H: number, chrome: numb
   const first = Math.max(available * 0.25, Math.min(available * 0.75, available * ratios[0] / (ratios[0] + ratios[1])));
   return ratios.map((r, i) => fitMedia(r, { ...area, x: area.x + (i ? first + gap : 0), w: i ? available - first : first }, chrome[i]));
 }
+
+/** Wallpaper captions sit above the content, without covering or cropping it. */
+export function storyLayout(ratio: number, W: number, H: number): MediaBox {
+  return fitMedia(ratio, { x: 12, y: 116, w: W - 24, h: H - 162 });
+}

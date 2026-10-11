@@ -41,10 +41,15 @@ def cut(clip_id: str, clip: dict) -> str:
     # "duration" is source time either way.
     timing = f"setpts=PTS/{speed}," if speed != 1 else ""
     vf = f"crop={w}:{h}:{x}:{y},{timing}fps=30,scale={width}:{height}:flags=lanczos,setsar=1,format=yuv420p"
+    if clip.get("filter"):
+        vf += "," + clip["filter"]
+    audio = ["-c:a", "aac", "-b:a", "160k"] if clip.get("audio") else ["-an"]
+    if clip.get("audioGainDb") is not None:
+        audio += ["-af", f"volume={clip['audioGainDb']}dB,alimiter=limit=0.891:level=false"]
     tmp = out.with_suffix(".tmp.mp4")
     subprocess.run([
         "ffmpeg", "-v", "error", "-y", "-ss", str(clip["start"]), "-t", str(clip["duration"]),
-        "-i", find_source(clip["recording"]), "-an", "-vf", vf, "-c:v", "libx264", "-preset", "medium", "-crf", "14",
+        "-i", find_source(clip["recording"]), *audio, "-vf", vf, "-c:v", "libx264", "-preset", "medium", "-crf", "14",
         "-g", "15", "-profile:v", "high", "-movflags", "+faststart", str(tmp),
     ], check=True)
     tmp.replace(out)

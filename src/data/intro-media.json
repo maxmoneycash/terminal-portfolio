@@ -65,20 +65,10 @@
       "mobile": "/videos/intro-shots/yank-clone-mobile-beb20f8a.mp4",
       "poster": "/videos/intro-shots/yank-clone-d5aa402b.jpg"
     },
-    "roman-earth": {
-      "src": "/videos/intro-shots/roman-earth-src-f1a91ff2.mp4",
-      "mobile": "/videos/intro-shots/roman-earth-mobile-655a7f79.mp4",
-      "poster": "/videos/intro-shots/roman-earth-ecb5dd6f.jpg"
-    },
     "roman-apart": {
       "src": "/videos/intro-shots/roman-apart-src-9d9301f8.mp4",
       "mobile": "/videos/intro-shots/roman-apart-mobile-e022b00b.mp4",
       "poster": "/videos/intro-shots/roman-apart-4bf29fb1.jpg"
-    },
-    "roman-wheel": {
-      "src": "/videos/intro-shots/roman-wheel-src-99b378f9.mp4",
-      "mobile": "/videos/intro-shots/roman-wheel-mobile-e20a676a.mp4",
-      "poster": "/videos/intro-shots/roman-wheel-aea84f8c.jpg"
     },
     "tdeck-hero": {
       "src": "/videos/intro-shots/tdeck-hero-src-5a11d6e5.mp4",
@@ -95,20 +85,25 @@
       "mobile": "/videos/intro-shots/tdeck-band-mobile-6f44965d.mp4",
       "poster": "/videos/intro-shots/tdeck-band-b60de2cc.jpg"
     },
-    "lilyshark-below-noise": {
-      "src": "/videos/intro-shots/lilyshark-below-noise-src-067072d8.mp4",
-      "mobile": "/videos/intro-shots/lilyshark-below-noise-mobile-f0c6c1e7.mp4",
-      "poster": "/videos/intro-shots/lilyshark-below-noise-fdd15518.jpg"
-    },
-    "lilyshark-airtime-short": {
-      "src": "/videos/intro-shots/lilyshark-airtime-short-src-6e0cc072.mp4",
-      "mobile": "/videos/intro-shots/lilyshark-airtime-short-mobile-5b5e0201.mp4",
-      "poster": "/videos/intro-shots/lilyshark-airtime-short-a2e90755.jpg"
-    },
     "commits-sh-workspace": {
       "src": "/videos/intro-shots/commits-sh-workspace-src-7c237f18.mp4",
       "mobile": "/videos/intro-shots/commits-sh-workspace-mobile-ebf6c88a.mp4",
       "poster": "/videos/intro-shots/commits-sh-workspace-db591351.jpg"
+    },
+    "roman-optics": {
+      "src": "/videos/intro-shots/roman-optics-src-d52b1be9.mp4",
+      "mobile": "/videos/intro-shots/roman-optics-mobile-bb74ab34.mp4",
+      "poster": "/videos/intro-shots/roman-optics-781bf2e9.jpg"
+    },
+    "roman-detectors": {
+      "src": "/videos/intro-shots/roman-detectors-src-ac034871.mp4",
+      "mobile": "/videos/intro-shots/roman-detectors-mobile-9b22ef00.mp4",
+      "poster": "/videos/intro-shots/roman-detectors-e6271acd.jpg"
+    },
+    "lilyshark-max": {
+      "src": "/videos/intro-shots/lilyshark-max-src-d6699fca.mp4",
+      "mobile": "/videos/intro-shots/lilyshark-max-mobile-4c02730c.mp4",
+      "poster": "/videos/intro-shots/lilyshark-max-96ba93b0.jpg"
     }
   },
   "stills": {
@@ -117,8 +112,9 @@
     "turbotokens": "/videos/intro-shots/turbotokens-e5dc649b.jpg",
     "whop-finance": "/videos/intro-shots/whop-finance-3f7c1593.jpg",
     "gadgets-catalog": "/videos/intro-shots/gadgets-catalog-5229dd8e.jpg",
-    "gadgets-huskylens": "/videos/intro-shots/gadgets-huskylens-97c546b4.jpg"
+    "gadgets-huskylens": "/videos/intro-shots/gadgets-huskylens-97c546b4.jpg",
+    "roman-image": "/videos/intro-shots/roman-image-2576d4c5.jpg"
   },
-  "soundtrack": "/videos/intro-shots/score-e201cee2.m4a",
+  "soundtrack": "/videos/intro-shots/score-1495dbb8.m4a",
   "wallpaperFrames": 415
 }

@@ -28,9 +28,16 @@ def clip(item):
     name, info = item
     source = BUILD / 'clips' / f'{name}.mp4'
     refs, pins = {}, {}
+    cache = STAGE / f'{name}.json'
+    signature = hashlib.sha256(source.read_bytes()).hexdigest() + json.dumps(info, sort_keys=True)
+    if cache.exists():
+        saved = json.loads(cache.read_text())
+        if saved['signature'] == signature and all((ROOT / 'public' / url.lstrip('/')).exists() for url in saved['refs'].values()):
+            return name, saved['refs'], saved['pins']
     for quality, width, height, crf, rate in [('src', 1920, 1440, '23', '4000k'), ('mobile', 960, 1280, '24', '1800k')]:
         target = STAGE / f'{name}-{quality}.mp4'
-        run('ffmpeg', '-v', 'error', '-xerror', '-y', '-i', str(source), '-an',
+        audio = ['-c:a', 'aac', '-b:a', '128k'] if info.get('audio') else ['-an']
+        run('ffmpeg', '-v', 'error', '-xerror', '-y', '-i', str(source), *audio,
             '-vf', f'scale=w=min(iw\\,{width}):h=min(ih\\,{height}):force_original_aspect_ratio=decrease:force_divisible_by=2',
             '-c:v', 'libx264', '-threads', '2', '-preset', 'medium', '-crf', crf,
             '-maxrate', rate, '-bufsize', str(int(rate[:-1])*2)+'k', '-pix_fmt', 'yuv420p', '-g', '30',
@@ -41,6 +48,7 @@ def clip(item):
     poster = STAGE / f'{name}.jpg'
     run('ffmpeg', '-v', 'error', '-y', '-i', str(source), '-frames:v', '1', '-vf', 'scale=480:-2', '-q:v', '4', str(poster))
     refs['poster'], _ = publish(poster, name)
+    cache.write_text(json.dumps(dict(signature=signature, refs=refs, pins=pins)))
     print(f'{name}: ready', flush=True)
     return name, refs, pins
 
@@ -52,7 +60,7 @@ def main():
     names = set(re.findall(r"[a-z0-9][a-z0-9-]*", text))
     clips = json.loads((ROOT / 'intro-film/clips.json').read_text())['clips']
     stills = json.loads((ROOT / 'intro-film/stills.json').read_text())['stills']
-    if not {'commits-sh-workspace', 'tdeck-hero', 'roman-earth', 'nipahscan'}.issubset(names):
+    if not {'commits-sh-workspace', 'tdeck-hero', 'roman-optics', 'nipahscan'}.issubset(names):
         raise ValueError('Required responsive scenes were not found; refusing to publish')
     media = json.loads(MANIFEST.read_text())
     media['files'] = {k:v for k,v in media['files'].items() if not k.startswith('videos/intro-shots/')}

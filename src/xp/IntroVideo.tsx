@@ -32,7 +32,10 @@ export function IntroVideo({ onFinish, fading, requested = false }: {
   const [started, setStarted] = useState(false);
   const [slow, setSlow] = useState(false);
   const [attempt, setAttempt] = useState(0);
-  const [openingStart] = useState(() => performance.now());
+  const [inkReady, setInkReady] = useState(false);
+  const openingFrame = useRef(0);
+  const inkLoaded = useCallback(() => setInkReady(true), []);
+  const openingTick = useCallback((value: number) => { openingFrame.current = value; }, []);
   const [volume] = useState(() => getSystemVolume() / 100);
   const [skipVisible, setSkipVisible] = useState(false);
   const lastFrame = useRef(0);
@@ -65,7 +68,7 @@ export function IntroVideo({ onFinish, fading, requested = false }: {
   }, []);
 
   useEffect(() => {
-    if (!player) return;
+    if (!player || !inkReady) return;
     const playing = () => { setStarted(true); setPlayback("playing"); };
     const paused = () => { if (!finished.current) setPlayback("paused"); };
     const buffering = () => setPlayback("buffering");
@@ -82,6 +85,7 @@ export function IntroVideo({ onFinish, fading, requested = false }: {
     player.addEventListener("ended", ended);
     player.addEventListener("error", fail);
     player.addEventListener("timeupdate", time);
+    if (!started) player.seekTo(Math.max(initialFrame.current, openingFrame.current));
     if (!manualPreference || userStarted.current) {
       if (userStarted.current) player.unmute();
       player.play();
@@ -95,7 +99,7 @@ export function IntroVideo({ onFinish, fading, requested = false }: {
       player.removeEventListener("error", fail);
       player.removeEventListener("timeupdate", time);
     };
-  }, [player, manualPreference, finish, fail]);
+  }, [player, inkReady, manualPreference, finish, fail]);
 
   useEffect(() => {
     setSlow(false);
@@ -113,9 +117,11 @@ export function IntroVideo({ onFinish, fading, requested = false }: {
       setPlayback("loading");
       return;
     }
+    if (!inkReady) return;
+    if (!started) player?.seekTo(Math.max(initialFrame.current, openingFrame.current));
     player?.unmute();
     player?.play();
-  }, [player, playback, waiting, slow]);
+  }, [player, inkReady, started, playback, waiting, slow]);
 
   useEffect(() => {
     const key = (event: KeyboardEvent) => {
@@ -142,7 +148,7 @@ export function IntroVideo({ onFinish, fading, requested = false }: {
           initialFrame={initialFrame.current} volume={volume} onReady={setPlayer} />
       </Suspense>
     </FilmBoundary>
-    {!started && <LoadingMontage startedAt={openingStart} still={needsPlay} width={viewport.width} height={viewport.height} />}
+    {!started && <LoadingMontage key={attempt} onError={fail} onReady={inkLoaded} onFrame={openingTick} still={manualPreference} width={viewport.width} height={viewport.height} />}
     {(needsPlay || (waiting && slow)) && <div className="intro-play-prompt">
       {playback === "error" ? <p>Playback was interrupted. Retry from here.</p> : waiting ? <p role="status">Still loading the film…</p> : null}
       <button type="button" className="xp-control" onClick={event => { event.stopPropagation(); play(); }}>

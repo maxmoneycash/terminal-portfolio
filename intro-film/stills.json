@@ -197,6 +197,17 @@
    ],
    "repo": "maxmoneycash/orbital-works",
    "title": "roman-telescope.png"
+  },
+  "roman-image": {
+   "file": "Screenshot 2026-09-27 at 6.40.11?PM.png",
+   "crop": [
+    2400,
+    300,
+    780,
+    440
+   ],
+   "repo": "maxmoneycash/orbital-works",
+   "title": "Roman \u2014 simulated detector image"
   }
  }
 }

@@ -564,6 +564,49 @@
       ],
       "width": 2400,
       "frames": true
+    },
+    "roman-optics": {
+      "title": "Roman \u2014 following starlight through the mirrors",
+      "recording": "roman-film.mp4",
+      "start": 44,
+      "duration": 4,
+      "crop": [
+        0,
+        0,
+        1920,
+        1080
+      ],
+      "width": 1920,
+      "filter": "eq=gamma=1.3:brightness=0.02"
+    },
+    "roman-detectors": {
+      "title": "Roman \u2014 the filter and detector array",
+      "recording": "roman-film.mp4",
+      "start": 50.2,
+      "duration": 4,
+      "crop": [
+        0,
+        0,
+        1920,
+        1080
+      ],
+      "width": 1920,
+      "filter": "eq=gamma=1.3:brightness=0.02"
+    },
+    "lilyshark-max": {
+      "title": "Max \u2014 why I built Lilyshark",
+      "recording": "/Users/maxmohammadi/Documents/Eric Photos/P1010579.MOV",
+      "start": 227.92,
+      "duration": 12.08,
+      "crop": [
+        0,
+        0,
+        1920,
+        1080
+      ],
+      "width": 1920,
+      "audio": true,
+      "audioGainDb": 10
     }
   }
 }

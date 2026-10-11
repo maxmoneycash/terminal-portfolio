@@ -4,29 +4,32 @@ import { BanknoteOpening, OPENING_FRAMES } from "./BanknoteOpening";
 import openingMedia from "./openingMedia.json";
 import { filmDimensions } from "./filmDimensions";
 
-/** Runs immediately, even while the MP4 is still downloading. */
-export function LoadingMontage({ startedAt, still, width: viewportWidth, height: viewportHeight }: { startedAt: number; still: boolean; width: number; height: number }) {
+/** The writing clock starts only after the ink has decoded. The player joins it. */
+export function LoadingMontage({ still, onReady, onError, onFrame, width: viewportWidth, height: viewportHeight }: { still: boolean; onReady: () => void; onError: () => void; onFrame: (frame: number) => void; width: number; height: number }) {
   const [frame, setFrame] = useState(0);
   const [ink, setInk] = useState<HTMLImageElement | null>(null);
+  const startedAt = useRef<number | null>(null);
   const stage = useRef<HTMLDivElement>(null);
   const motion = useRef<HTMLVideoElement>(null);
   const { width, height } = filmDimensions(viewportWidth, viewportHeight);
   useEffect(() => {
     let active = true;
-    void loadInk().then(image => { if (active) setInk(image); }).catch(() => {});
+    void loadInk().then(image => { if (active) { setInk(image); onReady(); } }).catch(() => { if (active) onError(); });
     return () => { active = false; };
-  }, []);
+  }, [onReady, onError]);
   useEffect(() => {
-    if (still) return;
+    if (!ink) return;
+    startedAt.current ??= performance.now();
     let request = 0;
     const tick = () => {
-      const next = Math.min(OPENING_FRAMES - 1, Math.floor((performance.now() - startedAt) * .03));
+      const next = Math.min(OPENING_FRAMES - 1, Math.floor((performance.now() - startedAt.current!) * .03));
       setFrame(next);
+      onFrame(next);
       if (next < OPENING_FRAMES - 1) request = requestAnimationFrame(tick);
     };
     request = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(request);
-  }, [startedAt, still]);
+  }, [ink, onFrame]);
   useEffect(() => {
     const element = stage.current;
     if (!element?.parentElement) return;
@@ -38,16 +41,16 @@ export function LoadingMontage({ startedAt, still, width: viewportWidth, height:
     return () => observer.disconnect();
   }, [width, height]);
   return (
-    <div className="intro-loading-art">
+    <div className="intro-loading-art" data-opening-frame={frame}>
       <div ref={stage} style={{ position: "absolute", left: "50%", top: "50%", width, height, transformOrigin: "center", transform: "translate(-50%, -50%)" }}>
-        <BanknoteOpening frame={still ? OPENING_FRAMES - 40 : frame} width={width} height={height} ink={ink}
+        <BanknoteOpening frame={frame} width={width} height={height} ink={ink}
           motion={!still && <video ref={motion} src={`/${openingMedia.src}`} autoPlay muted playsInline preload="auto"
             onLoadedMetadata={() => {
               const video = motion.current;
               if (!video) return;
               const rate = openingMedia.duration / (openingMedia.frames / 30);
               video.playbackRate = rate;
-              video.currentTime = Math.min(openingMedia.duration - .05, (performance.now() - startedAt) / 1000 * rate);
+              video.currentTime = Math.min(openingMedia.duration - .05, frame / 30 * rate);
               void video.play().catch(() => {});
             }}
             style={{ width: "100%", height: "100%", objectFit: "cover" }} />} />

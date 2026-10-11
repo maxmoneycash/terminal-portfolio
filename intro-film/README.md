@@ -1,15 +1,29 @@
 # MaxXP intro film
 
-A 78.4-second XP desktop film: a banknote montage under Max's recorded signature, **KK6OQA** in Morse,
-a 19-second Lilyshark feature, a full-workspace commits.sh timelapse, Orbital Works,
+A 74.7-second XP desktop film: a banknote montage under Max's recorded signature, **KK6OQA** in Morse,
+a 16.8-second Lilyshark feature, a full-workspace commits.sh timelapse, Orbital Works,
 six project chapters, larger pairs of
-additional work, then a short window cascade and “your turn.” The live radio
+additional work, then “your turn.” The live radio
 app keeps its longer greeting; the film's cue is independent in `score.json`.
 
-Lilyshark uses three longer extracts from `lilyshark-launch-v2.mp4` (the
-T-Deck reveal, packet bytes, and spectrum), then the “below the noise” and
-“airtime” shorts. Each gets its own large window. The portrait shorts are
-cropped around the actual content, removing their empty outer margins.
+Lilyshark opens with Max speaking, then shows the T-Deck reveal, spectrum, and
+packet bytes from `lilyshark-launch-v2.mp4`. His natural-speed voice continues
+under the device footage, with the music lowered. Short captions on the desktop
+explain what the project is and why he built it. The full launch film, ten
+animated shorts, and three camera explanations remain available in Demo Reel.
+
+The camera takes were found in `~/Documents/Eric Photos/P1010579 edits/`.
+Their README describes time-compressed speech; the newer preferences in
+`~/lilyshark/docs/content/editing-preferences.md` ask for a natural voice.
+`scripts/prepare-lilyshark-camera.py` therefore cuts complete phrases from the
+original `~/Documents/Eric Photos/P1010579.MOV` at 1.00x. Audio gets a fixed
+10 dB gain and peak protection; no pitch or word-timing changes. Allow iCloud to download
+that original before cutting. Previous edits remain intact.
+
+Roman follows a four-shot explanation: internal assembly, the optical path,
+the filter/detector array, and a clearly labeled simulated sky image from the
+app. The 3D footage retains its full source frame; the image is cropped to the
+actual image area of the app screenshot.
 
 The browser plays the shared composition through `@remotion/player`. Its logical
 canvas matches the actual viewport aspect ratio, using a height of 720 for
@@ -52,11 +66,14 @@ The opening uses `src/intro/BanknoteOpening.tsx` and `src/lib/calligraphy.ts`,
 shared with the immediate loading montage and the site's quill. The supplied dollar-bill motion clip opens into four
 banknote engravings under the recorded ink; portrait
 stacks the two words. Source credits live in `public/intro-art/SOURCES.md`.
-The loading montage starts while the browser composition loads.
-Reduced motion shows the finished signature with a Play intro button.
+The loading montage waits for the ink to decode before starting its clock.
+The browser player joins that clock, so the first writing strokes are never
+skipped or replayed. Reduced motion keeps the footage paused behind Play intro
+while the requested signature writes. The opening has no text, border, progress
+line, or waveform transition.
 `scripts/signature/from_video.py` extracts ink arrival and pen movement from
 the supplied signature recording, removes the notebook background, shortens
-pauses, and retimes the writing to 5.6 seconds. It writes the content-hashed
+pauses, and retimes the writing using `score.json` (currently 3.13 seconds). It writes the content-hashed
 ink atlas in `public/signature/` and `src/lib/signatureRecording.json`.
 Portrait lines are separated by recorded stroke time, keeping the flourish
 intact. The older manual trace tools remain available as source history.
@@ -75,7 +92,7 @@ node --experimental-strip-types --test scripts/intro-layout.test.mjs
 MP4s and M4As stay out of git. `scripts/prepare-intro-web.py` emits individual
 HD/mobile shots, posters, and the score, pinning SHA-256 hashes in
 `scripts/release-media.json`. The site build fetches and verifies those exact
-assets. Offline `intro:publish` exports are separate and are not downloaded by
+assets. Upcoming scenes and shots premount one second ahead to reduce buffering. Offline `intro:publish` exports are separate and are not downloaded by
 the website build. `intro:clean` preserves masters and original recordings.
 
 The site shows the intro on ordinary arrivals, saved app hashes, and reloads.

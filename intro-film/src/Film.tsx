@@ -1,7 +1,7 @@
-import { AbsoluteFill, Audio, Loop, OffthreadVideo, Series, staticFile, useCurrentFrame, useVideoConfig } from "remotion";
+import { AbsoluteFill, Audio, interpolate, Loop, OffthreadVideo, Sequence, staticFile, useCurrentFrame, useVideoConfig } from "remotion";
 import { BEAT, dropFlash } from "./beat";
 import { SceneStart } from "./xp";
-import { AptosMegaeth, Commits, Gadgets, Lilyshark, Mainnet, Nipah, Orbital, Sol2Move, Yank } from "./scenes/Chapters";
+import { AptosMegaeth, Commits, Gadgets, Lilyshark, LILYSHARK_VOICE_FRAMES, Mainnet, Nipah, Orbital, Sol2Move, Yank } from "./scenes/Chapters";
 import { Overload } from "./scenes/Overload";
 import { Radio } from "./scenes/Radio";
 import { Sign } from "./scenes/Sign";
@@ -10,8 +10,8 @@ import { useWebPlayback } from "./playback";
 
 /**
  * Scene order and lengths in beats (14 frames each). Sections follow the
- * soundtrack in score.json: the signature 4 bars, the radio 2, then three
- * drops (20, 9, 7) that get faster and denser. Every cut lands on a beat.
+ * soundtrack in score.json: the signature 2 bars, the radio 2, then three
+ * drops (21, 9, 6) that get faster and denser. Every cut lands on a beat.
  */
 const components = { sign: Sign, radio: Radio, lilyshark: Lilyshark, commits: Commits, orbital: Orbital,
   aptos: AptosMegaeth, sol2move: Sol2Move, yank: Yank, nipah: Nipah,
@@ -32,6 +32,9 @@ export function Film() {
   const { width, height } = useVideoConfig();
   const web = useWebPlayback();
   const flash = dropFlash(frame);
+  const voiceStart = SCENE_STARTS.lilyshark;
+  const musicVolume = interpolate(frame, [voiceStart - 6, voiceStart + 4, voiceStart + LILYSHARK_VOICE_FRAMES, voiceStart + LILYSHARK_VOICE_FRAMES + 12],
+    [0.9, 0.09, 0.09, 0.9], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
   return (
     <AbsoluteFill style={{ background: "#3a6ea5" }}>
       {web && <AbsoluteFill style={{ background: `url(/xp/gui/bgs/bliss-${height > width ? "mobile" : "desktop"}.webp) center / cover` }}>
@@ -41,18 +44,16 @@ export function Film() {
         </Loop>
       </AbsoluteFill>}
       <AbsoluteFill>
-        <Series>
-          {SCENES.map(({ name, beats, component: Scene }) => (
-            <Series.Sequence key={name} durationInFrames={beats * BEAT} name={name}>
-              <SceneStart.Provider value={SCENE_STARTS[name]}>
-                <Scene />
-              </SceneStart.Provider>
-            </Series.Sequence>
-          ))}
-        </Series>
+        {SCENES.map(({ name, beats, component: Scene }) => (
+          <Sequence key={name} from={SCENE_STARTS[name]} durationInFrames={beats * BEAT} name={name} premountFor={web ? 30 : 0}>
+            <SceneStart.Provider value={SCENE_STARTS[name]}>
+              <Scene />
+            </SceneStart.Provider>
+          </Sequence>
+        ))}
       </AbsoluteFill>
       {flash > 0.01 ? <AbsoluteFill style={{ background: "#fff", opacity: 0.55 * flash, pointerEvents: "none" }} /> : null}
-      <Audio src={web ? web.soundtrack : staticFile("music/soundtrack.wav")} volume={0.9} pauseWhenBuffering />
+      <Audio src={web ? web.soundtrack : staticFile("music/soundtrack.wav")} volume={musicVolume} pauseWhenBuffering />
     </AbsoluteFill>
   );
 }

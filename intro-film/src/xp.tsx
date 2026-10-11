@@ -74,6 +74,12 @@ export function Clip({ id, from = 0, fit = "contain", position = "50% 50%", styl
   );
 }
 
+/** The original, natural-speed voice continues under the following device shots. */
+export function ClipAudio({ id }: { id: ClipId }) {
+  const web = useWebPlayback();
+  return <Audio src={web ? web.clips[id][web.mobile ? "mobile" : "src"] : staticFile(`clips/${id}.mp4`)} pauseWhenBuffering />;
+}
+
 /* ------------------------------------------------------------------ */
 /* Window                                                              */
 /* ------------------------------------------------------------------ */
@@ -597,10 +603,11 @@ export function AppWindow({ at, out, enter = "pop", exit = "minimize", taskX, ch
 
 /** Hard cuts between shots on the beat: each shot plays from its own start. */
 export function Montage({ shots, until }: { shots: { id: ClipId; at: number; from?: number }[]; until: number }) {
+  const web = useWebPlayback();
   return (
     <>
       {shots.map((shot, i) => (
-        <Sequence key={`${shot.id}-${shot.at}`} from={shot.at} durationInFrames={Math.max(1, (shots[i + 1]?.at ?? until) - shot.at)} layout="none">
+        <Sequence key={`${shot.id}-${shot.at}`} from={shot.at} durationInFrames={Math.max(1, (shots[i + 1]?.at ?? until) - shot.at)} premountFor={web ? 30 : 0}>
           <Clip id={shot.id} from={shot.from ?? 0} />
         </Sequence>
       ))}

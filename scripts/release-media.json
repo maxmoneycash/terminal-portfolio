@@ -62,6 +62,18 @@
       "sha256": "ba617c10f0ffed2469404ae8b3809b6e662cc86be40ab89dfe5453eb01f32045",
       "bytes": 6704374
     },
+    "videos/reels/lilyshark-camera-why-i-built-it-1a40f6cd.mp4": {
+      "sha256": "1a40f6cd6d9ea0b0e41be6be933999b5e47d4533610bbb34f099e711708e60b7",
+      "bytes": 2751126
+    },
+    "videos/reels/lilyshark-camera-device-explained-2ed20499.mp4": {
+      "sha256": "2ed20499d6e87cd1e6b8e0c90fa615f28602247d428f6a12488e5f337f82a38f",
+      "bytes": 4797210
+    },
+    "videos/reels/lilyshark-camera-spectrum-demo-505a37ac.mp4": {
+      "sha256": "505a37acddbfdd8ff46e76f0f82939a41e8c74f833bb7f87a3727a3da6dc0f7d",
+      "bytes": 4648687
+    },
     "videos/intro-shots/aptos-vs-megaeth-src-6c7794bc.mp4": {
       "sha256": "6c7794bccaf3ee27d449de9619a7aca59e9e4569ba9a466147b644a09847bded",
       "bytes": 1426457
@@ -166,14 +178,6 @@
       "sha256": "beb20f8ace0d7222226b76146e9a6afbfe84b6fb758afcb7ff837ddd762dd58b",
       "bytes": 167278
     },
-    "videos/intro-shots/roman-earth-src-f1a91ff2.mp4": {
-      "sha256": "f1a91ff275595758ca62840a0c7a29164862c4dc613c44b2ed189349bce30dd1",
-      "bytes": 1077898
-    },
-    "videos/intro-shots/roman-earth-mobile-655a7f79.mp4": {
-      "sha256": "655a7f79de952594f913b404b26fc31bf7a10af3814aae76235d6eac40f1aee3",
-      "bytes": 284755
-    },
     "videos/intro-shots/roman-apart-src-9d9301f8.mp4": {
       "sha256": "9d9301f824fefdb8e945bff7eeb4553927c2104674dfacbe159c7331099e976c",
       "bytes": 866478
@@ -181,14 +185,6 @@
     "videos/intro-shots/roman-apart-mobile-e022b00b.mp4": {
       "sha256": "e022b00bc5bbc1375d30878cae3bfbbce3efb26dc209765250218f567475f0cf",
       "bytes": 242940
-    },
-    "videos/intro-shots/roman-wheel-src-99b378f9.mp4": {
-      "sha256": "99b378f9c712f1c9c9c43159982e315c1037f2a8cab9193f45dcb7a1302acf0e",
-      "bytes": 1017211
-    },
-    "videos/intro-shots/roman-wheel-mobile-e20a676a.mp4": {
-      "sha256": "e20a676a08a32336225ad79a36bacca8129e4032125d521963093b692dd13edc",
-      "bytes": 196057
     },
     "videos/intro-shots/tdeck-hero-src-5a11d6e5.mp4": {
       "sha256": "5a11d6e5b3abb7321a443885a9dd8a43ee943e55b260fb8ffd8422afc431eea1",
@@ -214,22 +210,6 @@
       "sha256": "6f44965d70bd4c24bfc01a8ff3adf685f349f09fe836ad770985c09dfede8a0f",
       "bytes": 384657
     },
-    "videos/intro-shots/lilyshark-below-noise-src-067072d8.mp4": {
-      "sha256": "067072d87a43e78900af6a7fb5adb120384a138aba68ff65b791516a7aa90e52",
-      "bytes": 1493820
-    },
-    "videos/intro-shots/lilyshark-below-noise-mobile-f0c6c1e7.mp4": {
-      "sha256": "f0c6c1e7c7206d173aefbc94f82d8c6f046088e54edcc86ae239f0ec334a72db",
-      "bytes": 907579
-    },
-    "videos/intro-shots/lilyshark-airtime-short-src-6e0cc072.mp4": {
-      "sha256": "6e0cc072ea5c102fa77948e887b6fa6a09120411e0cc0567e956ef273982df3d",
-      "bytes": 1674991
-    },
-    "videos/intro-shots/lilyshark-airtime-short-mobile-5b5e0201.mp4": {
-      "sha256": "5b5e02012bca896748e6a0d6a29fd73761bf70816b2ef3219549e58190f01e0c",
-      "bytes": 986497
-    },
     "videos/intro-shots/commits-sh-workspace-src-7c237f18.mp4": {
       "sha256": "7c237f18b295c51e8a9cc5885af71edd6a6359df0f127394a9e0121c34246e88",
       "bytes": 4132912
@@ -238,9 +218,33 @@
       "sha256": "ebf6c88a226eee8071574332a50b6ef0877681fc4e99dc0c187a30b76fa7e271",
       "bytes": 1871026
     },
-    "videos/intro-shots/score-e201cee2.m4a": {
-      "sha256": "e201cee2d8dad694295055bcdb2157127101bdf3642e51f9943e5a780fb0e166",
-      "bytes": 1283902
+    "videos/intro-shots/roman-optics-src-d52b1be9.mp4": {
+      "sha256": "d52b1be975a5d34b3a42fb5e814d36d8d3407d44c98c68fad0d1a66f67329a92",
+      "bytes": 1402646
+    },
+    "videos/intro-shots/roman-optics-mobile-bb74ab34.mp4": {
+      "sha256": "bb74ab34d0c303691c17ea68a2a26814adff5be408b928de014ade4e500d10aa",
+      "bytes": 226686
+    },
+    "videos/intro-shots/roman-detectors-src-ac034871.mp4": {
+      "sha256": "ac034871510eb0ea425c9a94b6f0a0a6ceeb63469c29703068a3b640c7cc2969",
+      "bytes": 1245870
+    },
+    "videos/intro-shots/roman-detectors-mobile-9b22ef00.mp4": {
+      "sha256": "9b22ef00df0b22a09dfde54a43b665fa444f911a880f1637df5b260d69488da8",
+      "bytes": 172835
+    },
+    "videos/intro-shots/lilyshark-max-src-d6699fca.mp4": {
+      "sha256": "d6699fca026b0e884b6eac1432d00f1ad92ec4447450ec2cdd582441feb3dd6c",
+      "bytes": 5083030
+    },
+    "videos/intro-shots/lilyshark-max-mobile-4c02730c.mp4": {
+      "sha256": "4c02730c80a5b941c6e792c85e30b71c92699f9b61505ce9bd74e28902ed1278",
+      "bytes": 1483603
+    },
+    "videos/intro-shots/score-1495dbb8.m4a": {
+      "sha256": "1495dbb85185119fae6aee782af8d48a65d7b4178cdd7bd3cdd34daf6cf5c109",
+      "bytes": 1223608
     }
   }
 }

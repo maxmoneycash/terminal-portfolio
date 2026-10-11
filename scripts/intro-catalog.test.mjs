@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync, existsSync, readdirSync } from 'node:fs';
 import test from 'node:test';
 
 const read = path => JSON.parse(readFileSync(new URL(path, import.meta.url), 'utf8'));
@@ -18,12 +18,14 @@ test('scenes and soundtrack use the same complete timeline', () => {
 });
 
 test('Roman holds full frames without looping; commits retains the whole workspace', () => {
-  const shotSeconds = chapters.find(chapter => chapter.id === 'orbital').beats * score.framesPerBeat / 30 / 3;
+  const shotSeconds = chapters.find(chapter => chapter.id === 'orbital').beats * score.framesPerBeat / 30 / 4;
   assert.ok(shotSeconds >= 3.5);
-  for (const id of ['roman-earth', 'roman-apart', 'roman-wheel']) {
+  for (const id of ['roman-apart', 'roman-optics', 'roman-detectors']) {
     assert.deepEqual(clips[id].crop, [0, 0, 1920, 1080]);
     assert.ok(clips[id].duration >= shotSeconds);
   }
+  assert.equal(clips['lilyshark-max'].audio, true);
+  assert.equal(clips['lilyshark-max'].speed ?? 1, 1, 'Keep Max’s natural voice');
   const commits = clips['commits-sh-workspace'];
   assert.deepEqual(commits.crop, [0, 0, 3456, 2234]);
   const seconds = chapters.find(chapter => chapter.id === 'commits').beats * score.framesPerBeat / 30;
@@ -48,7 +50,7 @@ test('responsive shots and soundtrack are pinned, with posters available immedia
 });
 
 test('Lilyshark has its complete launch film, ten uncropped shorts, and a separate preview', () => {
-  const videos = read('../src/data/lilyshark-videos.json');
+  const videos = read('../src/data/lilyshark-videos.json').filter(v => v.date !== 'On camera');
   const media = read('./release-media.json').files;
   assert.equal(videos.length, 11);
   assert.equal(videos[0].durationSeconds, 90);
@@ -60,6 +62,27 @@ test('Lilyshark has its complete launch film, ten uncropped shorts, and a separa
     for (const src of [...video.sources.map(source => source.src), ...(video.previewSrc ? [video.previewSrc] : [])]) {
       assert.ok(media[src.slice(1)], `Missing release asset: ${src}`);
     }
+    assert.ok(existsSync(new URL(`../public${video.poster}`, import.meta.url)));
+  }
+});
+
+test('every clip used by a scene has a published responsive source', () => {
+  const folder = new URL('../intro-film/src/scenes/', import.meta.url);
+  const source = readdirSync(folder).filter(name => name.endsWith('.tsx')).map(name => readFileSync(new URL(name, folder), 'utf8')).join('\n');
+  const tokens = new Set(source.match(/[a-z0-9][a-z0-9-]*/g));
+  const media = read('../src/data/intro-media.json');
+  for (const id of Object.keys(clips)) if (tokens.has(id)) assert.ok(media.clips[id], `Unpublished clip: ${id}`);
+});
+
+test('the Lilyshark library includes the recovered natural-speed camera explanations', () => {
+  const videos = read('../src/data/lilyshark-videos.json').filter(v => v.date === 'On camera');
+  const files = read('./release-media.json').files;
+  assert.equal(videos.length, 3);
+  for (const video of videos) {
+    assert.equal(video.sourceFilename, 'P1010579.MOV');
+    assert.equal(video.hasAudio, true);
+    assert.ok(video.durationSeconds >= 12);
+    assert.ok(files[video.sources[0].src.slice(1)]);
     assert.ok(existsSync(new URL(`../public${video.poster}`, import.meta.url)));
   }
 });
