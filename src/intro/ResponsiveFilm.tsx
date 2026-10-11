@@ -20,12 +20,13 @@ export default function ResponsiveFilm({ width, height, mobile, initialFrame, vo
     onReady(ref.current);
     return () => onReady(null);
   }, [onReady]);
+  // Native tags retain the soundtrack source when mute changes the audio context.
   return <Player ref={ref} component={Composition} inputProps={inputProps}
     compositionWidth={dimensions.width} compositionHeight={dimensions.height}
     durationInFrames={FILM_FRAMES} fps={30} initialFrame={initialFrame}
     className="intro-film" style={{ width: "100%", height: "100%" }}
     controls={false} clickToPlay={false} doubleClickToFullscreen={false}
     spaceKeyToPlayOrPause={false} moveToBeginningWhenEnded={false}
-    initiallyMuted initialVolume={volume} numberOfSharedAudioTags={12}
+    initiallyMuted initialVolume={volume} numberOfSharedAudioTags={0}
     errorFallback={() => null} renderLoading={() => null} />;
 }
