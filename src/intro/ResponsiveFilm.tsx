@@ -20,7 +20,8 @@ export default function ResponsiveFilm({ width, height, mobile, initialFrame, vo
     onReady(ref.current);
     return () => onReady(null);
   }, [onReady]);
-  // Native tags retain the soundtrack source when mute changes the audio context.
+  // Keep the audio clock alive across buffering; native audio can otherwise keep
+  // playing while the frame loop waits for a suspended Web Audio output clock.
   return <Player ref={ref} component={Composition} inputProps={inputProps}
     compositionWidth={dimensions.width} compositionHeight={dimensions.height}
     durationInFrames={FILM_FRAMES} fps={30} initialFrame={initialFrame}
@@ -28,5 +29,6 @@ export default function ResponsiveFilm({ width, height, mobile, initialFrame, vo
     controls={false} clickToPlay={false} doubleClickToFullscreen={false}
     spaceKeyToPlayOrPause={false} moveToBeginningWhenEnded={false}
     initiallyMuted initialVolume={volume} numberOfSharedAudioTags={0}
+    _experimentalKeepAudioContextAlive
     errorFallback={() => null} renderLoading={() => null} />;
 }

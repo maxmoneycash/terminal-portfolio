@@ -42,7 +42,7 @@ export function Film() {
       </AbsoluteFill>}
       <AbsoluteFill>
         {SCENES.map(({ name, beats, component: Scene }) => (
-          <Sequence key={name} from={SCENE_STARTS[name]} durationInFrames={beats * BEAT} name={name} premountFor={web ? 30 : 0}>
+          <Sequence key={name} from={SCENE_STARTS[name]} durationInFrames={beats * BEAT} name={name} premountFor={web ? 60 : 0}>
             <SceneStart.Provider value={SCENE_STARTS[name]}>
               <Scene />
             </SceneStart.Provider>
@@ -51,7 +51,7 @@ export function Film() {
       </AbsoluteFill>
       {flash > 0.01 ? <AbsoluteFill style={{ background: "#fff", opacity: 0.55 * flash, pointerEvents: "none" }} /> : null}
       {/* Music and dialogue are mixed together on the beat grid in music.py. */}
-      <Audio src={web ? web.soundtrack : staticFile("music/soundtrack.wav")} volume={0.9} pauseWhenBuffering />
+      <Audio data-intro-soundtrack src={web ? web.soundtrack : staticFile("music/soundtrack.wav")} volume={0.9} pauseWhenBuffering />
     </AbsoluteFill>
   );
 }

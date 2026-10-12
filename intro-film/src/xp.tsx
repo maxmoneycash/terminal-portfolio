@@ -59,7 +59,7 @@ export function Clip({ id, from = 0, fit = "contain", position = "50% 50%", styl
   }
   const video = (
     <OffthreadVideo
-      src={web ? web.clips[id][web.mobile ? "mobile" : "src"] : staticFile(`clips/${id}${thumb ? ".thumb" : ""}.mp4`)}
+      src={web ? web.clips[id][web.mobile || thumb ? "mobile" : "src"] : staticFile(`clips/${id}${thumb ? ".thumb" : ""}.mp4`)}
       pauseWhenBuffering
       trimBefore={trim}
       playbackRate={rate}
@@ -553,11 +553,13 @@ export function AppWindow({ at, out, enter = "pop", exit = "minimize", taskX, ch
 }) {
   const frame = useCurrentFrame();
   const { W, H } = useOrientation();
-  if (frame < at || (out !== undefined && frame >= out + EXIT_FRAMES)) return null;
-  const tIn = Math.min(1, (frame - at) / ENTER_FRAMES);
+  const web = useWebPlayback();
+  if ((!web && frame < at) || (out !== undefined && frame >= out + EXIT_FRAMES)) return null;
+  // Keep future panes mounted while their scene preloads, even before entry.
+  const tIn = Math.max(0, Math.min(1, (frame - at) / ENTER_FRAMES));
   const tOut = out === undefined || frame < out ? 0 : Math.min(1, (frame - out) / EXIT_FRAMES);
   let transform = "";
-  let opacity = 1;
+  let opacity = frame < at ? 0 : 1;
   if (tIn < 1) {
     const e = easeOut(tIn);
     if (enter === "pop") {
@@ -601,7 +603,7 @@ export function Montage({ shots, until }: { shots: { id: ClipId; at: number; fro
   return (
     <>
       {shots.map((shot, i) => (
-        <Sequence key={`${shot.id}-${shot.at}`} from={shot.at} durationInFrames={Math.max(1, (shots[i + 1]?.at ?? until) - shot.at)} premountFor={web ? 30 : 0}>
+        <Sequence key={`${shot.id}-${shot.at}`} from={shot.at} durationInFrames={Math.max(1, (shots[i + 1]?.at ?? until) - shot.at)} premountFor={web ? 90 : 0}>
           <Clip id={shot.id} from={shot.from ?? 0} />
         </Sequence>
       ))}

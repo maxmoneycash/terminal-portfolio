@@ -5,7 +5,11 @@ import { cn } from "../lib/cn";
 import { getSystemVolume } from "./audio";
 import { LoadingMontage } from "../intro/LoadingMontage";
 import { OPENING_FRAMES } from "../intro/BanknoteOpening";
+import { playbackRecovery, recoveryFrame } from "../intro/playbackHealth";
+import chapters from "../intro/chapters.json";
+import score from "../../intro-film/score.json";
 
+const FILM_FRAMES = chapters.reduce((sum, chapter) => sum + chapter.beats * score.framesPerBeat, 0);
 const ResponsiveFilm = lazy(() => import("../intro/ResponsiveFilm"));
 type Playback = "loading" | "playing" | "manual" | "paused" | "buffering" | "error";
 export type IntroEnd = "ended" | "skipped";
@@ -24,7 +28,7 @@ export function IntroVideo({ onFinish, fading, requested = false }: {
   const [viewport, setViewport] = useState({ width: window.innerWidth, height: window.innerHeight });
   const [manualPreference] = useState(() => !requested && (window.matchMedia("(prefers-reduced-motion: reduce)").matches ||
     Boolean((navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData)));
-  const [mobile] = useState(() => window.innerWidth < 1000 || window.innerHeight > window.innerWidth ||
+  const [mobile, setMobile] = useState(() => window.innerWidth < 1000 || window.innerHeight > window.innerWidth ||
     Boolean((navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData));
   const [player, setPlayer] = useState<PlayerRef | null>(null);
   const [playback, setPlayback] = useState<Playback>(manualPreference ? "manual" : "loading");
@@ -39,6 +43,8 @@ export function IntroVideo({ onFinish, fading, requested = false }: {
   const [volume] = useState(() => getSystemVolume() / 100);
   const [skipVisible, setSkipVisible] = useState(false);
   const lastFrame = useRef(0);
+  const recoveries = useRef(0);
+  const isBuffering = useRef(false);
   const finished = useRef(false);
   const userStarted = useRef(requested);
   const initialFrame = useRef(0);
@@ -69,10 +75,11 @@ export function IntroVideo({ onFinish, fading, requested = false }: {
 
   useEffect(() => {
     if (!player || !inkReady) return;
+    isBuffering.current = false;
     const playing = () => { setStarted(true); setPlayback("playing"); };
     const paused = () => { if (!finished.current) setPlayback("paused"); };
-    const buffering = () => setPlayback("buffering");
-    const resume = () => { if (player.isPlaying()) playing(); };
+    const buffering = () => { isBuffering.current = true; setPlayback("buffering"); };
+    const resume = () => { isBuffering.current = false; if (player.isPlaying()) playing(); };
     const ended = () => finish("ended");
     const time: CallbackListener<"timeupdate"> = ({ detail }) => {
       lastFrame.current = detail.frame;
@@ -102,6 +109,48 @@ export function IntroVideo({ onFinish, fading, requested = false }: {
   }, [player, inkReady, manualPreference, finish, fail]);
 
   useEffect(() => {
+    if (!player || !inkReady) return;
+    let previous = player.getCurrentFrame();
+    let lastProgress = performance.now();
+    let resumeRequest = 0;
+    const timer = window.setInterval(() => {
+      const current = player.getCurrentFrame();
+      const now = performance.now();
+      if (current !== previous || document.hidden || !player.isPlaying()) {
+        previous = current;
+        lastProgress = now;
+        return;
+      }
+      if (finished.current) return;
+      const buffering = isBuffering.current;
+      const recovery = playbackRecovery({ stalledFor: now - lastProgress, buffering,
+        playing: player.isPlaying(), hidden: document.hidden });
+      if (!recovery) return;
+      const soundtrack = region.current?.querySelector<HTMLAudioElement>("audio[data-intro-soundtrack]");
+      const at = recoveryFrame(current, soundtrack?.currentTime, FILM_FRAMES, buffering);
+      lastProgress = now;
+      player.pause();
+      if (++recoveries.current > 3) { fail(); return; }
+      lastFrame.current = at;
+      if (recovery === "media") {
+        // A hung decoder/request gets a fresh, smaller source at the same cut.
+        initialFrame.current = at;
+        setMobile(true);
+        setPlayback("loading");
+        setAttempt(value => value + 1);
+      } else {
+        // Pause cancels a stuck audio-resume wait. Resume on the next frame,
+        // after that cancellation settles, without remounting the whole film.
+        resumeRequest = requestAnimationFrame(() => {
+          player.seekTo(at);
+          player.play();
+        });
+      }
+    }, 500);
+    return () => { clearInterval(timer); cancelAnimationFrame(resumeRequest); };
+  }, [player, inkReady, fail]);
+
+  useEffect(() => {
     setSlow(false);
     if (!waiting) return;
     const timer = window.setTimeout(() => setSlow(true), 8000);
@@ -110,6 +159,7 @@ export function IntroVideo({ onFinish, fading, requested = false }: {
 
   const play = useCallback(() => {
     userStarted.current = true;
+    recoveries.current = 0;
     region.current?.focus({ preventScroll: true });
     if (playback === "error" || (waiting && slow)) {
       initialFrame.current = lastFrame.current;
@@ -142,13 +192,13 @@ export function IntroVideo({ onFinish, fading, requested = false }: {
   return <div ref={region} className={cn("intro", portrait && "is-portrait", frame < OPENING_FRAMES && "is-opening", fading && `is-fading-${fading}`)}
     role="region" aria-label="MaxXP intro" tabIndex={-1} data-frame={frame} data-playback={playback}
     onClick={() => { if (needsPlay) play(); else { userStarted.current = true; player?.unmute(); } }}>
-    <FilmBoundary key={attempt} onError={fail}>
+    <FilmBoundary key={`film-${attempt}`} onError={fail}>
       <Suspense fallback={null}>
         <ResponsiveFilm width={viewport.width} height={viewport.height} mobile={mobile}
           initialFrame={initialFrame.current} volume={volume} onReady={setPlayer} />
       </Suspense>
     </FilmBoundary>
-    {!started && <LoadingMontage key={attempt} onError={fail} onReady={inkLoaded} onFrame={openingTick} still={manualPreference} width={viewport.width} height={viewport.height} />}
+    {!started && <LoadingMontage key={`opening-${attempt}`} onError={fail} onReady={inkLoaded} onFrame={openingTick} still={manualPreference} width={viewport.width} height={viewport.height} />}
     {(needsPlay || (waiting && slow)) && <div className="intro-play-prompt">
       {playback === "error" ? <p>Playback was interrupted. Retry from here.</p> : waiting ? <p role="status">Still loading the film…</p> : null}
       <button type="button" className="xp-control" onClick={event => { event.stopPropagation(); play(); }}>
