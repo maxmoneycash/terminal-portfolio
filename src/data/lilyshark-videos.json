@@ -232,65 +232,23 @@
     ]
   },
   {
-    "id": "lilyshark-camera-why-i-built-it",
-    "title": "Lilyshark: Why I built Lilyshark",
+    "id": "lilyshark-camera-summary",
+    "title": "Lilyshark: Meshtastic demo",
     "date": "On camera",
-    "summary": "Max explains why he is building a packet analyzer for the radio traffic around him.",
-    "sourceFilename": "P1010579.MOV",
-    "poster": "/videos/reels/posters/lilyshark-camera-why-i-built-it-e1d3e740.jpg",
+    "summary": "Max demonstrates the handheld radio analyzer, from Meshtastic packets to the spectrum scan.",
+    "sourceFilename": "Meshtastic_LilyShark_summary_v2.mov",
+    "poster": "/videos/reels/posters/lilyshark-camera-summary-8313d916.jpg",
     "link": "https://lilyshark.com/",
-    "durationSeconds": 12.133333,
-    "sizeBytes": 2751126,
+    "durationSeconds": 48.883,
+    "sizeBytes": 32668177,
     "hasAudio": true,
-    "width": 1280,
-    "height": 720,
+    "width": 1920,
+    "height": 1080,
     "sources": [
       {
-        "src": "/videos/reels/lilyshark-camera-why-i-built-it-1a40f6cd.mp4",
+        "src": "/videos/reels/lilyshark-camera-summary-8313d916.mp4",
         "type": "video/mp4",
-        "quality": "HD"
-      }
-    ]
-  },
-  {
-    "id": "lilyshark-camera-device-explained",
-    "title": "Lilyshark: The device, explained by Max",
-    "date": "On camera",
-    "summary": "The original camera explanation of the T-Deck and its long-range radio, in Max\u2019s natural voice.",
-    "sourceFilename": "P1010579.MOV",
-    "poster": "/videos/reels/posters/lilyshark-camera-device-explained-575ae14f.jpg",
-    "link": "https://lilyshark.com/",
-    "durationSeconds": 24.833333,
-    "sizeBytes": 4797210,
-    "hasAudio": true,
-    "width": 1280,
-    "height": 720,
-    "sources": [
-      {
-        "src": "/videos/reels/lilyshark-camera-device-explained-2ed20499.mp4",
-        "type": "video/mp4",
-        "quality": "HD"
-      }
-    ]
-  },
-  {
-    "id": "lilyshark-camera-spectrum-demo",
-    "title": "Lilyshark: Max demonstrates the spectrum scan",
-    "date": "On camera",
-    "summary": "A hands-on demonstration from the original recording, with natural speech and timing.",
-    "sourceFilename": "P1010579.MOV",
-    "poster": "/videos/reels/posters/lilyshark-camera-spectrum-demo-4bf0f50b.jpg",
-    "link": "https://lilyshark.com/",
-    "durationSeconds": 19.266667,
-    "sizeBytes": 4648687,
-    "hasAudio": true,
-    "width": 1280,
-    "height": 720,
-    "sources": [
-      {
-        "src": "/videos/reels/lilyshark-camera-spectrum-demo-505a37ac.mp4",
-        "type": "video/mp4",
-        "quality": "HD"
+        "quality": "1080p"
       }
     ]
   }

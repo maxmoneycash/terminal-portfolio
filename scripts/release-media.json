@@ -62,18 +62,6 @@
       "sha256": "ba617c10f0ffed2469404ae8b3809b6e662cc86be40ab89dfe5453eb01f32045",
       "bytes": 6704374
     },
-    "videos/reels/lilyshark-camera-why-i-built-it-1a40f6cd.mp4": {
-      "sha256": "1a40f6cd6d9ea0b0e41be6be933999b5e47d4533610bbb34f099e711708e60b7",
-      "bytes": 2751126
-    },
-    "videos/reels/lilyshark-camera-device-explained-2ed20499.mp4": {
-      "sha256": "2ed20499d6e87cd1e6b8e0c90fa615f28602247d428f6a12488e5f337f82a38f",
-      "bytes": 4797210
-    },
-    "videos/reels/lilyshark-camera-spectrum-demo-505a37ac.mp4": {
-      "sha256": "505a37acddbfdd8ff46e76f0f82939a41e8c74f833bb7f87a3727a3da6dc0f7d",
-      "bytes": 4648687
-    },
     "videos/intro-shots/aptos-vs-megaeth-src-6c7794bc.mp4": {
       "sha256": "6c7794bccaf3ee27d449de9619a7aca59e9e4569ba9a466147b644a09847bded",
       "bytes": 1426457
@@ -269,6 +257,10 @@
     "videos/intro-shots/score-cdcd8685.m4a": {
       "sha256": "cdcd8685e647f9829c55eebed98cd1ea0112ae38057d6edb587dbf256d292b21",
       "bytes": 1224642
+    },
+    "videos/reels/lilyshark-camera-summary-8313d916.mp4": {
+      "sha256": "8313d9160515d9114349a3882ad400d83045d5c2d21414a6c3d786ca748b79e4",
+      "bytes": 32668177
     }
   }
 }

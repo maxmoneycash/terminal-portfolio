@@ -90,14 +90,16 @@ test('every clip used by a scene has a published responsive source', () => {
   for (const id of Object.keys(clips)) if (tokens.has(id)) assert.ok(media.clips[id], `Unpublished clip: ${id}`);
 });
 
-test('the Lilyshark library includes the recovered natural-speed camera explanations', () => {
+test('the Lilyshark camera demo uses the complete approved edit instead of raw excerpts', () => {
   const videos = read('../src/data/lilyshark-videos.json').filter(v => v.date === 'On camera');
   const files = read('./release-media.json').files;
-  assert.equal(videos.length, 3);
+  assert.equal(videos.length, 1);
   for (const video of videos) {
-    assert.equal(video.sourceFilename, 'P1010579.MOV');
+    assert.equal(video.sourceFilename, 'Meshtastic_LilyShark_summary_v2.mov');
     assert.equal(video.hasAudio, true);
-    assert.ok(video.durationSeconds >= 12);
+    assert.ok(Math.abs(video.durationSeconds - 48.865) < 0.1);
+    assert.equal(video.width, 1920);
+    assert.equal(video.height, 1080);
     assert.ok(files[video.sources[0].src.slice(1)]);
     assert.ok(existsSync(new URL(`../public${video.poster}`, import.meta.url)));
   }
