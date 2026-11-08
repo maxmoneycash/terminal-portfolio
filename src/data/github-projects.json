@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-08T13:29:20.253Z",
+  "generatedAt": "2026-11-08T22:09:58.434Z",
   "profile": {
     "login": "maxmoneycash",
     "name": "maxmoneycash",
@@ -13,28 +13,13 @@
   "repositories": [
     {
       "owner": "maxmoneycash",
-      "name": "maxmoneycash",
-      "description": "Terminal-rice profile: audited AI token telemetry across 6 coding agents, perps-style contribution charts, SF commit city — re-rendered daily",
-      "private": false,
-      "fork": false,
-      "archived": false,
-      "homepage": null,
-      "pushedAt": "2026-11-08T12:48:12Z",
-      "language": "Python",
-      "url": "https://github.com/maxmoneycash/maxmoneycash",
-      "license": null,
-      "stars": 4,
-      "forks": 0
-    },
-    {
-      "owner": "maxmoneycash",
       "name": "orbital-works-data",
       "description": "Automated CelesTrak + SatNOGS data mirror for Orbital Works.",
       "private": false,
       "fork": false,
       "archived": false,
       "homepage": null,
-      "pushedAt": "2026-11-08T09:51:13Z",
+      "pushedAt": "2026-11-08T21:35:33Z",
       "language": "JavaScript",
       "url": "https://github.com/maxmoneycash/orbital-works-data",
       "license": null,
@@ -43,17 +28,17 @@
     },
     {
       "owner": "maxmoneycash",
-      "name": "terminal-portfolio",
-      "description": "Portfolio site that boots like a terminal",
+      "name": "maxmoneycash",
+      "description": "Terminal-rice profile: audited AI token telemetry across 6 coding agents, perps-style contribution charts, SF commit city — re-rendered daily",
       "private": false,
       "fork": false,
       "archived": false,
-      "homepage": "https://terminal-portfolio-eight-chi.vercel.app/",
-      "pushedAt": "2026-11-08T06:07:27Z",
-      "language": "TypeScript",
-      "url": "https://github.com/maxmoneycash/terminal-portfolio",
+      "homepage": null,
+      "pushedAt": "2026-11-08T21:05:35Z",
+      "language": "Python",
+      "url": "https://github.com/maxmoneycash/maxmoneycash",
       "license": null,
-      "stars": 1,
+      "stars": 4,
       "forks": 0
     },
     {
@@ -64,11 +49,26 @@
       "fork": false,
       "archived": false,
       "homepage": null,
-      "pushedAt": "2026-11-07T13:29:30Z",
+      "pushedAt": "2026-11-08T13:49:16Z",
       "language": "Python",
       "url": "https://github.com/SeamMoney/.github",
       "license": null,
       "stars": 0,
+      "forks": 0
+    },
+    {
+      "owner": "maxmoneycash",
+      "name": "terminal-portfolio",
+      "description": "Portfolio site that boots like a terminal",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "homepage": "https://terminal-portfolio-eight-chi.vercel.app/",
+      "pushedAt": "2026-11-08T13:29:26Z",
+      "language": "TypeScript",
+      "url": "https://github.com/maxmoneycash/terminal-portfolio",
+      "license": null,
+      "stars": 1,
       "forks": 0
     },
     {
@@ -248,7 +248,7 @@
       "language": "Swift",
       "url": "https://github.com/maxmoneycash/lilyshark",
       "license": "GPL-3.0",
-      "stars": 6,
+      "stars": 7,
       "forks": 0
     },
     {
