@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-11-09T06:40:12.317Z",
+  "checkedAt": "2026-11-09T22:25:34.510Z",
   "apps": [
     {
       "id": "maxmoneycash/lilyshark",
@@ -12,12 +12,6 @@
       "url": "https://orbital-works.vercel.app/",
       "available": true,
       "mode": "embed"
-    },
-    {
-      "id": "SeamMoney/cash.trading",
-      "url": "https://cash.trading/",
-      "available": true,
-      "mode": "external"
     },
     {
       "id": "maxmoneycash/polar-browser-themes",
