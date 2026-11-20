@@ -1,11 +1,11 @@
 {
-  "generatedAt": "2026-11-19T20:41:31.095Z",
+  "generatedAt": "2026-11-20T07:21:46.540Z",
   "profile": {
     "login": "maxmoneycash",
     "name": "maxmoneycash",
     "bio": "Just here for the tech",
     "followers": 155,
-    "following": 694,
+    "following": 695,
     "location": "San Francisco, CA",
     "avatarUrl": "https://avatars.githubusercontent.com/u/36392311?v=4",
     "url": "https://github.com/maxmoneycash"
@@ -19,7 +19,7 @@
       "fork": false,
       "archived": false,
       "homepage": null,
-      "pushedAt": "2026-11-19T19:51:58Z",
+      "pushedAt": "2026-11-20T05:50:55Z",
       "language": "Python",
       "url": "https://github.com/maxmoneycash/maxmoneycash",
       "license": null,
@@ -34,9 +34,24 @@
       "fork": false,
       "archived": false,
       "homepage": null,
-      "pushedAt": "2026-11-19T19:46:42Z",
+      "pushedAt": "2026-11-20T04:53:30Z",
       "language": "JavaScript",
       "url": "https://github.com/maxmoneycash/orbital-works-data",
+      "license": null,
+      "stars": 1,
+      "forks": 0
+    },
+    {
+      "owner": "maxmoneycash",
+      "name": "terminal-portfolio",
+      "description": "Portfolio site that boots like a terminal",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "homepage": "https://terminal-portfolio-eight-chi.vercel.app/",
+      "pushedAt": "2026-11-19T20:41:37Z",
+      "language": "TypeScript",
+      "url": "https://github.com/maxmoneycash/terminal-portfolio",
       "license": null,
       "stars": 1,
       "forks": 0
@@ -54,21 +69,6 @@
       "url": "https://github.com/SeamMoney/.github",
       "license": null,
       "stars": 0,
-      "forks": 0
-    },
-    {
-      "owner": "maxmoneycash",
-      "name": "terminal-portfolio",
-      "description": "Portfolio site that boots like a terminal",
-      "private": false,
-      "fork": false,
-      "archived": false,
-      "homepage": "https://terminal-portfolio-eight-chi.vercel.app/",
-      "pushedAt": "2026-11-19T07:30:18Z",
-      "language": "TypeScript",
-      "url": "https://github.com/maxmoneycash/terminal-portfolio",
-      "license": null,
-      "stars": 1,
       "forks": 0
     },
     {
